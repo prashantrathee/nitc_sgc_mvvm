@@ -11,10 +11,15 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.tabs.TabLayoutMediator
 import com.nitc.projectsgc.Login.access.LoginAccess
+import com.nitc.projectsgc.ProfileAccess
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.databinding.FragmentStudentDashBoardBinding
 import com.nitc.projectsgc.student.adapters.StudentAppointmentsPagerAdapter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class StudentDashboardFragment: Fragment() {
     lateinit var binding:FragmentStudentDashBoardBinding
@@ -55,7 +60,8 @@ class StudentDashboardFragment: Fragment() {
 //        }
 
 //        binding.viewPagerInStudentDashboard.isUserInputEnabled = false
-        loadViewPager()
+        getProfile()
+//        loadViewPager()
         binding.swipeLayoutInStudentDashboardFragment.setOnRefreshListener {
             loadViewPager()
         }
@@ -90,10 +96,32 @@ class StudentDashboardFragment: Fragment() {
         return binding.root
     }
 
+    private fun getProfile() {
+
+        val profileCoroutineScope = CoroutineScope(Dispatchers.Main)
+        profileCoroutineScope.launch {
+
+            val gotProfile = ProfileAccess(
+                requireContext(),
+                sharedViewModel,
+                this@StudentDashboardFragment
+            ).getProfile()
+            profileCoroutineScope.cancel()
+            if(gotProfile == false){
+                LoginAccess(
+                    requireContext(),
+                    this@StudentDashboardFragment,
+                    sharedViewModel
+                ).logout()
+                findNavController().navigate(R.id.loginFragment)
+            }else{
+                loadViewPager()
+            }
+        }
+    }
+
     private fun loadViewPager() {
         binding.viewPagerInStudentDashboard.adapter = StudentAppointmentsPagerAdapter(childFragmentManager,lifecycle)
-//        binding.viewPagerInStudentDashboard.isNestedScrollingEnabled = false
-//        binding.tabLayoutInStudentDashboard.addTab(binding.tabLayoutInStudentDashboard.newTab().setText("Profile"))
         TabLayoutMediator(binding.tabLayoutInStudentDashboard,binding.viewPagerInStudentDashboard){tab,position->
             when(position){
                 0-> tab.text = "Booked"

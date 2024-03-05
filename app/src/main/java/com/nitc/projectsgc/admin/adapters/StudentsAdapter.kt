@@ -17,7 +17,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
-import com.nitc.projectsgc.Student
+import com.nitc.projectsgc.models.Student
 import com.nitc.projectsgc.admin.access.StudentsAccess
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.coroutines.CoroutineScope
@@ -56,7 +56,7 @@ class StudentsAdapter(
         holder.phoneText.text = students[position].phoneNumber.toString()
         holder.rollText.text = students[position].rollNo.toString()
         holder.personImage.setOnClickListener {
-            sharedViewModel.idForStudentProfile = students[position].rollNo
+            sharedViewModel.idForStudentProfile = students[position].userName
             parentFragment.findNavController().navigate(R.id.studentProfileFragment)
         }
 
@@ -70,20 +70,21 @@ class StudentsAdapter(
             holder.personImage.setImageDrawable(ResourcesCompat.getDrawable(parentFragment.resources,R.drawable.girl_face,null))
         }
         holder.viewAppointmentsButton.setOnClickListener {
-            var appointmentsLive = StudentsAccess(context,parentFragment).getAppointments(students[position].rollNo)
-            if(appointmentsLive != null){
-                appointmentsLive.observe(parentFragment.viewLifecycleOwner){appointments->
-                    if(appointments != null){
-                        if(!appointments.isEmpty()) {
-                            sharedViewModel.viewAppointmentStudentID = students[position].rollNo
-                            parentFragment.findNavController()
-                                .navigate(R.id.studentAllAppointmentsFragment)
-                        }else{
-                            Toast.makeText(context,"No Appointments yet",Toast.LENGTH_SHORT).show()
-                        }
+            var getAppointmentsCoroutineScope = CoroutineScope(Dispatchers.Main)
+            getAppointmentsCoroutineScope.launch {
+            var appointments = StudentsAccess(context,parentFragment,sharedViewModel.currentInstitution.username!!).getAppointments(students[position].userName)
+                getAppointmentsCoroutineScope.cancel()
+                if (appointments != null) {
+                    if (!appointments.isEmpty()) {
+                        sharedViewModel.viewAppointmentStudentID = students[position].userName
+                        parentFragment.findNavController()
+                            .navigate(R.id.studentAllAppointmentsFragment)
+                    } else {
+                        Toast.makeText(context, "No Appointments yet", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
+
         }
 
         holder.deleteButton.setOnClickListener {
@@ -98,7 +99,8 @@ class StudentsAdapter(
                         loadingDialog.show()
                         var deleted = StudentsAccess(
                             context,
-                            parentFragment
+                            parentFragment,
+                            sharedViewModel.currentInstitution.username!!
                         ).deleteStudent(
                             students[position].rollNo.toString(),
                             students[position].emailId.toString()

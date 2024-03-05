@@ -59,7 +59,7 @@ class AllStudentsFragment:Fragment() {
         coroutineScope.launch {
             loadingDialog.create()
             loadingDialog.show()
-            var students = StudentsAccess(requireContext(), this@AllStudentsFragment).getStudents()
+            var students = StudentsAccess(requireContext(), this@AllStudentsFragment,sharedViewModel.currentInstitution.username!!).getStudents()
             loadingDialog.cancel()
             if (students == null) {
                 binding.noStudentsTVInAllStudentsFragment.visibility = View.GONE

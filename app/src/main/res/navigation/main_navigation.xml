@@ -57,7 +57,7 @@
         android:id="@+id/splashScreenFragment"
         android:name="com.nitc.projectsgc.IntroductoryFragment"
         android:label="fragment_splash_screen"
-        tools:layout="@layout/fragment_splash_screen" >
+        tools:layout="@layout/fragment_introductory" >
         <action
             android:id="@+id/action_splashScreenFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
@@ -108,4 +108,8 @@
         android:id="@+id/studentProfileFragment"
         android:name="com.nitc.projectsgc.student.fragments.StudentProfileFragment"
         android:label="StudentProfileFragment" />
+    <fragment
+        android:id="@+id/addInstitutionFragment"
+        android:name="com.nitc.projectsgc.register.AddInstitutionFragment"
+        android:label="AddInstitutionFragment" />
 </navigation>

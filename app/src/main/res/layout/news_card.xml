@@ -20,6 +20,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_bias="0.1"
         android:layout_gravity="center"
+        android:layout_margin="30dp"
+        android:text="shjdfh kjsdhfsd fkjsdh sjkdf sjkdh "
         android:gravity="start"
         android:fontFamily="@font/inter"
         android:id="@+id/newsTextInNewsCard"/>
@@ -83,6 +85,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:cornerRadius="10dp"
             android:textAllCaps="false"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginTop="15dp"
             android:textColor="@color/black"

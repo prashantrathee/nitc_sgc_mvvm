@@ -12,17 +12,21 @@ import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.nitc.projectsgc.Mentor
+import com.nitc.projectsgc.models.Mentor
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.admin.access.MentorsAccess
 import com.nitc.projectsgc.databinding.FragmentMentorUpdateBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class MentorUpdateFragment : Fragment() {
     lateinit var mentorUpdateBinding: FragmentMentorUpdateBinding
     private val sharedViewModel:SharedViewModel by activityViewModels()
     var database : FirebaseDatabase = FirebaseDatabase.getInstance()
-    var reference : DatabaseReference = database.reference.child("types")
+    var reference : DatabaseReference = database.reference.child(sharedViewModel.currentInstitution.username!!).child("types")
     var auth : FirebaseAuth = FirebaseAuth.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,9 +48,12 @@ class MentorUpdateFragment : Fragment() {
         mentorUpdateBinding.phoneNumberInUpdateMentorFragment.setText(sharedViewModel.currentMentor.phone)
         var mentorTypeSelected = "NA"
         mentorUpdateBinding.mentorTypeButtonInUpdateMentorFragment.setOnClickListener{
-            var mentorTypesLive = context?.let { it1 -> MentorsAccess(it1).getMentorTypes() }
-            if (mentorTypesLive != null) {
-                mentorTypesLive.observe(viewLifecycleOwner) { mentorTypes ->
+            val mentorTypesCoroutineScope = CoroutineScope(Dispatchers.Main)
+            mentorTypesCoroutineScope.launch {
+            var mentorTypes = MentorsAccess(requireContext(),sharedViewModel.currentInstitution.username!!).getMentorTypes()
+                mentorTypesCoroutineScope.cancel()
+            if (mentorTypes != null) {
+//                mentorTypes.observe(viewLifecycleOwner) { mentorTypes ->
                     if(mentorTypes != null) {
                         val mentorTypeBuilder = AlertDialog.Builder(context)
                         mentorTypeBuilder.setTitle("Choose Mentor Type")
@@ -57,14 +64,14 @@ class MentorUpdateFragment : Fragment() {
                             mentorTypeSelected = mentorTypes[selectedIndex].toString()
                             mentorUpdateBinding.mentorTypeButtonInUpdateMentorFragment.text = mentorTypeSelected
                             mentorTypes.clear()
-                            mentorTypesLive.removeObservers(viewLifecycleOwner)
+//                            mentorTypes.removeObservers(viewLifecycleOwner)
                             dialog.dismiss()
                         }
                         mentorTypeBuilder.setPositiveButton("Go") { dialog, which ->
                             mentorTypeSelected = mentorTypes[0].toString()
                             mentorUpdateBinding.mentorTypeButtonInUpdateMentorFragment.text = mentorTypeSelected
                             mentorTypes.clear()
-                            mentorTypesLive.removeObservers(viewLifecycleOwner)
+//                            mentorTypes.removeObservers(viewLifecycleOwner)
                             dialog.dismiss()
                         }
                         mentorTypeBuilder.create().show()

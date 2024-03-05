@@ -15,9 +15,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.messaging.FirebaseMessaging
-import com.google.firebase.messaging.RemoteMessage
-import com.nitc.projectsgc.Appointment
+import com.nitc.projectsgc.models.Appointment
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.admin.access.StudentsAccess
@@ -27,7 +25,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import java.util.*
 import kotlin.collections.ArrayList
 
 class MentorAppointmentsAdapter(
@@ -98,7 +95,7 @@ class MentorAppointmentsAdapter(
 
         var coroutineScope = CoroutineScope(Dispatchers.Main)
         coroutineScope.launch {
-            var student = StudentsAccess(context, parentFragment).getStudent(stdId)
+            var student = StudentsAccess(context, parentFragment,sharedViewModel.currentInstitution.username!!).getStudent(stdId)
             coroutineScope.cancel()
             if (student != null) {
                 holder.nameOfTheStudent.text = student.name.toString()
@@ -150,42 +147,43 @@ class MentorAppointmentsAdapter(
                             var cancelAppointment = appointments[position]
                             cancelAppointment.cancelled = true
                             cancelAppointment.status =
-                                "Cancelled by mentor" + "\n" + cancelNoteInput
-                            var cancelLive = MentorAppointmentsAccess(
+                                "Cancelled by mentor" + "\n Remark : " + cancelNoteInput
+                            var cancelAppointmentCoroutineScope = CoroutineScope(Dispatchers.Main)
+                            cancelAppointmentCoroutineScope.launch {
+
+                            var cancelSuccess = MentorAppointmentsAccess(
                                 context,
                                 sharedViewModel = sharedViewModel
                             ).cancelAppointment(appointment = cancelAppointment)
-                            if (cancelLive != null) {
-                                cancelLive.observe(parentFragment.viewLifecycleOwner) { cancelSuccess ->
+                                cancelAppointmentCoroutineScope.cancel()
                                     if (cancelSuccess) {
-                                        val studentCoroutineScope = CoroutineScope(Dispatchers.Main)
-                                        studentCoroutineScope.launch {
-                                            val student =
-                                                StudentsAccess(context, parentFragment).getStudent(
-                                                    stdId
-                                                )
-                                            if(student != null) {
-                                                val message =
-                                                    RemoteMessage.Builder(student.fcmToken)
-                                                        .setMessageId(UUID.randomUUID().toString())
-                                                        .setData(
-                                                            mapOf(
-                                                                "title" to "Appointment Cancelled",
-                                                                "body" to "Appointment with ${sharedViewModel.currentMentor.name} on ${appointments[position].date} is cancelled"
-                                                            )
-                                                        )
-                                                        .build()
-                                                FirebaseMessaging.getInstance().send(message)
-                                            }
-                                            studentCoroutineScope.cancel()
-                                        }
+//                                        val studentCoroutineScope = CoroutineScope(Dispatchers.Main)
+//                                        studentCoroutineScope.launch {
+//                                            val student =
+//                                                StudentsAccess(context, parentFragment).getStudent(
+//                                                    stdId
+//                                                )
+//                                            if(student != null) {
+//                                                val message =
+//                                                    RemoteMessage.Builder(student.fcmToken)
+//                                                        .setMessageId(UUID.randomUUID().toString())
+//                                                        .setData(
+//                                                            mapOf(
+//                                                                "title" to "Appointment Cancelled",
+//                                                                "body" to "Appointment with ${sharedViewModel.currentMentor.name} on ${appointments[position].date} is cancelled"
+//                                                            )
+//                                                        )
+//                                                        .build()
+//                                                FirebaseMessaging.getInstance().send(message)
+//                                            }
+//                                            studentCoroutineScope.cancel()
+//                                        }
                                         Toast.makeText(context, "Cancelled", Toast.LENGTH_SHORT)
                                             .show()
                                         appointments[position] = cancelAppointment
                                         notifyItemChanged(position)
                                     }
                                 }
-                            }
                         }
                     }
                     .setNegativeButton("No"){dialog,which->
@@ -203,17 +201,20 @@ class MentorAppointmentsAdapter(
         }
 
         holder.viewPastRecord.setOnClickListener {
-            var appointmentsLive = MentorAppointmentsAccess(context, sharedViewModel).getStudentRecord(studentID = appointments[position].studentID.toString())
-            if(appointmentsLive != null){
-                appointmentsLive.observe(parentFragment.viewLifecycleOwner){pastAppointments->
-                    if(pastAppointments == null || pastAppointments.isEmpty()){
-                        Toast.makeText(context,"No past record found",Toast.LENGTH_SHORT).show()
-                        appointmentsLive.removeObservers(parentFragment.viewLifecycleOwner)
-                    }else{
-                        sharedViewModel.pastRecordStudentID = appointments[position].studentID.toString()
-                        appointmentsLive.removeObservers(parentFragment.viewLifecycleOwner)
-                        parentFragment.findNavController().navigate(R.id.pastRecordFragment)
-                    }
+            var pastAppointmentsCoroutineScope = CoroutineScope(Dispatchers.Main)
+            pastAppointmentsCoroutineScope.launch {
+
+                var pastAppointments = MentorAppointmentsAccess(
+                    context,
+                    sharedViewModel
+                ).getStudentRecord(studentID = appointments[position].studentID.toString())
+                pastAppointmentsCoroutineScope.cancel()
+                if (pastAppointments == null || pastAppointments.isEmpty()) {
+                    Toast.makeText(context, "No past record found", Toast.LENGTH_SHORT).show()
+                } else {
+                    sharedViewModel.pastRecordStudentID =
+                        appointments[position].studentID.toString()
+                    parentFragment.findNavController().navigate(R.id.pastRecordFragment)
                 }
             }
         }
@@ -232,19 +233,19 @@ class MentorAppointmentsAdapter(
                 return@setOnClickListener
             }
             var remarkAppointment = appointments[position]
-            remarkAppointment.remarks = remarksInput
+            remarkAppointment.remarks = "Remarks : $remarksInput"
             remarkAppointment.status = "Completed"
             remarkAppointment.completed = true
-            var remarksLive = MentorAppointmentsAccess(context, sharedViewModel).giveRemarks(remarkAppointment)
-            if(remarksLive != null){
-                remarksLive.observe(parentFragment.viewLifecycleOwner){remarked->
+            var giveRemarksCoroutineScope = CoroutineScope(Dispatchers.Main)
+            giveRemarksCoroutineScope.launch {
+            var remarked = MentorAppointmentsAccess(context, sharedViewModel).giveRemarks(remarkAppointment)
+                giveRemarksCoroutineScope.cancel()
                     if(remarked){
                         appointments[position] = remarkAppointment
                         notifyItemChanged(position)
                     }
                 }
             }
-        }
 
         holder.completeButton.setOnClickListener {
             appointments[position].expanded = !appointments[position].expanded

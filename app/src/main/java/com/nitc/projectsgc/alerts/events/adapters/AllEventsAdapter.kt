@@ -12,7 +12,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.nitc.projectsgc.Event
+import com.nitc.projectsgc.models.Event
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.alerts.events.access.EventsAccess

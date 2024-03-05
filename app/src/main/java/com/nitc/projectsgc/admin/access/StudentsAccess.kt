@@ -3,22 +3,21 @@ package com.nitc.projectsgc.admin.access
 import android.content.Context
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.database.*
-import com.nitc.projectsgc.Appointment
-import com.nitc.projectsgc.Student
+import com.nitc.projectsgc.models.Appointment
+import com.nitc.projectsgc.models.Student
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class StudentsAccess(var context: Context,var parentFragment: Fragment) {
+class StudentsAccess(var context: Context,var parentFragment: Fragment,val emailSuffix:String) {
 
 
     suspend fun getStudent(rollNo: String): Student? {
         return suspendCoroutine {continuation->
             var studentLive = MutableLiveData<Student?>(null)
             var database: FirebaseDatabase = FirebaseDatabase.getInstance()
-            var reference: DatabaseReference = database.reference.child("students")
+            var reference: DatabaseReference = database.reference.child(emailSuffix).child("students")
             reference.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     var student = snapshot.child(rollNo).getValue(Student::class.java)
@@ -37,7 +36,7 @@ class StudentsAccess(var context: Context,var parentFragment: Fragment) {
     suspend fun getStudents(): ArrayList<Student>? {
         return suspendCoroutine { continuation ->
             var database: FirebaseDatabase = FirebaseDatabase.getInstance()
-            var reference: DatabaseReference = database.reference.child("students")
+            var reference: DatabaseReference = database.reference.child(emailSuffix).child("students")
             reference.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     var studentList = arrayListOf<Student>()
@@ -61,10 +60,10 @@ class StudentsAccess(var context: Context,var parentFragment: Fragment) {
 
     suspend fun deleteStudent(rollNo: String,email:String):Boolean{
         return suspendCoroutine {continuation->
-            var deleteLive = MutableLiveData<Boolean>(false)
+            var isResumed = false
             var database: FirebaseDatabase = FirebaseDatabase.getInstance()
-            var typeReference = database.reference.child("types")
-            var studentReference: DatabaseReference = database.reference.child("students")
+            var typeReference = database.reference.child(emailSuffix).child("types")
+            var studentReference: DatabaseReference = database.reference.child(emailSuffix).child("students")
 //        Log.d("child",reference.child(rollNo).toString())
 
             studentReference.child(rollNo)
@@ -80,9 +79,11 @@ class StudentsAccess(var context: Context,var parentFragment: Fragment) {
                                 studentAppointment.cancelled = true
                                 typeReference.child(mentorAppointmentPath).setValue(studentAppointment)
                                     .addOnCompleteListener { mentorDeleted ->
-                                        if (mentorDeleted.isSuccessful) {}
+                                        if (mentorDeleted.isSuccessful) {
+                                            if(!isResumed) continuation.resume(true)
+                                        }
                                         else {
-                                            continuation.resume(false)
+                                            if(!isResumed)continuation.resume(false)
                                         }
                                     }
                             }
@@ -92,7 +93,7 @@ class StudentsAccess(var context: Context,var parentFragment: Fragment) {
 
                     override fun onCancelled(error: DatabaseError) {
                         Toast.makeText(context, "Error : $error", Toast.LENGTH_LONG).show()
-                        continuation.resume(false)
+                        if(!isResumed)continuation.resume(false)
                     }
 
                 })
@@ -103,33 +104,36 @@ class StudentsAccess(var context: Context,var parentFragment: Fragment) {
             }
                 .addOnFailureListener { error ->
                     Toast.makeText(context, "Error : $error", Toast.LENGTH_LONG).show()
-                    deleteLive.postValue(false)
+                    if(!isResumed) continuation.resume(false)
                 }
 
         }
     }
-    fun getAppointments(rollNo:String):LiveData<ArrayList<Appointment>>{
-        var appointmentsLive = MutableLiveData<ArrayList<Appointment>>(null)
-        var appointments = arrayListOf<Appointment>()
-        var database = FirebaseDatabase.getInstance()
-        var reference = database.reference.child("students")
-        reference.child("$rollNo/appointments").addListenerForSingleValueEvent(object:ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for(ds in snapshot.children){
-                    var appointment = ds.getValue(Appointment::class.java)
-                    if(appointment != null){
-                        appointments.add(appointment)
+    suspend fun getAppointments(rollNo:String):ArrayList<Appointment>?{
+        return suspendCoroutine { continuation ->
+            var isResumed = false
+            var appointments = arrayListOf<Appointment>()
+            var database = FirebaseDatabase.getInstance()
+            var reference = database.reference.child(emailSuffix).child("students")
+            reference.child("$rollNo/appointments")
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        for (ds in snapshot.children) {
+                            var appointment = ds.getValue(Appointment::class.java)
+                            if (appointment != null) {
+                                appointments.add(appointment)
+                            }
+                        }
+                        if(!isResumed)continuation.resume(appointments)
                     }
-                }
-                appointmentsLive.postValue(appointments)
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(context,"Error : $error",Toast.LENGTH_LONG).show()
-            }
+                    override fun onCancelled(error: DatabaseError) {
+                        Toast.makeText(context, "Error : $error", Toast.LENGTH_LONG).show()
+                        if(!isResumed)continuation.resume(null)
+                    }
 
-        })
-        return appointmentsLive
+                })
+        }
     }
 
 

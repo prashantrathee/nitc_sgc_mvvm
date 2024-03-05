@@ -19,6 +19,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayoutMediator
 import com.nitc.projectsgc.Login.access.LoginAccess
+import com.nitc.projectsgc.ProfileAccess
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.databinding.FragmentMentorDashboardBinding
@@ -48,12 +49,12 @@ class MentorDashboardFragment : Fragment() {
     ): View? {
         binding = FragmentMentorDashboardBinding.inflate(inflater, container, false)
 
-        loadViewPager()
+//        loadViewPager()
         binding.swipeLayoutMentorDashboardFragment.setOnRefreshListener {
             loadViewPager()
         }
 
-
+        getProfile()
 
 
         binding.notificationsButtonInMentorDashboardFragment.setOnClickListener {
@@ -80,6 +81,28 @@ class MentorDashboardFragment : Fragment() {
         }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,backCallBack)
         return binding.root
+    }
+
+    private fun getProfile() {
+
+        val profileCoroutineScope = CoroutineScope(Dispatchers.Main)
+        profileCoroutineScope.launch {
+
+            val gotProfile = ProfileAccess(
+                requireContext(),
+                sharedViewModel,
+                this@MentorDashboardFragment
+            ).getProfile()
+            profileCoroutineScope.cancel()
+            if(gotProfile == false){
+                LoginAccess(
+                    requireContext(),
+                    this@MentorDashboardFragment,
+                    sharedViewModel
+                ).logout()
+                findNavController().navigate(R.id.loginFragment)
+            }else loadViewPager()
+        }
     }
 
     private fun loadViewPager() {

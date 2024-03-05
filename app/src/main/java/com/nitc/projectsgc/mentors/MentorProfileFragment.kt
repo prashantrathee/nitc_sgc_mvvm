@@ -10,9 +10,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.LiveData
-import androidx.navigation.fragment.findNavController
-import com.nitc.projectsgc.Mentor
+import com.nitc.projectsgc.models.Mentor
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.admin.access.AddMentorAccess
@@ -23,7 +21,7 @@ import kotlinx.coroutines.*
 class MentorProfileFragment: Fragment() {
     private val sharedViewModel:SharedViewModel by activityViewModels()
     lateinit var binding:FragmentMentorProfileBinding
-    lateinit var mentorLive:LiveData<Mentor>
+    var mentor: Mentor? = null
     var oldPassword = "NA"
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,11 +30,7 @@ class MentorProfileFragment: Fragment() {
     ): View? {
         binding = FragmentMentorProfileBinding.inflate(inflater,container,false)
 
-        mentorLive = if(sharedViewModel.userType == "Admin" || sharedViewModel.userType == "Student") MentorsAccess(requireContext()).getMentor(sharedViewModel.mentorTypeForProfile,sharedViewModel.mentorIDForProfile)
-        else MentorsAccess(requireContext()).getMentor(sharedViewModel.currentMentor.type,sharedViewModel.currentUserID)
-        if (mentorLive != null) {
-            mentorLive.observe(viewLifecycleOwner) { mentor ->
-                if (mentor != null) {
+        getMentorProfile()
                     when (sharedViewModel.userType) {
                         "Admin" -> {
                             binding.passwordInputLayoutInMentorProfileFragment.visibility =
@@ -64,13 +58,6 @@ class MentorProfileFragment: Fragment() {
                             binding.passwordFieldInMentorProfileFragment.isEnabled = false
                         }
                     }
-                    binding.headingTVInMentorProfileFragment.text = mentor.name
-                    binding.nameFieldInMentorProfileFragment.setText(mentor.name)
-                    binding.emailFieldInMentorProfileFragment.setText(mentor.email)
-                    binding.mentorTypeInputInMentorProfileFragment.setText(mentor.type)
-                    binding.phoneNumberInMentorProfileFragment.setText(mentor.phone)
-                    binding.passwordFieldInMentorProfileFragment.setText(mentor.password)
-                    oldPassword = mentor.password.toString()
 
                     binding.updateButtonInMentorProfileFragment.setOnClickListener{
                         val nameOfMentor = binding.nameFieldInMentorProfileFragment.text.toString()
@@ -131,7 +118,7 @@ class MentorProfileFragment: Fragment() {
                             loadingDialog.create()
                             loadingDialog.show()
                             val updatedMentor =
-                                AddMentorAccess(requireContext()).updateMentor(mentor,oldPassword)
+                                AddMentorAccess(requireContext(),sharedViewModel.currentInstitution.username!!).updateMentor(mentor,oldPassword)
                             loadingDialog.cancel()
                             updateCoroutineScope.cancel()
                                 if (updatedMentor) {
@@ -150,18 +137,36 @@ class MentorProfileFragment: Fragment() {
                     }
 
 
-                }
-            }
-        }else{
-            Toast.makeText(context,"Couldn't get details",Toast.LENGTH_SHORT).show()
-        }
-
 
         return binding.root
     }
+
+    private fun getMentorProfile() {
+
+        val getProfileCoroutineScope = CoroutineScope(Dispatchers.Main)
+        getProfileCoroutineScope.launch {
+            mentor = if(sharedViewModel.userType == "Admin" || sharedViewModel.userType == "Student") MentorsAccess(requireContext(),sharedViewModel.currentInstitution.username!!).getMentor(sharedViewModel.mentorTypeForProfile,sharedViewModel.mentorIDForProfile)
+            else MentorsAccess(requireContext(),sharedViewModel.currentInstitution.username!!).getMentor(sharedViewModel.currentMentor.type,sharedViewModel.currentUserID)
+            getProfileCoroutineScope.cancel()
+            if(mentor == null){
+                Toast.makeText(context,"Couldn't get details",Toast.LENGTH_SHORT).show()
+                binding.updateButtonInMentorProfileFragment.isEnabled = false
+            }else{
+                binding.updateButtonInMentorProfileFragment.isEnabled = true
+                binding.headingTVInMentorProfileFragment.text = mentor!!.name
+                binding.nameFieldInMentorProfileFragment.setText(mentor!!.name)
+                binding.emailFieldInMentorProfileFragment.setText(mentor!!.email)
+                binding.mentorTypeInputInMentorProfileFragment.setText(mentor!!.type)
+                binding.phoneNumberInMentorProfileFragment.setText(mentor!!.phone)
+                binding.passwordFieldInMentorProfileFragment.setText(mentor!!.password)
+                oldPassword = mentor!!.password.toString()
+            }
+        }
+    }
+
     private fun checkDomain(emailInput: String): Boolean {
         val domain : String = emailInput.substring(emailInput.indexOf("@")+1,emailInput.length)
-        if(domain != "nitc.ac.in")return false
+        if(domain != sharedViewModel.currentInstitution.username!!.replace('_','.')) return false
         return  true
     }
     private fun isDigitsOnly(str: String): Boolean {

@@ -55,7 +55,7 @@ class AllMentorsFragment:Fragment() {
         coroutineScope.launch {
             loadingDialog.create()
             loadingDialog.show()
-            var mentors = context?.let { MentorsAccess(it).getMentors() }
+            var mentors = context?.let { MentorsAccess(it,sharedViewModel.currentInstitution.username!!).getMentors() }
             loadingDialog.cancel()
             if (mentors == null) {
                 binding.noMentorsTVInAllMentorsFragment.visibility = View.GONE

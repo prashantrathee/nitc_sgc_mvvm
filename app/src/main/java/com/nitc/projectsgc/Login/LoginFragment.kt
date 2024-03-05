@@ -15,6 +15,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.nitc.projectsgc.InstitutionsAccess
 import com.nitc.projectsgc.Login.access.LoginAccess
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
@@ -54,11 +55,15 @@ class LoginFragment : Fragment() {
             binding.adminLoginTypeButtonInLoginFragment.setTextColor(Color.WHITE)
             binding.studentLoginTypeImageInLoginFragment.setBackgroundResource(R.drawable.login_type_card_transparent_bg)
             binding.studentLoginTypeButtonInLoginFragment.setTextColor(Color.BLACK)
+//            binding.mentorTypeButtonInLoginFragment.visibility = View.GONE
             binding.mentorTypeButtonInLoginFragment.visibility = View.GONE
             binding.mentorLoginTypeImageInLoginFragment.setBackgroundResource(R.drawable.login_type_card_transparent_bg)
             binding.mentorLoginTypeButtonInLoginFragment.setTextColor(Color.BLACK)
-            binding.signUpButton.visibility = View.GONE
+            binding.editTextTextEmailAddress.setText("")
+            binding.editTextTextPassword.setText("")
+//            binding.signUpButton.visibility = View.GONE
             userType = "Admin"
+
         }
         binding.studentLoginTypeButtonInLoginFragment.setOnClickListener {
             binding.adminLoginTypeImageInLoginFragment.setBackgroundResource(R.drawable.login_type_card_transparent_bg)
@@ -68,7 +73,9 @@ class LoginFragment : Fragment() {
             binding.mentorTypeButtonInLoginFragment.visibility = View.GONE
             binding.mentorLoginTypeImageInLoginFragment.setBackgroundResource(R.drawable.login_type_card_transparent_bg)
             binding.mentorLoginTypeButtonInLoginFragment.setTextColor(Color.BLACK)
-            binding.signUpButton.visibility = View.VISIBLE
+            binding.editTextTextEmailAddress.setText("")
+            binding.editTextTextPassword.setText("")
+//            binding.signUpButton.visibility = View.VISIBLE
             userType = "Student"
         }
         binding.mentorLoginTypeButtonInLoginFragment.setOnClickListener {
@@ -79,34 +86,43 @@ class LoginFragment : Fragment() {
             binding.mentorTypeButtonInLoginFragment.visibility = View.VISIBLE
             binding.mentorLoginTypeImageInLoginFragment.setBackgroundResource(R.drawable.login_type_card_blue_bg)
             binding.mentorLoginTypeButtonInLoginFragment.setTextColor(Color.WHITE)
-            binding.signUpButton.visibility = View.GONE
+            binding.editTextTextEmailAddress.setText("")
+            binding.editTextTextPassword.setText("")
+//            binding.signUpButton.visibility = View.GONE
             userType = "Mentor"
         }
 
         binding.mentorTypeButtonInLoginFragment.setOnClickListener {
-            val mentorTypesLive = context?.let { it1 -> MentorsAccess(it1).getMentorTypes() }
-            mentorTypesLive?.observe(viewLifecycleOwner) { mentorTypes ->
-                if (mentorTypes != null) {
-                    val mentorTypeBuilder = AlertDialog.Builder(context)
-                    mentorTypeBuilder.setTitle("Choose Mentor Type")
-                    mentorTypeBuilder.setSingleChoiceItems(
-                        mentorTypes.map { it }.toTypedArray(),
-                        mentorNumber
-                    ) { dialog, selectedIndex ->
-                        mentorTypeSelected = mentorTypes[selectedIndex].toString()
-                        binding.mentorTypeButtonInLoginFragment.text = mentorTypeSelected
-                        mentorNumber = selectedIndex
-                        mentorTypes.clear()
-                        dialog.dismiss()
+            val mentorTypesCoroutineScope = CoroutineScope(Dispatchers.Main)
+            mentorTypesCoroutineScope.launch {
+                val mentorTypes = MentorsAccess(
+                        requireContext(),
+                        sharedViewModel.currentInstitution.username!!
+                    ).getMentorTypes()
+//                mentorTypesLive?.observe(viewLifecycleOwner) { mentorTypes ->
+                mentorTypesCoroutineScope.cancel()
+                    if (mentorTypes != null) {
+                        val mentorTypeBuilder = AlertDialog.Builder(context)
+                        mentorTypeBuilder.setTitle("Choose Mentor Type")
+                        mentorTypeBuilder.setSingleChoiceItems(
+                            mentorTypes.map { it }.toTypedArray(),
+                            mentorNumber
+                        ) { dialog, selectedIndex ->
+                            mentorTypeSelected = mentorTypes[selectedIndex].toString()
+                            binding.mentorTypeButtonInLoginFragment.text = mentorTypeSelected
+                            mentorNumber = selectedIndex
+                            mentorTypes.clear()
+                            dialog.dismiss()
+                        }
+                        mentorTypeBuilder.setPositiveButton("Go") { dialog, which ->
+                            mentorTypeSelected = mentorTypes[0].toString()
+                            binding.mentorTypeButtonInLoginFragment.text = mentorTypeSelected
+                            mentorTypes.clear()
+                            dialog.dismiss()
+                        }
+                        mentorTypeBuilder.create().show()
                     }
-                    mentorTypeBuilder.setPositiveButton("Go") { dialog, which ->
-                        mentorTypeSelected = mentorTypes[0].toString()
-                        binding.mentorTypeButtonInLoginFragment.text = mentorTypeSelected
-                        mentorTypes.clear()
-                        dialog.dismiss()
-                    }
-                    mentorTypeBuilder.create().show()
-                }
+
             }
         }
         binding.signInButton.setOnClickListener {
@@ -118,69 +134,87 @@ class LoginFragment : Fragment() {
                 binding.editTextTextEmailAddress.requestFocus()
                 return@setOnClickListener
             }
+            emailInput = emailInput.lowercase()
             if(passwordInput.isEmpty()){
                 binding.editTextTextPassword.error = "No password entered"
                 binding.editTextTextPassword.requestFocus()
                 return@setOnClickListener
             }
+            val loginAccess = LoginAccess(
+                requireContext(),
+                this@LoginFragment,
+                sharedViewModel
+            )
 
+            val loginCoroutineScope = CoroutineScope(Dispatchers.Main)
+            val emailDomain = emailInput.substring(emailInput.indexOf("@")+1,emailInput.length)
+            val _index = emailInput.indexOf('_')
+//            val indexOfAt = emailInput.indexOf('@')
+//            if(_index)
             if(userType == "Student"){
-                val emailDomain = emailInput.substring(emailInput.indexOf("@")+1,emailInput.length)
-                val rollNo = emailInput.substring(emailInput.indexOf("_")+1,emailInput.indexOf("@"))
-                if(emailDomain != "nitc.ac.in"){
-                    Toast.makeText(context,"User should login with NITC email id",Toast.LENGTH_SHORT).show()
-                }else{
-                        val loginCoroutineScope = CoroutineScope(Dispatchers.Main)
+
+//                val rollNo = emailInput.substring(emailInput.indexOf("_")+1,emailInput.indexOf("@"))
+                val username = emailInput.substring(0,emailInput.indexOf('@'))
+//                    val username = emailInput.replace('@','-').replace(Regex("[^a-zA-Z0-9]+"),"_")
                         loginCoroutineScope.launch {
                             loadingDialog.show()
-                            val loginSuccess = context?.let { it1 -> LoginAccess(it1,this@LoginFragment,sharedViewModel).login(emailInput,passwordInput,userType,rollNo,"NA") }
+                            val loginSuccess = loginAccess.login(
+                                emailInput,
+                                passwordInput,
+                                userType,
+                                username,
+                                "NA",
+                                emailDomain
+                            )
                             loadingDialog.cancel()
                             loginCoroutineScope.cancel()
-                            if (loginSuccess == true) {
-                                sharedViewModel.currentUserID = rollNo
+                            if (loginSuccess) {
+                                sharedViewModel.currentUserID = username
                                 sharedViewModel.userType = "Student"
                                 Log.d("loginSuccess", loginSuccess.toString())
                                 findNavController().navigate(R.id.studentDashBoardFragment)
                             }
                         }
-                }
-
             }
             else if(userType == "Admin"){
 //                Toast.makeText(requireContext(),"Email entered is $emailInput and password entered is $passwordInput",Toast.LENGTH_LONG).show()
-                emailInput = emailInput.trim()
-                if(emailInput=="admin@nitc.ac.in" && passwordInput=="admin@123"){
-                    sharedViewModel.userType = "Admin"
-                    findNavController().navigate(R.id.adminDashboardFragment)
-                }
-                else{
-                    Toast.makeText(context,"Some error occurred",Toast.LENGTH_SHORT).show()
+
+                loginCoroutineScope.launch {
+                    loadingDialog.show()
+                    val loginSuccess = loginAccess.login(
+                        emailInput,
+                        passwordInput,
+                        userType,
+                        emailInput,
+                        "NA",
+                        emailDomain
+                    )
+                    loadingDialog.cancel()
+                    loginCoroutineScope.cancel()
+                    if(loginSuccess){
+                        sharedViewModel.userType = "Admin"
+                        findNavController().navigate(R.id.adminDashboardFragment)
+                    }
                 }
             }
             else if(userType == "Mentor"){
                 if(mentorTypeSelected == "NA"){
                     Toast.makeText(context,"Please select your type",Toast.LENGTH_SHORT).show()
                 }
-                val emailDomain = emailInput.substring(emailInput.indexOf("@")+1,emailInput.length)
-                val userName = emailInput.substring(0,emailInput.indexOf("@"))
-                if(emailDomain != "nitc.ac.in"){
-                    Toast.makeText(context,"Mentor should login with NITC email id",Toast.LENGTH_SHORT).show()
-                }else{
-                    val loginCoroutineScope = CoroutineScope(Dispatchers.Main)
+                val userName = emailInput.substring(0,emailInput.indexOf("@")).replace(Regex("[^a-zA-Z0-9]+"),"_")
+
                     loginCoroutineScope.launch {
                         loadingDialog.show()
-                        val loginSuccess = context?.let { it1 -> LoginAccess(it1,this@LoginFragment,sharedViewModel).login(emailInput,passwordInput,userType,userName,mentorTypeSelected) }
+                        val loginSuccess = loginAccess.login(
+                            emailInput,passwordInput,userType,userName,mentorTypeSelected,emailDomain)
                         loadingDialog.cancel()
                         loginCoroutineScope.cancel()
                         if(loginSuccess == true){
                             sharedViewModel.currentUserID = userName
                             sharedViewModel.userType = "Mentor"
                             findNavController().navigate(R.id.mentorDashboardFragment)
-                        }else{
-                            Toast.makeText(context,"Some error occurred",Toast.LENGTH_SHORT).show()
                         }
                     }
-                }
             }
         }
 

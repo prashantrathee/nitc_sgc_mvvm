@@ -4,7 +4,6 @@ import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.app.TimePickerDialog
-import android.content.DialogInterface
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -16,7 +15,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.nitc.projectsgc.Event
+import com.nitc.projectsgc.models.Event
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.alerts.events.access.EventsAccess

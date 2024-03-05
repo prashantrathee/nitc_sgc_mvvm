@@ -10,19 +10,14 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.nitc.projectsgc.Mentor
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
-import com.nitc.projectsgc.Student
-import com.nitc.projectsgc.admin.access.AddMentorAccess
+import com.nitc.projectsgc.models.Student
 import com.nitc.projectsgc.admin.access.StudentsAccess
 import com.nitc.projectsgc.databinding.FragmentStudentProfileBinding
-import com.nitc.projectsgc.student.access.BasicStudentAccess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -32,8 +27,8 @@ class StudentProfileFragment : Fragment() {
 
     private val sharedViewModel: SharedViewModel by activityViewModels()
     lateinit var binding: FragmentStudentProfileBinding
-    var studentLive: MutableLiveData<Student?> = MutableLiveData()
     var oldPassword = "NA"
+    var student: Student? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -43,40 +38,15 @@ class StudentProfileFragment : Fragment() {
         binding = FragmentStudentProfileBinding.inflate(inflater, container, false)
         if (sharedViewModel.userType == "Student" || sharedViewModel.userType == "Admin") {
 
-            var coroutineScope = CoroutineScope(Dispatchers.Main)
-            coroutineScope.launch {
                 if (sharedViewModel.userType == "Admin") {
-                    studentLive.value =
-                        StudentsAccess(
-                            requireContext(),
-                            this@StudentProfileFragment
-                        ).getStudent(sharedViewModel.idForStudentProfile)
+                    getStudent(sharedViewModel.idForStudentProfile)
                 } else {
-                    studentLive.value = StudentsAccess(
-                            requireContext(),
-                            this@StudentProfileFragment
-                        ).getStudent(sharedViewModel.currentUserID)
+                    getStudent(sharedViewModel.currentUserID)
                 }
-            }
 
-            if (studentLive != null) {
-                studentLive.observe(viewLifecycleOwner){student->
-                    if(student != null) {
-                        binding.headingTVStudentProfileFragment.text = student.name
-                        binding.nameFieldStudentProfileFragment.setText(student.name)
-                        binding.emailFieldStudentProfileFragment.setText(student.emailId)
-                        binding.phoneNumberStudentProfileFragment.setText(student.phoneNumber)
-                        binding.passwordFieldStudentProfileFragment.setText(student.password)
 
-                    }else{
-                        Toast.makeText(context,"Student not found. Try again",Toast.LENGTH_SHORT).show()
-                    }
-                    studentLive.removeObservers(viewLifecycleOwner)
-
-                }
                 binding.emailFieldStudentProfileFragment.isEnabled = false
 
-            }
             binding.updateButtonStudentProfileFragment.setOnClickListener {
                 val studentName = binding.nameFieldStudentProfileFragment.text.toString()
                 var studentPhone = binding.phoneNumberStudentProfileFragment.text.toString()
@@ -127,65 +97,61 @@ class StudentProfileFragment : Fragment() {
                     loadingDialog.show()
 
 
-                    if (studentLive != null) {
-//                val updatedMentor = BasicStudentAccess(requireContext()).updateStudent(student,oldPassword)
-                        studentLive.observe(viewLifecycleOwner) { student ->
-                            if(student!=null) {
+                    if (student != null) {
 
-                                val database: FirebaseDatabase = FirebaseDatabase.getInstance()
-                                val reference: DatabaseReference =
-                                    database.reference.child("students")
-                                val auth: FirebaseAuth = FirebaseAuth.getInstance()
-                                val updates = mapOf<String, String>(
-                                    "name" to studentName,
-                                    "password" to studentPassword,
-                                    "phoneNumber" to studentPhone
-                                )
-                                reference.child(student.rollNo).updateChildren(updates)
-                                    .addOnCompleteListener { task ->
-                                        if (task.isSuccessful) {
-                                            if (student.password != studentPassword) {
-                                                auth.currentUser?.updatePassword(student.password)
-                                                    ?.addOnCompleteListener { task ->
-                                                        if (task.isSuccessful) {
-                                                            Toast.makeText(
-                                                                context,
-                                                                "Password updated successfully",
-                                                                Toast.LENGTH_SHORT
-                                                            ).show()
-                                                        } else {
-                                                            Toast.makeText(
-                                                                context,
-                                                                "Password update failed",
-                                                                Toast.LENGTH_SHORT
-                                                            ).show()
-                                                        }
-                                                    }
+                        val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+                        val reference: DatabaseReference =
+                            database.reference.child(sharedViewModel.currentInstitution.username!!)
+                                .child("students")
+                        val auth: FirebaseAuth = FirebaseAuth.getInstance()
+                        val updates = mapOf<String, String>(
+                            "name" to studentName,
+                            "password" to studentPassword,
+                            "phoneNumber" to studentPhone
+                        )
+                        reference.child(student!!.userName).updateChildren(updates)
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    if (student!!.password != studentPassword) {
+                                        auth.currentUser?.updatePassword(student!!.password)
+                                            ?.addOnCompleteListener { task ->
+                                                if (task.isSuccessful) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Password updated successfully",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                } else {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Password update failed",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
                                             }
-                                            Toast.makeText(
-                                                context,
-                                                "Profile updated successfully",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            binding.headingTVStudentProfileFragment.text =
-                                                studentName
-                                        } else {
-                                            Toast.makeText(
-                                                context,
-                                                "Update failed please try after some time",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
                                     }
-
-                                loadingDialog.cancel()
-                                updateCoroutineScope.cancel()
-                            }else{
-                                Toast.makeText(context,"Student not found",Toast.LENGTH_SHORT).show()
-                                loadingDialog.cancel()
-                                updateCoroutineScope.cancel()
+                                    Toast.makeText(
+                                        context,
+                                        "Profile updated successfully",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    binding.headingTVStudentProfileFragment.text =
+                                        studentName
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Update failed please try after some time",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
-                        }
+
+                        loadingDialog.cancel()
+                        updateCoroutineScope.cancel()
+                    } else {
+                        Toast.makeText(context, "Student not found", Toast.LENGTH_SHORT).show()
+                        loadingDialog.cancel()
+                        updateCoroutineScope.cancel()
                     }
                 }
 
@@ -204,6 +170,31 @@ class StudentProfileFragment : Fragment() {
         return binding.root
     }
 
+    private fun getStudent(currentUserID: String) {
+        val studentCoroutineScope = CoroutineScope(Dispatchers.Main)
+        studentCoroutineScope.launch {
+            student = StudentsAccess(
+                requireContext(),
+                this@StudentProfileFragment,
+                sharedViewModel.currentInstitution.username!!
+            ).getStudent(currentUserID)!!
+            studentCoroutineScope.cancel()
+
+            if(student != null) {
+                binding.headingTVStudentProfileFragment.text = student!!.name
+                binding.nameFieldStudentProfileFragment.setText(student!!.name)
+                binding.emailFieldStudentProfileFragment.setText(student!!.emailId)
+                binding.phoneNumberStudentProfileFragment.setText(student!!.phoneNumber)
+                binding.passwordFieldStudentProfileFragment.setText(student!!.password)
+
+            }else {
+                Toast.makeText(context, "Student not found. Try again", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
+
+
+    }
 
 
     private fun isDigitsOnly(str: String): Boolean {

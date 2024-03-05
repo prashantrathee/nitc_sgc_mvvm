@@ -2,13 +2,12 @@ package com.nitc.projectsgc.alerts.events.access
 
 import android.content.Context
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.nitc.projectsgc.Event
+import com.nitc.projectsgc.models.Event
 import com.nitc.projectsgc.SharedViewModel
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -27,7 +26,7 @@ class EventsAccess(
     suspend fun addEvent(event: Event):Boolean{
         return suspendCoroutine { continuation ->
             val database = FirebaseDatabase.getInstance()
-            val reference = database.reference.child("events")
+            val reference = database.reference.child(sharedViewModel.currentInstitution.username!!).child("events")
             val eventID = reference.push().key.toString()
             event.id = eventID
             reference.child(event.type).child(eventID).setValue(event).addOnCompleteListener { task ->
@@ -41,7 +40,7 @@ class EventsAccess(
     suspend fun updateEvent(eventID:String,event: Event):Boolean{
         return suspendCoroutine { continuation ->
             val database = FirebaseDatabase.getInstance()
-            val reference = database.reference.child("events")
+            val reference = database.reference.child(sharedViewModel.currentInstitution.username!!).child("events")
             reference.child(event.type).child(eventID).setValue(event).addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     continuation.resume(true)
@@ -53,7 +52,7 @@ class EventsAccess(
     suspend fun deleteEvent(event: Event):Boolean{
         return suspendCoroutine {continuation->
             val database = FirebaseDatabase.getInstance()
-            val reference = database.reference.child("events")
+            val reference = database.reference.child(sharedViewModel.currentInstitution.username!!).child("events")
             reference.child(event.type).child(event.id).removeValue().addOnCompleteListener { task->
                 if(task.isSuccessful) continuation.resume(true)
                 else continuation.resume(false)
@@ -70,7 +69,7 @@ class EventsAccess(
             val today = calendar.time
             val database = FirebaseDatabase.getInstance()
             val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-            val reference = database.reference.child("events").child(eventType)
+            val reference = database.reference.child(sharedViewModel.currentInstitution.username!!).child("events").child(eventType)
             reference.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     for (ds in snapshot.children) {
@@ -110,7 +109,7 @@ class EventsAccess(
             val today = calendar.time
             val database = FirebaseDatabase.getInstance()
             val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-            val reference = database.reference.child("events")
+            val reference = database.reference.child(sharedViewModel.currentInstitution.username!!).child("events")
             reference.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     for (ds in snapshot.children) {

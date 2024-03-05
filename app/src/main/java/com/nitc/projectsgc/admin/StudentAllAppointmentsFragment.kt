@@ -31,7 +31,7 @@ class StudentAllAppointmentsFragment: Fragment() {
         binding.headingTVInPastRecordFragment.text = "All Appointments"
         var coroutineScope = CoroutineScope(Dispatchers.Main)
         coroutineScope.launch {
-        var student = context?.let { StudentsAccess(it,this@StudentAllAppointmentsFragment).getStudent(sharedViewModel.viewAppointmentStudentID) }
+        var student = context?.let { StudentsAccess(it,this@StudentAllAppointmentsFragment,sharedViewModel.currentInstitution.username!!).getStudent(sharedViewModel.viewAppointmentStudentID) }
             coroutineScope.cancel()
                 if(student != null) {
                     if (student.gender == "Male") {
@@ -62,23 +62,28 @@ class StudentAllAppointmentsFragment: Fragment() {
                     binding.rollNoInStudentCard.text = "NULL"
                 }
         }
-        var appointmentsLive = context?.let { StudentsAccess(it,this).getAppointments(sharedViewModel.viewAppointmentStudentID) }
-        if(appointmentsLive != null) {
-            appointmentsLive.observe(viewLifecycleOwner){appointments->
-                if(appointments != null){
-                    binding.pastRecordRecyclerViewInPastRecordFragment.layoutManager = LinearLayoutManager(context)
-                    binding.pastRecordRecyclerViewInPastRecordFragment.adapter = context?.let {
-                        BookedAppointmentsAdapter(
-                            it,
-                            this,
-                            sharedViewModel,
-                            appointments,
-                            true
-                        )
-                    }
+        var getAppointmentsCoroutineScope = CoroutineScope(Dispatchers.Main)
+        getAppointmentsCoroutineScope.launch {
+
+            var appointments = StudentsAccess(
+                requireContext(),
+                this@StudentAllAppointmentsFragment,
+                sharedViewModel.currentInstitution.username!!
+            ).getAppointments(sharedViewModel.viewAppointmentStudentID)
+            getAppointmentsCoroutineScope.cancel()
+            if (appointments != null) {
+                binding.pastRecordRecyclerViewInPastRecordFragment.layoutManager =
+                    LinearLayoutManager(context)
+                binding.pastRecordRecyclerViewInPastRecordFragment.adapter = context?.let {
+                    BookedAppointmentsAdapter(
+                        it,
+                        this@StudentAllAppointmentsFragment,
+                        sharedViewModel,
+                        appointments,
+                        true
+                    )
                 }
             }
-
         }
 
         return binding.root

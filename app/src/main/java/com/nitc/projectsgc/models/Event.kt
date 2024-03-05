@@ -1,4 +1,4 @@
-package com.nitc.projectsgc
+package com.nitc.projectsgc.models
 
 data class Event(
     var id:String = "",

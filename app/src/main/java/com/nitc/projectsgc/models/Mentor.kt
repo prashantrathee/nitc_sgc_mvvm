@@ -1,4 +1,4 @@
-package com.nitc.projectsgc
+package com.nitc.projectsgc.models
 
 data class Mentor(val name:String = "",
                   val phone:String = "",

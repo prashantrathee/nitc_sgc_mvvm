@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/ivory_wheat"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+    <com.google.android.material.textview.MaterialTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Institution"
+        android:layout_marginTop="20dp"
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/headingInAddInstitutionFragment"
+        android:textColor="@color/black"
+        android:fontFamily="@font/inter_semibold"
+        android:textSize="23sp"
+        app:layout_constraintVertical_bias="0.05"/>
+
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/nameInputCardInAddInstitutionFragment"
+        app:cardCornerRadius="15dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="100dp">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:boxBackgroundColor="@color/white"
+            android:textColorHint="@color/black"
+            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:hint="Institution Name"
+                android:fontFamily="@font/inter"
+                android:textColorHint="@color/black"
+                android:id="@+id/nameInputInAddInstitutionFragment"/>
+
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+    </com.google.android.material.card.MaterialCardView>
+
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/suffixInputCardInAddInstitutionFragment"
+            app:cardCornerRadius="15dp"
+            android:layout_marginVertical="15dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:boxBackgroundColor="@color/white"
+                android:textColorHint="@color/black"
+                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="Email Suffix"
+                    android:fontFamily="@font/inter"
+                    android:textColorHint="@color/black"
+                    android:id="@+id/suffixInputInAddInstitutionFragment"/>
+
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/adminEmailInputCardInAddInstitutionFragment"
+            app:cardCornerRadius="15dp"
+            android:layout_marginVertical="15dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:boxBackgroundColor="@color/white"
+                android:textColorHint="@color/black"
+                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="Admin Email"
+                    android:fontFamily="@font/inter"
+                    android:inputType="textEmailAddress"
+                    android:textColorHint="@color/black"
+                    android:id="@+id/adminEmailInputInAddInstitutionFragment"/>
+
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+        </com.google.android.material.card.MaterialCardView>
+
+
+
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/adminPasswordInputCardInAddInstitutionFragment"
+            app:cardCornerRadius="15dp"
+            android:layout_marginVertical="15dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:boxBackgroundColor="@color/white"
+                android:textColorHint="@color/black"
+                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="Admin Password"
+                    android:fontFamily="@font/inter"
+                    android:textColorHint="@color/black"
+                    android:id="@+id/adminPasswordInputInAddInstitutionFragment"/>
+
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <com.google.android.material.button.MaterialButton
+            android:layout_width="130dp"
+            android:layout_height="75dp"
+            android:text="Add"
+            android:textAllCaps="false"
+            android:backgroundTint="@color/navy_blue"
+            app:cornerRadius="15dp"
+            android:textSize="18sp"
+            android:fontFamily="@font/inter_semibold"
+            android:letterSpacing="0.02"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="80dp"
+            android:id="@+id/createButtonInAddInstitutionFragment"/>
+
+
+    </LinearLayout>
+
+</ScrollView>

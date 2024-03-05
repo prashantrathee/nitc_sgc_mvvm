@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
-import com.nitc.projectsgc.News
+import com.nitc.projectsgc.models.News
 import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.alerts.news.access.NewsAccess
 import com.nitc.projectsgc.databinding.NewsCardBinding

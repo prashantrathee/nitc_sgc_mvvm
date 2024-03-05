@@ -1,25 +1,27 @@
 package com.nitc.projectsgc
 
+import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.findNavController
-import com.google.firebase.messaging.FirebaseMessaging
-import com.nitc.projectsgc.student.fragments.StudentDashboardFragment
+import com.nitc.projectsgc.databinding.FragmentIntroductoryBinding
+import com.nitc.projectsgc.models.Institution
 import kotlinx.coroutines.*
-import java.util.concurrent.Executors
 
 
-class IntroductoryFragment : Fragment() {
+class IntroductoryFragment : Fragment(),CircleLoadingDialog {
 
     private val sharedViewModel:SharedViewModel by activityViewModels()
-    private val SPLASH_SCREEN:Long = 3000
-    private val coroutineScope = CoroutineScope(Dispatchers.Main)
+    private lateinit var binding:FragmentIntroductoryBinding
+    var selectedPosition = 0
+    var institutionSelected:Institution? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
@@ -27,66 +29,58 @@ class IntroductoryFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_splash_screen, container, false)
-        var pSuccessLive = MutableLiveData<Boolean?>(false)
-        var userTypeLive = MutableLiveData<String>("NA")
-        coroutineScope.launch {
-            val pSuccess = context?.let {
-                ProfileAccess(
-                    it,
-                    sharedViewModel,
-                    this@IntroductoryFragment
-                ).getProfile()
+        binding = FragmentIntroductoryBinding.inflate(inflater,container,false)
+        var sharedPreferences = requireActivity().getSharedPreferences("sgcLogin", Context.MODE_PRIVATE)
+        val institutionUsername = sharedPreferences.getString("institutionUsername",null)
+        if(institutionUsername != null) {
+
+
+            Log.d("institutionusername", institutionUsername.toString())
+            val institutionCoroutineScope = CoroutineScope(Dispatchers.Main)
+            val loadingDialog = getLoadingDialog(requireActivity(),requireContext())
+            institutionCoroutineScope.launch {
+                loadingDialog.create()
+                loadingDialog.show()
+                val institution = InstitutionsAccess(
+                    requireContext(),
+                    sharedViewModel
+                ).getInstitution(sharedPreferences.getString("institutionUsername", null)!!)
+                loadingDialog.cancel()
+                institutionCoroutineScope.cancel()
+                if(institution!= null) sharedViewModel.currentInstitution = institution
             }
-            pSuccessLive.value = pSuccess // Use setValue() instead of postValue()
-
-            // Move the code that needs to execute after getProfile() inside the coroutine block
-            Log.d("profile","backIn Profile")
-            if(pSuccessLive != null) {
-                if (pSuccessLive.value == true) {
-                    val studentDashboard = StudentDashboardFragment()
-                    when (sharedViewModel.userType) {
-                        "Student" -> {
-
-
-                            coroutineScope.cancel()
-//                        var ft = parentFragmentManager.beginTransaction()
-//                        ft.replace(R.id.navHostFragment,studentDashboard)
-////                        ft.addToBackStack(null)
-//                        ft.commitNow()
-                            findNavController().navigate(R.id.studentDashBoardFragment)
-                        }
-                        "Mentor" -> {
-                            coroutineScope.cancel()
-//                        var ft = parentFragmentManager.beginTransaction()
-//                        ft.add(R.id.navHostFragment,BookingFragment())
-//                        ft.addToBackStack(null)
-//                        ft.commit()
-                            findNavController().navigate(R.id.mentorDashboardFragment)
-                        }
+            if (sharedPreferences.getBoolean("loggedIn", false)) {
+                when (sharedPreferences.getString("userType", "NA")) {
+                    "Student" -> {
+                        findNavController().navigate(R.id.studentDashBoardFragment)
                     }
-                } else {
-                    coroutineScope.cancel()
-                    Log.d("profile", "false")
-//                var ft = parentFragmentManager.beginTransaction()
-//                ft.add(R.id.navHostFragment, LoginFragment())
-//                ft.addToBackStack(null)
-//                ft.commit()
-                    findNavController().navigate(R.id.loginFragment)
+
+                    "Admin" -> {
+                        findNavController().navigate(R.id.adminDashboardFragment)
+                    }
+
+                    "Mentor" -> {
+                        findNavController().navigate(R.id.mentorDashboardFragment)
+                    }
                 }
-            }else {
-                coroutineScope.cancel()
-                Log.d("profile", "false")
-//                var ft = parentFragmentManager.beginTransaction()
-//                ft.add(R.id.navHostFragment, LoginFragment())
-//                ft.addToBackStack(null)
-//                ft.commit()
+            }
+        }else{
+            binding.chooseInstitutionButtonInIntroductoryFragment.setOnClickListener {
+                getInstitutions()
+            }
+            binding.continueButtonInIntroductoryFragment.setOnClickListener {
+                if(institutionSelected == null){
+                    binding.chooseInstitutionButtonInIntroductoryFragment.error = "Choose Institution first"
+                    binding.chooseInstitutionButtonInIntroductoryFragment.requestFocus()
+                    return@setOnClickListener
+                }
+                sharedViewModel.currentInstitution = institutionSelected!!
                 findNavController().navigate(R.id.loginFragment)
             }
+            binding.registerButtonInIntroductoryFragment.setOnClickListener{
+                findNavController().navigate(R.id.addInstitutionFragment)
+            }
         }
-
-
-        Log.d("profile","backIn Profile")
 //        userTypeLive.observe(viewLifecycleOwner){userType->
 //            if(userType == "Student"){
 //                findNavController().navigate()
@@ -97,7 +91,7 @@ class IntroductoryFragment : Fragment() {
 //            }
 //        }
 
-        val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
+//        val backgroundExecutor = Executors.newSingleThreadScheduledExecutor()
 
 //        coroutineScope.launch{
 //            delay(SPLASH_SCREEN)
@@ -106,13 +100,49 @@ class IntroductoryFragment : Fragment() {
 ////
 ////            }
 //        }
-
-        return view
+        return binding.root
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        coroutineScope.cancel()
+    private fun getInstitutions() {
+        val institutionsCoroutineScope = CoroutineScope(Dispatchers.Main)
+        val loadingDialog = getLoadingDialog(requireActivity(),requireContext())
+        institutionsCoroutineScope.launch {
+            loadingDialog.create()
+            loadingDialog.show()
+            val institutions = InstitutionsAccess(
+                requireContext(),
+                sharedViewModel
+            ).getInstitutions()
+            loadingDialog.cancel()
+            institutionsCoroutineScope.cancel()
+            if(!institutions.isNullOrEmpty()){
+                institutionSelected = institutions[0]
+                val institutionsBuilder = AlertDialog.Builder(context)
+                    .setTitle("Choose Institution")
+                    .setSingleChoiceItems(institutions.map{it.institutionName}.toTypedArray(),0){dialog,selected->
+                        institutionSelected = institutions[selected]
+                        binding.chooseInstitutionButtonInIntroductoryFragment.text = institutionSelected!!.institutionName
+                        binding.continueButtonInIntroductoryFragment.visibility = View.VISIBLE
+                        selectedPosition = selected
+                    }
+                    .setPositiveButton("Select"){dialog,selected->
+                        institutionSelected = institutions[selectedPosition]
+                        binding.chooseInstitutionButtonInIntroductoryFragment.text = institutionSelected!!.institutionName
+                        binding.continueButtonInIntroductoryFragment.visibility = View.VISIBLE
+                        dialog.dismiss()
+                    }
+                    .setNegativeButton("Cancel"){dialog,which->
+                        institutionSelected = null
+                        binding.continueButtonInIntroductoryFragment.visibility = View.GONE
+                        dialog.dismiss()
+                    }
+                institutionsBuilder.create().show()
+            }else{
+                if(institutions != null && institutions.isEmpty()){
+                    Toast.makeText(context,"No Institution registered yet. Register your institution",Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
 

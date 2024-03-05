@@ -1,4 +1,4 @@
-package com.nitc.projectsgc
+package com.nitc.projectsgc.models
 
 data class News(
     var newsID:String? = null,

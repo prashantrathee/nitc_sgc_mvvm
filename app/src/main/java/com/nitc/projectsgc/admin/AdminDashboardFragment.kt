@@ -4,6 +4,7 @@ import android.app.Dialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +16,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.tabs.TabLayoutMediator
 import com.nitc.projectsgc.Login.access.LoginAccess
+import com.nitc.projectsgc.ProfileAccess
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.admin.adapters.MentorsAdapter
@@ -26,6 +28,8 @@ import com.nitc.projectsgc.databinding.FragmentAdminDashboardBinding
 import com.nitc.projectsgc.mentors.adapters.MentorAppointmentsPagerAdapter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class AdminDashboardFragment : Fragment() {
     lateinit var binding : FragmentAdminDashboardBinding
@@ -42,7 +46,8 @@ class AdminDashboardFragment : Fragment() {
         // Inflate the layout for this fragment
         binding =  FragmentAdminDashboardBinding.inflate(inflater, container, false)
 
-        loadViewPager()
+        getProfile()
+//            loadViewPager()
         binding.swipeLayoutAdminDashboardFragment.setOnRefreshListener {
             loadViewPager()
         }
@@ -78,6 +83,32 @@ class AdminDashboardFragment : Fragment() {
         }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,backCallback)
         return binding.root
+    }
+
+    private fun getProfile() {
+
+        val profileCoroutineScope = CoroutineScope(Dispatchers.Main)
+        profileCoroutineScope.launch {
+
+            val gotProfile = ProfileAccess(
+                requireContext(),
+                sharedViewModel,
+                this@AdminDashboardFragment
+            ).getProfile()
+            profileCoroutineScope.cancel()
+            if(!gotProfile){
+                LoginAccess(
+                    requireContext(),
+                    this@AdminDashboardFragment,
+                    sharedViewModel
+                ).logout()
+                Log.d("gotProfile"," Could not get profile")
+                findNavController().navigate(R.id.loginFragment)
+            }else{
+                Log.d("gotProfile"," got profile")
+                loadViewPager()
+            }
+        }
     }
 
     private fun loadViewPager() {

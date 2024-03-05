@@ -9,13 +9,16 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.google.firebase.database.FirebaseDatabase
-import com.nitc.projectsgc.Appointment
+import com.nitc.projectsgc.models.Appointment
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.admin.access.MentorsAccess
 import com.nitc.projectsgc.databinding.BookedAppointmentCardBinding
 import com.nitc.projectsgc.student.access.AppointmentsAccess
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class CompletedAppointmentsAdapter(
     var context: Context,
@@ -26,8 +29,8 @@ class CompletedAppointmentsAdapter(
 
     class CompletedAppointmentsViewHolder(val binding: BookedAppointmentCardBinding):RecyclerView.ViewHolder(binding.root) {
 
-        var database = FirebaseDatabase.getInstance()
-        var reference = database.reference.child("types")
+//        var database = FirebaseDatabase.getInstance()
+//        var reference = database.reference.child(sharedViewModel.currentInstitution.username).child("types")
     }
 
     override fun onCreateViewHolder(
@@ -60,8 +63,10 @@ class CompletedAppointmentsAdapter(
         holder.binding.typeInBookedAppointmentCard.text = appointments[position].mentorType.toString()
         holder.binding.statusTextInBookedAppointmentsCard.text = appointments[position].status
         var mentorName = "NA"
-        var mentorLive = MentorsAccess(context).getMentor(appointments[position].mentorType.toString(),appointments[position].mentorID.toString())
-        mentorLive.observe(parentFragment.viewLifecycleOwner) { mentor ->
+        var getMentorCoroutineScope = CoroutineScope(Dispatchers.Main)
+        getMentorCoroutineScope.launch {
+        var mentor = MentorsAccess(context,sharedViewModel.currentInstitution.username!!).getMentor(appointments[position].mentorType.toString(),appointments[position].mentorID.toString())
+            getMentorCoroutineScope.cancel()
             if (mentor != null) {
                 holder.binding.mentorNameInBookedAppointmentCard.text = mentor.name.toString()
                 mentorName = mentor.name.toString()
@@ -84,20 +89,20 @@ class CompletedAppointmentsAdapter(
                     dialog.dismiss()
                     appointments[position].status = "Cancelled by student"
                     appointments[position].cancelled = true
-                    var cancelLive = AppointmentsAccess(
+                    var cancelAppointmentCoroutineScope = CoroutineScope(Dispatchers.Main)
+                    cancelAppointmentCoroutineScope.launch {
+                    var cancelled = AppointmentsAccess(
                         context,
                         parentFragment,
                         sharedViewModel
                     ).cancelAppointment(appointment = appointments[position])
-                    cancelLive.observe(parentFragment.viewLifecycleOwner) { cancelled ->
-                        if (cancelled != null) {
+                        cancelAppointmentCoroutineScope.cancel()
                             if (cancelled) {
                                 Toast.makeText(context, "Cancelled", Toast.LENGTH_SHORT).show()
                                 holder.binding.statusTextInBookedAppointmentsCard.text =
                                     appointments[position].status
                                 notifyDataSetChanged()
                             }
-                        }
                     }
                 }
                 .setNegativeButton("No"){dialog,which->

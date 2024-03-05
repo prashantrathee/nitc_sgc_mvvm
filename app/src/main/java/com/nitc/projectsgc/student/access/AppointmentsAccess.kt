@@ -4,13 +4,12 @@ import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.nitc.projectsgc.Appointment
+import com.nitc.projectsgc.models.Appointment
 import com.nitc.projectsgc.SharedViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -29,7 +28,7 @@ class AppointmentsAccess(
             var bookedLive = MutableLiveData<ArrayList<Appointment>>(null)
             var appointments = arrayListOf<Appointment>()
             var database = FirebaseDatabase.getInstance()
-            var studentReference = database.reference.child("students")
+            var studentReference = database.reference.child(sharedViewModel.currentInstitution.username!!).child("students")
             Log.d("appointment", sharedViewModel.currentUserID.toString())
             studentReference.child(sharedViewModel.currentUserID)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
@@ -64,7 +63,7 @@ class AppointmentsAccess(
         var completedLive = MutableLiveData<ArrayList<Appointment>>(null)
         var appointments = arrayListOf<Appointment>()
         var database = FirebaseDatabase.getInstance()
-        var studentReference = database.reference.child("students")
+        var studentReference = database.reference.child(sharedViewModel.currentInstitution.username!!).child("students")
         studentReference.child(sharedViewModel.currentUserID)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -91,23 +90,31 @@ class AppointmentsAccess(
     }
 
 
-    fun cancelAppointment(appointment: Appointment):LiveData<Boolean>{
-        var deletedLive = MutableLiveData<Boolean>()
-        var database = FirebaseDatabase.getInstance()
-        var studentReference = database.reference.child("students")
-        var typeReference = database.reference.child("types")
-        studentReference.child(sharedViewModel.currentUserID+"/appointments").child(appointment.id.toString()).setValue(appointment).addOnCompleteListener { studentTask->
-            if(studentTask.isSuccessful){
-                typeReference.child(appointment.mentorType.toString()+"/${appointment.mentorID}/appointments/${appointment.date}/${appointment.timeSlot}").setValue(appointment).addOnCompleteListener { mentorTask->
-                    if(mentorTask.isSuccessful) deletedLive.postValue(true)
-                    else deletedLive.postValue(false)
+    suspend fun cancelAppointment(appointment: Appointment):Boolean{
+        return suspendCoroutine { continuation ->
+            var isResumed = false
+            var database = FirebaseDatabase.getInstance()
+            var studentReference =
+                database.reference.child(sharedViewModel.currentInstitution.username!!)
+                    .child("students")
+            var typeReference =
+                database.reference.child(sharedViewModel.currentInstitution.username!!)
+                    .child("types")
+            studentReference.child(sharedViewModel.currentUserID + "/appointments")
+                .child(appointment.id.toString()).setValue(appointment)
+                .addOnCompleteListener { studentTask ->
+                    if (studentTask.isSuccessful) {
+                        typeReference.child(appointment.mentorType.toString() + "/${appointment.mentorID}/appointments/${appointment.date}/${appointment.timeSlot}")
+                            .setValue(appointment).addOnCompleteListener { mentorTask ->
+                            if (mentorTask.isSuccessful) if(!isResumed) continuation.resume(true)
+                            else if(!isResumed) continuation.resume(false)
+                        }
+                    } else {
+                        Toast.makeText(context, "Some error occurred", Toast.LENGTH_SHORT).show()
+                        if(!isResumed) continuation.resume(false)
+                    }
                 }
-            }else{
-                Toast.makeText(context,"Some error occurred",Toast.LENGTH_SHORT).show()
-                deletedLive.postValue(false)
-            }
         }
-        return deletedLive
     }
 
 

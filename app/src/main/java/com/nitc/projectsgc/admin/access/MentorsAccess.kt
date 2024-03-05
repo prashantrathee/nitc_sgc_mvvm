@@ -3,19 +3,17 @@ package com.nitc.projectsgc.admin.access
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.google.firebase.database.*
-import com.nitc.projectsgc.Appointment
-import com.nitc.projectsgc.Mentor
+import com.nitc.projectsgc.models.Appointment
+import com.nitc.projectsgc.models.Mentor
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class MentorsAccess(var context: Context) {
+class MentorsAccess(var context: Context,val emailSuffix:String) {
     suspend fun getMentors():ArrayList<Mentor>?{
         return suspendCoroutine { continuation ->
             var database: FirebaseDatabase = FirebaseDatabase.getInstance()
-            var reference: DatabaseReference = database.reference.child("types")
+            var reference: DatabaseReference = database.reference.child(emailSuffix).child("types")
             reference.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     var typeList = arrayListOf<String>()
@@ -44,79 +42,106 @@ class MentorsAccess(var context: Context) {
         }
     }
 
-    fun getMentor(mentorType:String,mentorID:String):LiveData<Mentor>{
-        var mentorLive = MutableLiveData<Mentor>(null)
-        var database : FirebaseDatabase = FirebaseDatabase.getInstance()
-        var reference : DatabaseReference = database.reference.child("types/${mentorType}/${mentorID}")
+    suspend fun getMentor(mentorType:String,mentorID:String): Mentor?{
+        return suspendCoroutine { continuation ->
+            var isResumed = false
+            var database: FirebaseDatabase = FirebaseDatabase.getInstance()
+            var reference: DatabaseReference =
+                database.reference.child(emailSuffix).child("types/${mentorType}/${mentorID}")
 
-        reference.addValueEventListener(object:ValueEventListener{
-
-
-            override fun onDataChange(snapshot: DataSnapshot) {
-
-                mentorLive.postValue(snapshot.getValue(Mentor::class.java))
-
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(context,"Error : $error",Toast.LENGTH_SHORT).show()
-            }
-
-        })
-        return mentorLive
-    }
-    fun getMentorNames(mentorType:String): MutableLiveData<ArrayList<Mentor>?> {
-        var mentorNamesLive = MutableLiveData<ArrayList<Mentor>?>()
-        var mentors = arrayListOf<Mentor>()
-        var database : FirebaseDatabase = FirebaseDatabase.getInstance()
-        var reference : DatabaseReference = database.reference.child("types")
-
-        reference.addValueEventListener(object:ValueEventListener{
+            reference.addListenerForSingleValueEvent(object : ValueEventListener {
 
 
-            override fun onDataChange(snapshot: DataSnapshot) {
+                override fun onDataChange(snapshot: DataSnapshot) {
 
-                var mentorsSnapshot = snapshot.child(mentorType).children
+                    if(!isResumed) {
+                        continuation.resume(snapshot.getValue(Mentor::class.java))
+                        isResumed = true
+                    }
 
-                for(mentor in mentorsSnapshot){
-                    mentors.add(mentor.getValue(Mentor::class.java)!!)
                 }
-                mentorNamesLive.value = mentors
 
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(context,"Error : $error",Toast.LENGTH_SHORT).show()
-                mentorNamesLive.value = null
-            }
-
-        })
-        return mentorNamesLive
-    }
-    fun getMentorTypes():LiveData<ArrayList<String>>{
-        var mentorTypeLive = MutableLiveData<ArrayList<String>>(null)
-        val database : FirebaseDatabase = FirebaseDatabase.getInstance()
-        val reference : DatabaseReference = database.reference.child("types")
-        var mentorTypes = arrayListOf<String>()
-        reference.addValueEventListener(object:ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for(typeChild in snapshot.children){
-                    mentorTypes.add(typeChild.key.toString())
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(context, "Error occurred in getting Mentor", Toast.LENGTH_SHORT).show()
+                    Log.d("getMentor","Database Error : $error")
+                    if(!isResumed){
+                        continuation.resume(null)
+                        isResumed = true
+                    }
                 }
-                mentorTypeLive.postValue(mentorTypes)
-            }
+            })
+        }
+    }
+    suspend fun getMentorNames(mentorType:String): ArrayList<Mentor>? {
+        return suspendCoroutine { continuation ->
+            var isResumed = false
+            var mentors = arrayListOf<Mentor>()
+            var database: FirebaseDatabase = FirebaseDatabase.getInstance()
+            var reference: DatabaseReference = database.reference.child(emailSuffix).child("types")
 
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(context,"Error : $error",Toast.LENGTH_LONG).show()
-            }
+            reference.addListenerForSingleValueEvent(object : ValueEventListener {
 
-        })
-        return mentorTypeLive
+
+                override fun onDataChange(snapshot: DataSnapshot) {
+
+                    var mentorsSnapshot = snapshot.child(mentorType).children
+
+                    for (mentor in mentorsSnapshot) {
+                        mentors.add(mentor.getValue(Mentor::class.java)!!)
+                    }
+                    if(!isResumed){
+                        continuation.resume(mentors)
+                        isResumed = true
+                    }
+
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(context, "Error : $error", Toast.LENGTH_SHORT).show()
+
+                    if(!isResumed){
+                        continuation.resume(null)
+                        isResumed = true
+                    }
+                }
+
+            })
+        }
+    }
+    suspend fun getMentorTypes():ArrayList<String>?{
+        return suspendCoroutine { continuation ->
+
+//            var mentorTypeLive = MutableLiveData<ArrayList<String>>(null)
+            var isResumed = false
+            val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+            val reference: DatabaseReference = database.reference.child(emailSuffix).child("types")
+            var mentorTypes = arrayListOf<String>()
+            reference.addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    for (typeChild in snapshot.children) {
+                        mentorTypes.add(typeChild.key.toString())
+                    }
+                    if(!isResumed) {
+                        continuation.resume(mentorTypes)
+                        isResumed = true
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(context, "Error : $error", Toast.LENGTH_LONG).show()
+                    if(!isResumed) {
+                        continuation.resume(null)
+                        isResumed = true
+                    }
+                }
+
+            })
+        }
     }
     suspend fun deleteMentor(userName: String,mentorType:String):Boolean{
         return suspendCoroutine {continuation->
             var database: FirebaseDatabase = FirebaseDatabase.getInstance()
-            var typeReference: DatabaseReference = database.reference.child("types")
+            var typeReference: DatabaseReference = database.reference.child(emailSuffix).child("types")
             var mentorPath = "$mentorType/$userName"
             Log.d("deleteMentor", mentorPath)
             typeReference.child(mentorPath)
@@ -128,7 +153,7 @@ class MentorsAccess(var context: Context) {
                                 var studentReference =
                                     "students/${appointment.studentID}/appointments/${appointment.id}"
                                 Log.d("deleteMentor", studentReference)
-                                database.reference.child(studentReference).removeValue()
+                                database.reference.child(emailSuffix).child(studentReference).removeValue()
                                     .addOnSuccessListener {
 
                                     }.addOnFailureListener {

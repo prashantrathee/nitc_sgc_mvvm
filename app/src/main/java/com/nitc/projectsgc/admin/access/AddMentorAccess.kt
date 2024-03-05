@@ -3,15 +3,15 @@ package com.nitc.projectsgc.admin.access
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.MutableLiveData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.nitc.projectsgc.Mentor
+import com.nitc.projectsgc.models.Mentor
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class AddMentorAccess(
-    var context : Context
+    var context : Context,
+    val emailSuffix:String
 ) {
     suspend fun addMentor(
         mentor: Mentor
@@ -19,7 +19,7 @@ class AddMentorAccess(
         return suspendCoroutine { continuation ->
 
             val database: FirebaseDatabase = FirebaseDatabase.getInstance()
-            val reference: DatabaseReference = database.reference.child("types").child(mentor.type)
+            val reference: DatabaseReference = database.reference.child(emailSuffix).child("types").child(mentor.type)
             val auth: FirebaseAuth = FirebaseAuth.getInstance()
             reference.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -28,11 +28,31 @@ class AddMentorAccess(
                             .setValue(mentor).addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
                                     Log.d("accessAddMentor", "here in addMentor access")
-
+//                                    continuation.resume(true)
+                                    auth.createUserWithEmailAndPassword(
+                                        mentor.email,
+                                        mentor.password
+                                    ).addOnCompleteListener { authTask ->
+                                        if (authTask.isSuccessful) {
+                                            continuation.resume(true)
+                                        } else {
+                                            reference.child(mentor.userName).removeValue()
+                                            continuation.resume(false)
+                                        }
+                                    }.addOnFailureListener{errAuth->
+                                        Toast.makeText(context,"Error in adding mentor",Toast.LENGTH_SHORT).show()
+                                        Log.d("addMentor","Error in adding auth mentor : $errAuth")
+                                        continuation.resume(false)
+                                    }
                                 } else {
-                                    continuation.resume(false)
                                     Log.d("accessAddMentor", "not success")
+                                    continuation.resume(false)
                                 }
+                            }
+                            .addOnFailureListener{errAdd->
+                                Toast.makeText(context,"Error in adding mentor",Toast.LENGTH_SHORT).show()
+                                Log.d("addMentor","Error in adding mentor : $errAdd")
+                                continuation.resume(false)
                             }
                     }
                     else {
@@ -46,20 +66,13 @@ class AddMentorAccess(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
+                    Log.d("addMentor","Database error : $error")
+                    Toast.makeText(context,"Database error in adding mentor",Toast.LENGTH_SHORT).show()
                     continuation.resume(false)
                 }
             })
-            auth.createUserWithEmailAndPassword(
-                mentor.email,
-                mentor.password
-            ).addOnCompleteListener { authTask ->
-                if (authTask.isSuccessful) {
-                    continuation.resume(true)
-                } else {
-                    reference.child(mentor.userName).removeValue()
-                    continuation.resume(false)
-                }
-            }
+
+
 
         }
     }
@@ -69,7 +82,7 @@ class AddMentorAccess(
     ): Boolean {
         return suspendCoroutine { continuation ->
             val database: FirebaseDatabase = FirebaseDatabase.getInstance()
-            val reference: DatabaseReference = database.reference.child("types").child(mentor.type)
+            val reference: DatabaseReference = database.reference.child(emailSuffix).child("types").child(mentor.type)
             val auth: FirebaseAuth = FirebaseAuth.getInstance()
             val updates = mapOf<String,String>(
                 "name" to mentor.name,

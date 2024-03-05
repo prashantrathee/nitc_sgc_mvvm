@@ -11,7 +11,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.nitc.projectsgc.News
+import com.nitc.projectsgc.models.News
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.alerts.news.access.NewsAccess

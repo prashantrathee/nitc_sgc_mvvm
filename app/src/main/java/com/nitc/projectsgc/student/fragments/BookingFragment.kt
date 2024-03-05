@@ -10,16 +10,19 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.database.*
-import com.nitc.projectsgc.Appointment
+import com.nitc.projectsgc.models.Appointment
 import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.admin.access.MentorsAccess
 import com.nitc.projectsgc.student.access.BookingAccess
 import com.nitc.projectsgc.databinding.FragmentBookingBinding
 import java.util.*
 import com.nitc.projectsgc.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class BookingFragment : Fragment() {
     lateinit var binding : FragmentBookingBinding
@@ -36,7 +39,7 @@ class BookingFragment : Fragment() {
 
         binding = FragmentBookingBinding.inflate(inflater,container,false)
         val database : FirebaseDatabase = FirebaseDatabase.getInstance()
-        var reference : DatabaseReference = database.reference.child("types")
+        var reference : DatabaseReference = database.reference.child(sharedViewModel.currentInstitution.username!!).child("types")
         var mentorTypeSelected = "NA"
 
         if(sharedViewModel.rescheduling){
@@ -54,71 +57,76 @@ class BookingFragment : Fragment() {
             }
         }
         binding.mentorTypeButtonInBookingFragment.setOnClickListener{
-            var mentorTypesLive = context?.let { it1 -> MentorsAccess(it1).getMentorTypes() }
-            if (mentorTypesLive != null) {
-                mentorTypesLive.observe(viewLifecycleOwner) { mentorTypes ->
-                    if(mentorTypes != null) {
-                        val mentorTypeBuilder = AlertDialog.Builder(context)
-                        mentorTypeBuilder.setTitle("Choose Mentor Type")
-                        mentorTypeBuilder.setSingleChoiceItems(
-                            mentorTypes.map { it }.toTypedArray(),
-                            0
-                        ) { dialog, selectedIndex ->
-                            mentorTypeSelected = mentorTypes[selectedIndex].toString()
-                            binding.mentorTypeButtonInBookingFragment.text = mentorTypeSelected
-                            mentorTypes.clear()
-                            mentorTypesLive.removeObservers(viewLifecycleOwner)
-                            dialog.dismiss()
-                        }
-                        mentorTypeBuilder.setPositiveButton("Go") { dialog, which ->
-                            mentorTypeSelected = mentorTypes[0].toString()
-                            binding.mentorTypeButtonInBookingFragment.text = mentorTypeSelected
-                            mentorTypes.clear()
-                            mentorTypesLive.removeObservers(viewLifecycleOwner)
-                            dialog.dismiss()
-                        }
-                        mentorTypeBuilder.create().show()
-                    }
+            val mentorTypesCoroutineScope = CoroutineScope(Dispatchers.Main)
+            mentorTypesCoroutineScope.launch {
+
+                var mentorTypes = MentorsAccess(requireContext(),sharedViewModel.currentInstitution.username!!).getMentorTypes()
+                mentorTypesCoroutineScope.cancel()
+            if (mentorTypes != null) {
+                val mentorTypeBuilder = AlertDialog.Builder(context)
+                mentorTypeBuilder.setTitle("Choose Mentor Type")
+                mentorTypeBuilder.setSingleChoiceItems(
+                    mentorTypes.map { it }.toTypedArray(),
+                    0
+                ) { dialog, selectedIndex ->
+                    mentorTypeSelected = mentorTypes[selectedIndex].toString()
+                    binding.mentorTypeButtonInBookingFragment.text = mentorTypeSelected
+                    mentorTypes.clear()
+//                            mentorTypes.removeObservers(viewLifecycleOwner)
+                    dialog.dismiss()
                 }
+                mentorTypeBuilder.setPositiveButton("Go") { dialog, which ->
+                    mentorTypeSelected = mentorTypes[0].toString()
+                    binding.mentorTypeButtonInBookingFragment.text = mentorTypeSelected
+                    mentorTypes.clear()
+//                            mentorTypesLive.removeObservers(viewLifecycleOwner)
+                    dialog.dismiss()
+                }
+                mentorTypeBuilder.create().show()
+            }
             }
         }
-        binding.mentorNameButtonInBookingFragment.setOnClickListener{
-            if(mentorTypeSelected != "NA") {
-                var mentorsLive =
-                    context?.let { it1 -> MentorsAccess(it1).getMentorNames(mentorTypeSelected) }
-                if (mentorsLive != null) {
-                    mentorsLive.observe(viewLifecycleOwner) { mentors ->
-                        if (mentors != null) {
-                            val mentorNameBuilder = AlertDialog.Builder(context)
-                            mentorNameBuilder.setTitle("Choose Mentor Name")
-                            mentorNameBuilder.setSingleChoiceItems(
-                                mentors.map { it.name }.toTypedArray(),
-                                0
-                            ) { dialog, selectedIndex ->
-                                mentorNameSelected = mentors[selectedIndex].name.toString()
-                                mentorID = mentors[selectedIndex].userName.toString()
-                                binding.mentorNameButtonInBookingFragment.text = mentorNameSelected
-                                mentors.clear()
-                                mentorsLive.removeObservers(viewLifecycleOwner)
-                                dialog.dismiss()
-                            }
-                            mentorNameBuilder.setPositiveButton("Go") { dialog, which ->
-                                mentorNameSelected = mentors[0].name
-                                mentorID = mentors[0].userName.toString()
-                                binding.mentorNameButtonInBookingFragment.text = mentorNameSelected
-                                mentors.clear()
-                                mentorsLive.removeObservers(viewLifecycleOwner)
-                                dialog.dismiss()
-                            }
-                            mentorNameBuilder.create().show()
+        binding.mentorNameButtonInBookingFragment.setOnClickListener {
+            if (mentorTypeSelected != "NA") {
+                var mentorNamesCoroutineScope = CoroutineScope(Dispatchers.Main)
+                mentorNamesCoroutineScope.launch {
+                    var mentors = MentorsAccess(
+                        requireContext(),
+                        sharedViewModel.currentInstitution.username!!
+                    ).getMentorNames(mentorTypeSelected)
+                    mentorNamesCoroutineScope.cancel()
+
+                    if (mentors != null) {
+                        val mentorNameBuilder = AlertDialog.Builder(context)
+                        mentorNameBuilder.setTitle("Choose Mentor Name")
+                        mentorNameBuilder.setSingleChoiceItems(
+                            mentors.map { it.name }.toTypedArray(),
+                            0
+                        ) { dialog, selectedIndex ->
+                            mentorNameSelected = mentors[selectedIndex].name.toString()
+                            mentorID = mentors[selectedIndex].userName.toString()
+                            binding.mentorNameButtonInBookingFragment.text = mentorNameSelected
+                            mentors.clear()
+                            dialog.dismiss()
                         }
+                        mentorNameBuilder.setPositiveButton("Go") { dialog, which ->
+                            mentorNameSelected = mentors[0].name
+                            mentorID = mentors[0].userName.toString()
+                            binding.mentorNameButtonInBookingFragment.text = mentorNameSelected
+                            mentors.clear()
+                            dialog.dismiss()
+                        }
+                        mentorNameBuilder.create().show()
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Some error occurred in getting mentors",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
-            }
-            else{
-                Toast.makeText(context,"Some error occurred",Toast.LENGTH_SHORT).show()
-            }
 
+            }
         }
         binding.bookingDateButtonInBookingFragment.setOnClickListener{
             if(mentorTypeSelected == "NA") {
@@ -144,7 +152,6 @@ class BookingFragment : Fragment() {
             }
             datePickerDialog?.show()
         }
-        var foundDate = MutableLiveData<Boolean>(false)
         var selectedTimeSlot = "NA"
         binding.bookingTimeSlotButtonInBookingFragment.setOnClickListener {
             var totalTimeSlots = arrayListOf<String>("9-10","10-11","11-12","1-2","2-3","3-4","4-5")
@@ -167,7 +174,6 @@ class BookingFragment : Fragment() {
                                         Log.d("availableAdded",timeslot)
                                     }
                                 }
-                            foundDate.postValue(true)
 
                         }else{
                             availableTimeSlots = totalTimeSlots
@@ -228,81 +234,81 @@ class BookingFragment : Fragment() {
             }
 
             if(sharedViewModel.rescheduling){
-                var rescheduledLive = context?.let { it1 ->
-                    BookingAccess(it1,sharedViewModel).rescheduleAppointment(Appointment(
-                        date = selectedDate,
-                        timeSlot = selectedTimeSlot,
-                        mentorType = mentorTypeSelected,
-                        mentorID = mentorID,
-                        studentID = sharedViewModel.currentUserID,
-                        mentorName = mentorNameSelected,
-                        studentName = sharedViewModel.currentStudent.name,
-                        completed = false,
-                        status = "Rescheduled",
-                        remarks = "NA",
-                        cancelled = false,
-                        expanded = false,
-                        problemDescription = problemDescription
-                    ))
-                }
-                if (rescheduledLive != null) {
-                    rescheduledLive.observe(viewLifecycleOwner){rescheduled->
-                        if(rescheduled != null){
-                            if(rescheduled){
-                                sharedViewModel.rescheduling =false
-                                findNavController().navigate(R.id.studentDashBoardFragment)
-                            }else{
-                                Toast.makeText(context,"Some error occurred.",Toast.LENGTH_SHORT).show()
-                            }
-                        }else{
-                            Toast.makeText(context,"Some error occurred.",Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }else{
-                    Toast.makeText(context,"Some error occurred.",Toast.LENGTH_SHORT).show()
-                }
+                var appointment = Appointment(
+                    date = selectedDate,
+                    timeSlot = selectedTimeSlot,
+                    mentorType = mentorTypeSelected,
+                    mentorID = mentorID,
+                    studentID = sharedViewModel.currentUserID,
+                    mentorName = mentorNameSelected,
+                    studentName = sharedViewModel.currentStudent.name,
+                    completed = false,
+                    status = "Rescheduled",
+                    remarks = "NA",
+                    cancelled = false,
+                    expanded = false,
+                    problemDescription = problemDescription
+                )
+                    reschedule(appointment)
+
             }else{
-                var bookingLive = context?.let { it1 ->
-                    BookingAccess(it1,sharedViewModel).bookAppointment(Appointment(
-                        date = selectedDate,
-                        timeSlot = selectedTimeSlot,
-                        mentorType = mentorTypeSelected,
-                        mentorID = mentorID,
-                        studentID = sharedViewModel.currentUserID,
-                        mentorName = mentorNameSelected,
-                        completed = false,
-                        studentName = sharedViewModel.currentStudent.name,
-                        status = "Booked",
-                        remarks = "NA",
-                        cancelled = false,
-                        expanded = false,
-                        problemDescription = problemDescription
-                    ))
-                }
-                if(bookingLive != null) {
-                    bookingLive.observe(viewLifecycleOwner) { bookingSuccess ->
-                        if (bookingSuccess != null) {
-                            if (bookingSuccess) {
-                                Toast.makeText(context, "Booked", Toast.LENGTH_SHORT).show()
-                                findNavController().navigate(R.id.studentDashBoardFragment)
-                            } else {
-                                Toast.makeText(context, "Some error occurred.", Toast.LENGTH_SHORT)
-                                    .show()
-                            }
-                        } else {
-                            Toast.makeText(context, "Some error occurred.", Toast.LENGTH_SHORT)
-                                .show()
-                        }
-                    }
+                var appointment = Appointment(
+                    date = selectedDate,
+                    timeSlot = selectedTimeSlot,
+                    mentorType = mentorTypeSelected,
+                    mentorID = mentorID,
+                    studentID = sharedViewModel.currentUserID,
+                    mentorName = mentorNameSelected,
+                    completed = false,
+                    studentName = sharedViewModel.currentStudent.name,
+                    status = "Booked",
+                    remarks = "NA",
+                    cancelled = false,
+                    expanded = false,
+                    problemDescription = problemDescription
+                )
+                createBooking(appointment)
                 }
             }
-        }
 
         binding.cancelButtonInBookingFragment.setOnClickListener {
             findNavController().navigate(R.id.studentDashBoardFragment)
         }
 
         return binding.root
+    }
+
+    private fun reschedule(appointment: Appointment) {
+        var rescheduleCoroutineScope = CoroutineScope(Dispatchers.Main)
+        rescheduleCoroutineScope.launch {
+            var rescheduled = BookingAccess(requireContext(),sharedViewModel).rescheduleAppointment(appointment)
+            rescheduleCoroutineScope.cancel()
+            if(!rescheduled){
+                Toast.makeText(context,"Some error occurred in rescheduling booking",Toast.LENGTH_SHORT).show()
+
+            }else{
+                sharedViewModel.rescheduling =false
+                findNavController().navigate(R.id.studentDashBoardFragment)
+            }
+
+        }
+    }
+
+    private fun createBooking(appointment: Appointment) {
+        Log.d("createBooking"," in create booking")
+        var bookCoroutineScope = CoroutineScope(Dispatchers.Main)
+        bookCoroutineScope.launch {
+            var bookingSuccess =
+                BookingAccess(requireContext(), sharedViewModel).bookAppointment(appointment)
+            bookCoroutineScope.cancel()
+            if (bookingSuccess) {
+                Toast.makeText(context, "Booked", Toast.LENGTH_SHORT).show()
+                findNavController().navigate(R.id.studentDashBoardFragment)
+            } else {
+                Toast.makeText(context, "Some error occurred.", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
     }
 
 }

@@ -10,12 +10,16 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.database.FirebaseDatabase
-import com.nitc.projectsgc.Appointment
+import com.nitc.projectsgc.models.Appointment
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.admin.access.MentorsAccess
 import com.nitc.projectsgc.databinding.BookedAppointmentCardBinding
 import com.nitc.projectsgc.student.access.AppointmentsAccess
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlin.collections.ArrayList
@@ -46,7 +50,7 @@ class BookedAppointmentsAdapter(
 
     override fun onBindViewHolder(holder: BookedAppointmentsViewHolder, position: Int) {
         var database = FirebaseDatabase.getInstance()
-        var reference = database.reference.child("types")
+        var reference = database.reference.child(sharedViewModel.currentInstitution.username!!).child("types")
         if(isAdmin){
             holder.binding.rescheduleButtonInUpcomingCard.visibility = View.GONE
             holder.binding.cancelAppointmentInBookedAppointmentCard.visibility = View.GONE
@@ -61,12 +65,18 @@ class BookedAppointmentsAdapter(
         holder.binding.typeInBookedAppointmentCard.text = appointments[position].mentorType.toString()
         holder.binding.statusTextInBookedAppointmentsCard.text = appointments[position].status
         var mentorName = "NA"
-        var mentorLive = MentorsAccess(context).getMentor(appointments[position].mentorType.toString(),appointments[position].mentorID.toString())
-        mentorLive.observe(parentFragment.viewLifecycleOwner) { mentor ->
+        var getMentorCoroutineScope = CoroutineScope(Dispatchers.Main)
+        getMentorCoroutineScope.launch {
+        var mentor = MentorsAccess(context,sharedViewModel.currentInstitution.username!!).getMentor(appointments[position].mentorType.toString(),appointments[position].mentorID.toString())
+            getMentorCoroutineScope.cancel()
             if (mentor != null) {
                 holder.binding.mentorNameInBookedAppointmentCard.text = mentor.name.toString()
                 mentorName = mentor.name.toString()
-                mentorLive.removeObservers(parentFragment.viewLifecycleOwner)
+            }else{
+                holder.binding.mentorNameInBookedAppointmentCard.text = "Mentor deleted"
+                holder.binding.rescheduleButtonInUpcomingCard.visibility = View.GONE
+                holder.binding.cancelAppointmentInBookedAppointmentCard.visibility = View.GONE
+                holder.binding.statusTextInBookedAppointmentsCard.text = "Mentor Deleted"
             }
         }
         if(LocalDate.parse(appointments[position].date.toString(),(DateTimeFormatter.ofPattern("dd-MM-yyyy"))).isBefore(LocalDate.now())){
@@ -97,12 +107,14 @@ class BookedAppointmentsAdapter(
                     dialog.dismiss()
                     appointments[position].status = "Cancelled by student"
                     appointments[position].cancelled = true
-                    var cancelLive = AppointmentsAccess(
+                    var cancelAppointmentCoroutineScope = CoroutineScope(Dispatchers.Main)
+                    cancelAppointmentCoroutineScope.launch {
+                    var cancelled = AppointmentsAccess(
                         context,
                         parentFragment,
                         sharedViewModel
                     ).cancelAppointment(appointment = appointments[position])
-                    cancelLive.observe(parentFragment.viewLifecycleOwner) { cancelled ->
+                        cancelAppointmentCoroutineScope.cancel()
                         if (cancelled != null) {
                             if (cancelled) {
                                 Toast.makeText(context, "Cancelled", Toast.LENGTH_SHORT).show()
@@ -112,6 +124,7 @@ class BookedAppointmentsAdapter(
                             }
                         }
                     }
+
                 }
                 .setNegativeButton("No"){dialog,which->
                     dialog.dismiss()

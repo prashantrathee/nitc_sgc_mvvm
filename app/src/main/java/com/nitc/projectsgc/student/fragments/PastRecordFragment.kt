@@ -11,6 +11,10 @@ import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.databinding.FragmentPastRecordBinding
 import com.nitc.projectsgc.mentors.access.MentorAppointmentsAccess
 import com.nitc.projectsgc.mentors.adapters.PastRecordAdapter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class PastRecordFragment:Fragment() {
 
@@ -24,15 +28,26 @@ class PastRecordFragment:Fragment() {
     ): View? {
         binding = FragmentPastRecordBinding.inflate(inflater,container,false)
 
-        var pastRecordLive = context?.let { MentorAppointmentsAccess(it, sharedViewModel = sharedViewModel).getStudentRecord(sharedViewModel.pastRecordStudentID) }
-        binding.pastRecordRecyclerViewInPastRecordFragment.layoutManager = LinearLayoutManager(context)
-        if(pastRecordLive != null){
-            pastRecordLive.observe(viewLifecycleOwner){pastRecord->
-                if(pastRecord != null){
-                    binding.pastRecordRecyclerViewInPastRecordFragment.adapter =
-                        context?.let { PastRecordAdapter(it,this,pastRecord, sharedViewModel = sharedViewModel) }
-                }
-            }
+        var pastAppointmentsCoroutineScope = CoroutineScope(Dispatchers.Main)
+        pastAppointmentsCoroutineScope.launch {
+            var pastRecord = MentorAppointmentsAccess(
+                requireContext(),
+                sharedViewModel = sharedViewModel
+            ).getStudentRecord(sharedViewModel.pastRecordStudentID)
+            pastAppointmentsCoroutineScope.cancel()
+            binding.pastRecordRecyclerViewInPastRecordFragment.layoutManager =
+                LinearLayoutManager(context)
+                    if (pastRecord != null) {
+                        binding.pastRecordRecyclerViewInPastRecordFragment.adapter =
+                            context?.let {
+                                PastRecordAdapter(
+                                    it,
+                                    this@PastRecordFragment,
+                                    pastRecord,
+                                    sharedViewModel = sharedViewModel
+                                )
+                            }
+                    }
         }
 
         return binding.root

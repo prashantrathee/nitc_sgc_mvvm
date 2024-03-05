@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="25dp"
         android:fontFamily="@font/inter_semibold"
-        android:text="Sign Up"
+        android:text="Register"
         android:textColor="@color/black"
         android:textSize="30sp"
         app:layout_constraintBottom_toTopOf="@+id/registerCardInRegisterFragment"
@@ -121,6 +121,33 @@
             </LinearLayout>
 
 
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                app:cardCornerRadius="15dp"
+                android:layout_weight="4"
+                app:cardElevation="5dp"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="20dp"
+                app:cardBackgroundColor="@color/white">
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="9"
+                    app:boxBackgroundColor="@color/white">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/rollNoFieldInRegisterFragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:hint="Roll Number"
+                        android:inputType="text"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </com.google.android.material.card.MaterialCardView>
 
 
             <com.google.android.material.card.MaterialCardView
@@ -179,64 +206,65 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:textAllCaps="false"
+                app:cornerRadius="15dp"
+                android:letterSpacing="0.03"
+                android:id="@+id/dateOfBirthButtonInRegisterFragment"
+                android:layout_weight="4"
+                android:layout_marginHorizontal="20dp"
+                android:backgroundTint="@color/very_light_gray"
                 android:fontFamily="@font/inter_semibold"
                 android:textColor="@color/black"
                 android:layout_marginTop="20dp"
                 android:text="Date of Birth" />
 
-            <DatePicker
-                android:id="@+id/dateOfBirthInRegisterFragment"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="7"
-                android:calendarTextColor="@color/black"
-                android:calendarViewShown="false"
-                android:datePickerMode="spinner" />
 
 
-                <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/tncBoxInRegisterFragment"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="2"
-                    android:checked="false"
-                    android:layout_marginHorizontal="20dp"
-                    android:contentDescription="terms and condition"
-                    android:text="I agree to terms and conditions"
-                    android:textColor="@color/black"
-                    android:textColorLink="#009688"
-                    android:visibility="visible" />
+<!--                <com.google.android.material.checkbox.MaterialCheckBox-->
+<!--                    android:id="@+id/tncBoxInRegisterFragment"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="0dp"-->
+<!--                    android:layout_weight="2"-->
+<!--                    android:checked="false"-->
+<!--                    android:layout_marginHorizontal="20dp"-->
+<!--                    android:contentDescription="terms and condition"-->
+<!--                    android:text="I agree to terms and conditions"-->
+<!--                    android:textColor="@color/black"-->
+<!--                    android:textColorLink="#009688"-->
+<!--                    android:visibility="visible" />-->
 
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/signUpButtonInRegisterFragment"
-                    android:layout_width="150dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="0dp"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="40dp"
                     android:layout_weight="4"
                     android:layout_gravity="center"
                     android:backgroundTint="@color/navy_blue"
                     android:fontFamily="@font/inter_semibold"
-                    android:text="Register"
+                    android:text="Register as Student"
                     android:textAllCaps="false"
-                    app:cornerRadius="10dp" />
+                    app:cornerRadius="17dp" />
 
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/signInButtonInRegisterFragment"
+        android:id="@+id/registerAsInstitutionButtonInRegisterFragment"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Sign In instead"
+        android:layout_height="0dp"
+        android:text="Register Institution"
         android:textAllCaps="false"
         android:textColor="@color/black"
-        android:backgroundTint="#00000000"
-        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+        app:layout_constraintHeight_percent="0.08"
+        app:cornerRadius="17sp"
+        android:backgroundTint="@color/ivory_wheat"
+        android:letterSpacing="0.02"
         android:fontFamily="@font/inter_semibold"
         app:layout_constraintWidth_percent="0.7"
         app:layout_constraintBottom_toBottomOf="parent"

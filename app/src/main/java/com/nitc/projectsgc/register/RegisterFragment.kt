@@ -1,8 +1,6 @@
 package com.nitc.projectsgc.register
 
-import android.app.Dialog
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
+import android.app.DatePickerDialog
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -17,19 +15,26 @@ import androidx.core.text.isDigitsOnly
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.nitc.projectsgc.CircleLoadingDialog
+import com.nitc.projectsgc.InstitutionsAccess
+import com.nitc.projectsgc.models.Institution
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
-import com.nitc.projectsgc.Student
+import com.nitc.projectsgc.models.Student
 import com.nitc.projectsgc.databinding.FragmentRegisterBinding
 import com.nitc.projectsgc.register.access.RegisterAccess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Calendar.DAY_OF_MONTH
+import java.util.Calendar.MONTH
+import java.util.Calendar.YEAR
 
-class RegisterFragment : Fragment(), AdapterView.OnItemSelectedListener {
-    lateinit var registerBinding: FragmentRegisterBinding
+class RegisterFragment : Fragment(), AdapterView.OnItemSelectedListener,CircleLoadingDialog {
+    lateinit var binding: FragmentRegisterBinding
     lateinit var studentGender:Spinner
     private val sharedViewModel:SharedViewModel by activityViewModels()
     lateinit var selectedGenderTextView: String
@@ -40,43 +45,52 @@ class RegisterFragment : Fragment(), AdapterView.OnItemSelectedListener {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        registerBinding = FragmentRegisterBinding.inflate(inflater,container,false)
+        binding = FragmentRegisterBinding.inflate(inflater,container,false)
         val arrayAdapter = ArrayAdapter.createFromResource(
             requireContext(),
             R.array.gender_options,
             android.R.layout.simple_spinner_item
         )
-        studentGender = registerBinding.genderSpinnerInRegisterFragment
+        if(sharedViewModel.userType == "Admin"){
+            binding.registerAsInstitutionButtonInRegisterFragment.visibility = View.GONE
+            binding.headingTVInRegisterFragment.text = "Add Student"
+            binding.signUpButtonInRegisterFragment.text = "Add"
+        }else if(sharedViewModel.userType != "Mentor"){
+            binding.registerAsInstitutionButtonInRegisterFragment.visibility = View.VISIBLE
+            binding.headingTVInRegisterFragment.text = "Register"
+            binding.signUpButtonInRegisterFragment.text = "Register"
+        }
+        studentGender = binding.genderSpinnerInRegisterFragment
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         studentGender.adapter = arrayAdapter
         studentGender.onItemSelectedListener = this
         var dateOfBirth = ""
         val calendar = Calendar.getInstance()
-
-        registerBinding.dateOfBirthInRegisterFragment.init(
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ){view,year,monthOfYear,dayOfMonth->
-            var monthNumber = monthOfYear + 1
-            Log.d("monthNumber","month number before = "+monthNumber)
-            if(monthNumber/10 == 0) monthNumber = "0${monthNumber.toString()}".toInt()
-            Log.d("monthNumber","month numbe = "+monthNumber.toString())
-            if(monthNumber < 10) dateOfBirth = "${registerBinding.dateOfBirthInRegisterFragment.dayOfMonth.toString()}/0${monthNumber.toString()}/${registerBinding.dateOfBirthInRegisterFragment.year.toString()}"
-            else dateOfBirth = "${registerBinding.dateOfBirthInRegisterFragment.dayOfMonth.toString()}/${monthNumber.toString()}/${registerBinding.dateOfBirthInRegisterFragment.year.toString()}"
-            Log.d("monthNumber","date of birth = "+dateOfBirth)
-
+        binding.dateOfBirthButtonInRegisterFragment.setOnClickListener {
+            DatePickerDialog(
+                requireContext(),
+                {DatePicker,year:Int,monthOfYear:Int,dayOfMonth:Int->
+                    val dateFormat = SimpleDateFormat("dd/MM/yyyy")
+                    val dateToday = Calendar.getInstance()
+                    dateToday.set(year,monthOfYear,dayOfMonth)
+                    dateOfBirth = dateFormat.format(dateToday.time)
+                    binding.dateOfBirthButtonInRegisterFragment.text = dateOfBirth
+                },
+                calendar.get(YEAR),
+                calendar.get(MONTH),
+                calendar.get(DAY_OF_MONTH)
+            ).show()
         }
-        registerBinding.signUpButtonInRegisterFragment.setOnClickListener{
-            val nameInput = registerBinding.nameFieldInRegisterFragment.text.toString()
-            val emailInput = registerBinding.emailFieldInRegisterFragment.text.toString()
-            val passwordInput = registerBinding.passwordFieldInRegisterFragment.text.toString()
-            var phoneNumber = registerBinding.phoneNumberInRegisterFragment.text.toString()
+        binding.signUpButtonInRegisterFragment.setOnClickListener{
+            val nameInput = binding.nameFieldInRegisterFragment.text.toString()
+            val emailInput = binding.emailFieldInRegisterFragment.text.toString()
+            val passwordInput = binding.passwordFieldInRegisterFragment.text.toString()
+            var phoneNumber = binding.phoneNumberInRegisterFragment.text.toString()
 
 
             if(nameInput.isEmpty()){
-                registerBinding.nameFieldInRegisterFragment.error = "Name field cannot be empty"
-                registerBinding.nameFieldInRegisterFragment.requestFocus()
+                binding.nameFieldInRegisterFragment.error = "Name field cannot be empty"
+                binding.nameFieldInRegisterFragment.requestFocus()
                 return@setOnClickListener
             }
             var names = nameInput.toString().trim().split(" ")
@@ -88,44 +102,59 @@ class RegisterFragment : Fragment(), AdapterView.OnItemSelectedListener {
                 }
             }
             if(!nameValid){
-                registerBinding.nameFieldInRegisterFragment.error = "Name field shouldn't contain numbers"
-                registerBinding.nameFieldInRegisterFragment.requestFocus()
+                binding.nameFieldInRegisterFragment.error = "Name field shouldn't contain numbers"
+                binding.nameFieldInRegisterFragment.requestFocus()
                 return@setOnClickListener
             }
             if(emailInput.isEmpty()){
-                registerBinding.emailFieldInRegisterFragment.error = "Email field cannot be empty"
-                registerBinding.emailFieldInRegisterFragment.requestFocus()
+                binding.emailFieldInRegisterFragment.error = "Email field cannot be empty"
+                binding.emailFieldInRegisterFragment.requestFocus()
                 return@setOnClickListener
             }
-            if(!checkDomain(emailInput)){
-                registerBinding.emailFieldInRegisterFragment.error = "Email should be a valid nitc email"
-                registerBinding.emailFieldInRegisterFragment.requestFocus()
+            val institutionCoroutineScope = CoroutineScope(Dispatchers.Main)
+            val count = emailInput.count{it=='@'}
+            if(count != 1) {
+                binding.emailFieldInRegisterFragment.error = "Enter a valid email"
+                binding.emailFieldInRegisterFragment.requestFocus()
                 return@setOnClickListener
             }
-            if(passwordInput.length < 8){
-                registerBinding.passwordFieldInRegisterFragment.error = "Password should contain at least 8 characters"
-                registerBinding.passwordFieldInRegisterFragment.requestFocus()
-                return@setOnClickListener
-            }
+            val domain : String = emailInput.substring(emailInput.indexOf("@")+1,emailInput.length)
 
-            phoneNumber = phoneNumber.trim()
-            if(phoneNumber.length <10 || phoneNumber.length >10){
-                phoneNumber.trim()
-                registerBinding.phoneNumberInRegisterFragment.error = "Phone number should be 10 digits only"
-                registerBinding.phoneNumberInRegisterFragment.requestFocus()
-                return@setOnClickListener
-            }else if (!isDigitsOnly(phoneNumber)){
-                registerBinding.phoneNumberInRegisterFragment.setText("")
-                Toast.makeText(context,"Oops !! you entered phone number in wrong format", Toast.LENGTH_LONG).show()
-                registerBinding.phoneNumberInRegisterFragment.requestFocus()
-                return@setOnClickListener
-            }
 
-            val checked = registerBinding.tncBoxInRegisterFragment
-            if(!checked.isChecked){
-                Toast.makeText(context,"You have to accept the terms and conditions", Toast.LENGTH_LONG).show()
-                return@setOnClickListener
-            }
+
+            institutionCoroutineScope.launch {
+                var institution: Institution? = null
+                if(sharedViewModel.userType != "Admin") institution = InstitutionsAccess(requireContext(),sharedViewModel).getInstitution(domain.replace(Regex("[^a-zA-Z0-9]+"),"_"))
+            institutionCoroutineScope.cancel()
+                if(institution != null || (sharedViewModel.userType == "Admin" && domain.replace(Regex("[^a-zA-Z0-9]+"),"_") == sharedViewModel.currentInstitution.username)){
+                    Log.d("checkDomain","checked = true")
+                    if(passwordInput.length < 8){
+                        binding.passwordFieldInRegisterFragment.error = "Password should contain at least 8 characters"
+                        binding.passwordFieldInRegisterFragment.requestFocus()
+//                        return@setOnClickListener
+                        return@launch
+                    }
+
+                    phoneNumber = phoneNumber.trim()
+                    if(phoneNumber.length <10 || phoneNumber.length >10){
+                        phoneNumber.trim()
+                        binding.phoneNumberInRegisterFragment.error = "Phone number should be 10 digits only"
+                        binding.phoneNumberInRegisterFragment.requestFocus()
+//                        return@setOnClickListener
+                        return@launch
+                    }else if (!isDigitsOnly(phoneNumber)){
+                        binding.phoneNumberInRegisterFragment.setText("")
+                        Toast.makeText(context,"Oops !! you entered phone number in wrong format", Toast.LENGTH_LONG).show()
+                        binding.phoneNumberInRegisterFragment.requestFocus()
+//                        return@setOnClickListener
+                        return@launch
+                    }
+
+//            val checked = binding.tncBoxInRegisterFragment
+//            if(!checked.isChecked){
+//                Toast.makeText(context,"You have to accept the terms and conditions", Toast.LENGTH_LONG).show()
+//                return@setOnClickListener
+//            }
 
 //
 //            Toast.makeText(context,"Email = $emailInput \n" +
@@ -136,29 +165,53 @@ class RegisterFragment : Fragment(), AdapterView.OnItemSelectedListener {
 //                    "Gender = $selectedGenderTextView \n"
 //                , Toast.LENGTH_LONG).show()
 
-            val rollNo = emailInput.substring(emailInput.indexOf("_") + 1, emailInput.indexOf("@"))
+                    var rollNo = binding.rollNoFieldInRegisterFragment.text.toString()
+                    if(rollNo.isEmpty()){
+                        binding.rollNoFieldInRegisterFragment.error = "Enter roll number first"
+                        binding.rollNoFieldInRegisterFragment.requestFocus()
+//                        return@setOnClickListener
+                        return@launch
+                    }
+                    rollNo = rollNo.lowercase()
+//            if(!verifyRollNO(rollNo)){
+//                binding.emailFieldInRegisterFragment.error = "You have entered the roll no. in email incorrectly"
+//                binding.emailFieldInRegisterFragment.requestFocus()
+//                return@setOnClickListener
+//            }
 
-            if(!verifyRollNO(rollNo)){
-                registerBinding.emailFieldInRegisterFragment.error = "You have entered the roll no. in email incorrectly"
-                registerBinding.emailFieldInRegisterFragment.requestFocus()
-                return@setOnClickListener
-            }
+                    val loadingDialog = getLoadingDialog(requireActivity(),requireContext())
+                    Log.d("today","this called")
+                    val registerCoroutineScope = CoroutineScope(Dispatchers.Main)
+                    val username = emailInput.substring(0,emailInput.indexOf('@')).replace(Regex("[^a-zA-Z0-9]+"),"_")
+                    registerCoroutineScope.launch {
+                        val student = Student(
+                            rollNo,
+                            nameInput,
+                            username,
+                            dateOfBirth,
+                            emailInput,
+                            selectedGenderTextView,
+                            passwordInput,
+                            phoneNumber
+                        )
+                        loadingDialog.create()
+                        loadingDialog.show()
+                        val registerSuccess = RegisterAccess(requireContext()).register(student,sharedViewModel.currentInstitution.username.toString())
+                        loadingDialog.cancel()
+                        registerCoroutineScope.cancel()
+                        if(registerSuccess){
+                            if(sharedViewModel.userType == "Admin") findNavController().navigate(R.id.adminDashboardFragment)
+                            else findNavController().navigate(R.id.loginFragment)
+                        }else{
+                            Toast.makeText(context,"Error in registration",Toast.LENGTH_SHORT).show()
+                            return@launch
+                        }
+                    }
 
-            val loadingDialog = Dialog(requireContext())
-            loadingDialog.setContentView(requireActivity().layoutInflater.inflate(R.layout.loading_dialog,null))
-            loadingDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            Log.d("today","this called")
-            val registerCoroutineScope = CoroutineScope(Dispatchers.Main)
-            registerCoroutineScope.launch {
-                val student = Student(rollNo,nameInput,dateOfBirth,emailInput,selectedGenderTextView,passwordInput,phoneNumber)
-                loadingDialog.create()
-                loadingDialog.show()
-                val registerSuccess = RegisterAccess(requireContext()).register(student)
-                loadingDialog.cancel()
-                registerCoroutineScope.cancel()
-                if(registerSuccess){
-                    if(sharedViewModel.userType == "Admin") findNavController().navigate(R.id.adminDashboardFragment)
-                    else findNavController().navigate(R.id.loginFragment)
+                }else {
+                    binding.emailFieldInRegisterFragment.error = "Email should be connected with an institution"
+                    binding.emailFieldInRegisterFragment.requestFocus()
+                    return@launch
                 }
             }
 
@@ -169,19 +222,21 @@ class RegisterFragment : Fragment(), AdapterView.OnItemSelectedListener {
 
         }
 
-        registerBinding.signInButtonInRegisterFragment.setOnClickListener{
-            findNavController().navigate(R.id.loginFragment)
+        binding.registerAsInstitutionButtonInRegisterFragment.setOnClickListener {
+            findNavController().navigate(R.id.addInstitutionFragment)
         }
+
 //        registerBinding.f
     val backCallback = object : OnBackPressedCallback(true /* enabled by default */) {
         override fun handleOnBackPressed() {
             // Call a method in your Fragment to handle the navigation
-            requireActivity().finish()
+            if(sharedViewModel.userType == "Admin") findNavController().navigate(R.id.adminDashboardFragment)
+            else requireActivity().finish()
         }
     }
     requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,backCallback)
         // Inflate the layout for this fragment
-        return registerBinding.root
+        return binding.root
     }
 
     private fun verifyRollNO(rollNo: String): Boolean {
@@ -193,11 +248,11 @@ class RegisterFragment : Fragment(), AdapterView.OnItemSelectedListener {
         return true
     }
 
-    private fun checkDomain(emailInput: String): Boolean {
-        val domain : String = emailInput.substring(emailInput.indexOf("@")+1,emailInput.length)
-        if(domain != "nitc.ac.in") return false
-        return  true
-    }
+    suspend fun checkDomain(emailInput: String,callback:(Boolean)->Unit) {
+
+//            Log.d("checkDomain","returning checked = $checked")
+
+        }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

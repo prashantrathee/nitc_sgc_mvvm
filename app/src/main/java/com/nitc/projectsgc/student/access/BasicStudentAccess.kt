@@ -3,13 +3,10 @@ package com.nitc.projectsgc.student.access
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.nitc.projectsgc.Mentor
 import com.nitc.projectsgc.SharedViewModel
-import com.nitc.projectsgc.Student
+import com.nitc.projectsgc.models.Student
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -18,22 +15,26 @@ class BasicStudentAccess(
     var sharedViewModel: SharedViewModel
 ) {
 
-    fun getStudent(studentID:String):LiveData<Student>{
-        var studentsLive = MutableLiveData<Student>(null)
-        val database : FirebaseDatabase = FirebaseDatabase.getInstance()
-        val reference : DatabaseReference = database.reference.child("students")
-        reference.addValueEventListener(object:ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                var student = snapshot.child(studentID).getValue(Student::class.java)!!
-                studentsLive.postValue(student)
-            }
+    suspend fun getStudent(studentID:String): Student?{
+        return suspendCoroutine { continuation ->
+            var isResumed = false
+            val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+            val reference: DatabaseReference =
+                database.reference.child(sharedViewModel.currentInstitution.username!!)
+                    .child("students")
+            reference.addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    var student = snapshot.child(studentID).getValue(Student::class.java)!!
+                    if(!isResumed) continuation.resume(student)
+                }
 
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(context,"Error : $error",Toast.LENGTH_LONG).show()
-            }
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(context, "Error : $error", Toast.LENGTH_LONG).show()
 
-        })
-        return studentsLive
+                }
+
+            })
+        }
     }
 
     suspend fun updateStudent(
@@ -42,7 +43,7 @@ class BasicStudentAccess(
     ): Boolean {
         return suspendCoroutine { continuation ->
             val database: FirebaseDatabase = FirebaseDatabase.getInstance()
-            val reference: DatabaseReference = database.reference.child("students")
+            val reference: DatabaseReference = database.reference.child(sharedViewModel.currentInstitution.username!!).child("students")
             val auth: FirebaseAuth = FirebaseAuth.getInstance()
             reference.child(student.rollNo).setValue(student).addOnCompleteListener { task ->
                 if (task.isSuccessful) {

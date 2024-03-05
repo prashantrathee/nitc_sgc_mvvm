@@ -5,7 +5,7 @@
     android:layout_margin="5dp"
     app:cardCornerRadius="15dp"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:cardBackgroundColor="@color/light_blue">
+    app:cardBackgroundColor="@color/lavender">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -28,11 +28,14 @@
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/mentorNameInBookedAppointmentCard"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/inter_semibold"
             android:textColor="@color/black"
             android:text="Mentor Name"
+            android:maxWidth="120dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             app:layout_constraintWidth_percent="0.3"
             app:layout_constraintHorizontal_bias="0.05"
             app:layout_constraintVertical_bias="0.1"
@@ -43,13 +46,14 @@
 
         <LinearLayout
             android:id="@+id/appointmentDateLayoutInBookedAppointmentCard"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center"
             app:layout_constraintBottom_toBottomOf="@+id/mentorNameInBookedAppointmentCard"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/mentorNameInBookedAppointmentCard"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintHorizontal_bias="0.92"
             app:layout_constraintTop_toTopOf="@+id/mentorNameInBookedAppointmentCard">
 
             <com.google.android.material.textview.MaterialTextView
@@ -110,14 +114,14 @@
 
         <LinearLayout
             android:id="@+id/typeLayoutInBookedAppointmentCard"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="start"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="@+id/timeLayoutInBookedAppointmentCard"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.901"
-            app:layout_constraintStart_toStartOf="@id/mentorNameInBookedAppointmentCard"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="@id/appointmentDateLayoutInBookedAppointmentCard"
             app:layout_constraintTop_toTopOf="@+id/timeLayoutInBookedAppointmentCard"
             app:layout_constraintVertical_bias="0.0"
             app:layout_constraintWidth_percent="0.35">
@@ -139,7 +143,10 @@
                 android:layout_gravity="center"
                 android:fontFamily="@font/inter"
                 android:gravity="center"
-                android:text="Career"
+                android:maxWidth="100dp"
+                android:text="Psychology"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:textColor="@color/black" />
 
 

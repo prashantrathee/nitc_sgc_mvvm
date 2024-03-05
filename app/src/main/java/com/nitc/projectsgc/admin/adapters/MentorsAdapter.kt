@@ -15,7 +15,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.nitc.projectsgc.Mentor
+import com.nitc.projectsgc.models.Mentor
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.SharedViewModel
 import com.nitc.projectsgc.admin.access.MentorsAccess
@@ -71,7 +71,7 @@ class MentorsAdapter(
                     loadingDialog.create()
                     loadingDialog.show()
                     deleteCoroutineScope.launch {
-                        var deleted = MentorsAccess(context).deleteMentor(
+                        var deleted = MentorsAccess(context,sharedViewModel.currentInstitution.username!!).deleteMentor(
                             mentors[position].userName.toString(),
                             mentors[position].type.toString()
                         )
