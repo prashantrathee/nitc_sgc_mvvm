@@ -1,4 +1,4 @@
-package com.nitc.projectsgc.composables.components
+package com.nitc.projectsgc.composable.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
@@ -13,12 +13,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun HeadingText(text: String, fontColor: Color) {
+fun HeadingText(text: String, fontColor: Color,modifier: Modifier) {
     Text(
         text = text,
         fontSize = 21.sp,
         fontWeight = FontWeight.Medium,
-        color = fontColor
+        color = fontColor,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun SubHeadingText(text: String, fontColor: Color,modifier: Modifier) {
+    Text(
+        text = text,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Medium,
+        color = fontColor,
+        modifier = modifier
     )
 }
 
@@ -27,7 +39,7 @@ fun HeadingCard(text: String, bg: Color, fontColor: Color) {
     Card(
         modifier = Modifier.background(bg).padding(10.dp)
     ) {
-        HeadingText(text = text, fontColor = fontColor)
+        HeadingText(text = text, fontColor = fontColor,modifier = Modifier)
     }
 }
 

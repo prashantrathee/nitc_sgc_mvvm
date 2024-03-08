@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 class LoginFragment : Fragment() {
 
     private lateinit var binding: FragmentLoginBinding
-    var userType = "Student"
+    var userType = 1
     var mentorNumber = 0
     var mentorTypeSelected = "NA"
     private val sharedViewModel:SharedViewModel by activityViewModels()
@@ -62,7 +62,7 @@ class LoginFragment : Fragment() {
             binding.editTextTextEmailAddress.setText("")
             binding.editTextTextPassword.setText("")
 //            binding.signUpButton.visibility = View.GONE
-            userType = "Admin"
+            userType = 0
 
         }
         binding.studentLoginTypeButtonInLoginFragment.setOnClickListener {
@@ -76,7 +76,7 @@ class LoginFragment : Fragment() {
             binding.editTextTextEmailAddress.setText("")
             binding.editTextTextPassword.setText("")
 //            binding.signUpButton.visibility = View.VISIBLE
-            userType = "Student"
+            userType = 1
         }
         binding.mentorLoginTypeButtonInLoginFragment.setOnClickListener {
             binding.adminLoginTypeImageInLoginFragment.setBackgroundResource(R.drawable.login_type_card_transparent_bg)
@@ -89,7 +89,7 @@ class LoginFragment : Fragment() {
             binding.editTextTextEmailAddress.setText("")
             binding.editTextTextPassword.setText("")
 //            binding.signUpButton.visibility = View.GONE
-            userType = "Mentor"
+            userType = 2
         }
 
         binding.mentorTypeButtonInLoginFragment.setOnClickListener {
@@ -151,7 +151,7 @@ class LoginFragment : Fragment() {
             val _index = emailInput.indexOf('_')
 //            val indexOfAt = emailInput.indexOf('@')
 //            if(_index)
-            if(userType == "Student"){
+            if(userType == 1){
 
 //                val rollNo = emailInput.substring(emailInput.indexOf("_")+1,emailInput.indexOf("@"))
                 val username = emailInput.substring(0,emailInput.indexOf('@'))
@@ -170,13 +170,13 @@ class LoginFragment : Fragment() {
                             loginCoroutineScope.cancel()
                             if (loginSuccess) {
                                 sharedViewModel.currentUserID = username
-                                sharedViewModel.userType = "Student"
+                                sharedViewModel.userType = 1
                                 Log.d("loginSuccess", loginSuccess.toString())
                                 findNavController().navigate(R.id.studentDashBoardFragment)
                             }
                         }
             }
-            else if(userType == "Admin"){
+            else if(userType == 0){
 //                Toast.makeText(requireContext(),"Email entered is $emailInput and password entered is $passwordInput",Toast.LENGTH_LONG).show()
 
                 loginCoroutineScope.launch {
@@ -192,12 +192,12 @@ class LoginFragment : Fragment() {
                     loadingDialog.cancel()
                     loginCoroutineScope.cancel()
                     if(loginSuccess){
-                        sharedViewModel.userType = "Admin"
+                        sharedViewModel.userType = 0
                         findNavController().navigate(R.id.adminDashboardFragment)
                     }
                 }
             }
-            else if(userType == "Mentor"){
+            else if(userType == 2){
                 if(mentorTypeSelected == "NA"){
                     Toast.makeText(context,"Please select your type",Toast.LENGTH_SHORT).show()
                 }
@@ -211,7 +211,7 @@ class LoginFragment : Fragment() {
                         loginCoroutineScope.cancel()
                         if(loginSuccess == true){
                             sharedViewModel.currentUserID = userName
-                            sharedViewModel.userType = "Mentor"
+                            sharedViewModel.userType = 2
                             findNavController().navigate(R.id.mentorDashboardFragment)
                         }
                     }

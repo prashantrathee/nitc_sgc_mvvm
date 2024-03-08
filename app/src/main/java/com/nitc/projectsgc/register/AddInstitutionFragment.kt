@@ -33,7 +33,7 @@ class AddInstitutionFragment: Fragment() {
         binding = FragmentAddInstitutionBinding.inflate(inflater,container,false)
 
 
-        if(sharedViewModel.userType == "Admin"){
+        if(sharedViewModel.userType == 0){
 
         }
         binding.createButtonInAddInstitutionFragment.setOnClickListener {

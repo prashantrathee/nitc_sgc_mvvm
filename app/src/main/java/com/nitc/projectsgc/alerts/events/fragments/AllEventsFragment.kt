@@ -52,7 +52,7 @@ class AllEventsFragment:Fragment() {
         }
 
 
-        if(sharedViewModel.userType == "Mentor"){
+        if(sharedViewModel.userType == 2){
             binding.addEventButtonInAllEventsFragment.visibility = View.VISIBLE
             Log.d("viewVisible","view is visible")
         }else binding.addEventButtonInAllEventsFragment.visibility = View.GONE
@@ -136,7 +136,7 @@ class AllEventsFragment:Fragment() {
                 requireContext(),
                 sharedViewModel,
                 this@AllEventsFragment
-            ).getTypeEvents(sharedViewModel.userType == "Student", eventType)
+            ).getTypeEvents(sharedViewModel.userType == 1, eventType)
 
             if(events == null || events.isEmpty()){
                 binding.noEventsTVInAllEventsFragment.visibility = View.VISIBLE
@@ -148,7 +148,7 @@ class AllEventsFragment:Fragment() {
                     requireContext(),
                     this@AllEventsFragment,
                     sharedViewModel,
-                    sharedViewModel.userType == "Student",
+                    sharedViewModel.userType == 1,
                     events
                 )
             }
@@ -157,7 +157,7 @@ class AllEventsFragment:Fragment() {
 
     private suspend fun getEvents() {
         Log.d("userType",sharedViewModel.userType.toString())
-        val events = EventsAccess(requireContext(),sharedViewModel,this@AllEventsFragment).getEvents(sharedViewModel.userType == "Student")
+        val events = EventsAccess(requireContext(),sharedViewModel,this@AllEventsFragment).getEvents(sharedViewModel.userType == 1)
         if(events == null || events.isEmpty()){
             binding.noEventsTVInAllEventsFragment.visibility = View.VISIBLE
             binding.recyclerViewInAllEventsFragment.visibility = View.GONE
@@ -169,7 +169,7 @@ class AllEventsFragment:Fragment() {
                 requireContext(),
                 this@AllEventsFragment,
                 sharedViewModel,
-                sharedViewModel.userType == "Student",
+                sharedViewModel.userType == 1,
                 events
             )
             return

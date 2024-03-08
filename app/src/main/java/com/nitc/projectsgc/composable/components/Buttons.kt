@@ -1,7 +1,5 @@
-package com.nitc.projectsgc.composables.components
+package com.nitc.projectsgc.composable.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -14,14 +12,14 @@ import androidx.compose.ui.unit.dp
 
 @Preview
 @Composable
-fun BasicButton(text: String, bg: Color, tc: Color, clickCallback: (Boolean) -> Unit) {
+fun BasicButton(text: String, bg: Color, tc: Color, clickCallback: () -> Unit) {
     Button(
-        onClick = { clickCallback(true) },
+        onClick = { clickCallback() },
         shape = RoundedCornerShape(15.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = bg
         )
     ) {
-        HeadingText(text, tc)
+        HeadingText(text, tc,modifier = Modifier)
     }
 }

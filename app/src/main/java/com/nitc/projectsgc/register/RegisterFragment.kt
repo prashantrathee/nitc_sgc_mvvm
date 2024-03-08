@@ -51,11 +51,11 @@ class RegisterFragment : Fragment(), AdapterView.OnItemSelectedListener,CircleLo
             R.array.gender_options,
             android.R.layout.simple_spinner_item
         )
-        if(sharedViewModel.userType == "Admin"){
+        if(sharedViewModel.userType == 0){
             binding.registerAsInstitutionButtonInRegisterFragment.visibility = View.GONE
             binding.headingTVInRegisterFragment.text = "Add Student"
             binding.signUpButtonInRegisterFragment.text = "Add"
-        }else if(sharedViewModel.userType != "Mentor"){
+        }else if(sharedViewModel.userType != 2){
             binding.registerAsInstitutionButtonInRegisterFragment.visibility = View.VISIBLE
             binding.headingTVInRegisterFragment.text = "Register"
             binding.signUpButtonInRegisterFragment.text = "Register"
@@ -124,9 +124,9 @@ class RegisterFragment : Fragment(), AdapterView.OnItemSelectedListener,CircleLo
 
             institutionCoroutineScope.launch {
                 var institution: Institution? = null
-                if(sharedViewModel.userType != "Admin") institution = InstitutionsAccess(requireContext(),sharedViewModel).getInstitution(domain.replace(Regex("[^a-zA-Z0-9]+"),"_"))
+                if(sharedViewModel.userType != 0) institution = InstitutionsAccess(requireContext(),sharedViewModel).getInstitution(domain.replace(Regex("[^a-zA-Z0-9]+"),"_"))
             institutionCoroutineScope.cancel()
-                if(institution != null || (sharedViewModel.userType == "Admin" && domain.replace(Regex("[^a-zA-Z0-9]+"),"_") == sharedViewModel.currentInstitution.username)){
+                if(institution != null || (sharedViewModel.userType == 0 && domain.replace(Regex("[^a-zA-Z0-9]+"),"_") == sharedViewModel.currentInstitution.username)){
                     Log.d("checkDomain","checked = true")
                     if(passwordInput.length < 8){
                         binding.passwordFieldInRegisterFragment.error = "Password should contain at least 8 characters"
@@ -200,7 +200,7 @@ class RegisterFragment : Fragment(), AdapterView.OnItemSelectedListener,CircleLo
                         loadingDialog.cancel()
                         registerCoroutineScope.cancel()
                         if(registerSuccess){
-                            if(sharedViewModel.userType == "Admin") findNavController().navigate(R.id.adminDashboardFragment)
+                            if(sharedViewModel.userType == 0) findNavController().navigate(R.id.adminDashboardFragment)
                             else findNavController().navigate(R.id.loginFragment)
                         }else{
                             Toast.makeText(context,"Error in registration",Toast.LENGTH_SHORT).show()
@@ -230,7 +230,7 @@ class RegisterFragment : Fragment(), AdapterView.OnItemSelectedListener,CircleLo
     val backCallback = object : OnBackPressedCallback(true /* enabled by default */) {
         override fun handleOnBackPressed() {
             // Call a method in your Fragment to handle the navigation
-            if(sharedViewModel.userType == "Admin") findNavController().navigate(R.id.adminDashboardFragment)
+            if(sharedViewModel.userType == 0) findNavController().navigate(R.id.adminDashboardFragment)
             else requireActivity().finish()
         }
     }

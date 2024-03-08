@@ -87,7 +87,7 @@ class AddMentorFragment : Fragment() {
             val domain : String = emailOfMentor.substring(emailOfMentor.indexOf("@")+1,emailOfMentor.length)
             institutionCoroutineScope.launch {
                 institutionCoroutineScope.cancel()
-                if (sharedViewModel.userType == "Admin" && domain.replace(
+                if (sharedViewModel.userType == 0 && domain.replace(
                         '.',
                         '_'
                     ) == sharedViewModel.currentInstitution.username) {

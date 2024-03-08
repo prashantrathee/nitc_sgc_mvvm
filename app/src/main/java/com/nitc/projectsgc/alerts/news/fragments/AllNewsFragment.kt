@@ -35,7 +35,7 @@ class AllNewsFragment:Fragment() {
     ): View? {
         binding = FragmentAllNewsBinding.inflate(inflater,container,false)
 
-        if(sharedViewModel.userType == "Mentor"){
+        if(sharedViewModel.userType == 2){
             binding.addNewsButtonInAllNewsFragment.visibility = View.VISIBLE
             Log.d("userType","mentor is here")
         }else binding.addNewsButtonInAllNewsFragment.visibility = View.GONE

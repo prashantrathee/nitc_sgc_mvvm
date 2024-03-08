@@ -32,14 +32,14 @@ class MentorProfileFragment: Fragment() {
 
         getMentorProfile()
                     when (sharedViewModel.userType) {
-                        "Admin" -> {
+                        0 -> {
                             binding.passwordInputLayoutInMentorProfileFragment.visibility =
                                 View.VISIBLE
                             binding.updateButtonInMentorProfileFragment.visibility = View.VISIBLE
                             binding.mentorTypeInputInMentorProfileFragment.isEnabled = false
                             binding.emailFieldInMentorProfileFragment.isEnabled = false
                         }
-                        "Mentor" -> {
+                        2 -> {
                             binding.passwordInputLayoutInMentorProfileFragment.visibility =
                                 View.VISIBLE
                             binding.updateButtonInMentorProfileFragment.visibility = View.VISIBLE
@@ -145,7 +145,7 @@ class MentorProfileFragment: Fragment() {
 
         val getProfileCoroutineScope = CoroutineScope(Dispatchers.Main)
         getProfileCoroutineScope.launch {
-            mentor = if(sharedViewModel.userType == "Admin" || sharedViewModel.userType == "Student") MentorsAccess(requireContext(),sharedViewModel.currentInstitution.username!!).getMentor(sharedViewModel.mentorTypeForProfile,sharedViewModel.mentorIDForProfile)
+            mentor = if(sharedViewModel.userType == 0 || sharedViewModel.userType == 1) MentorsAccess(requireContext(),sharedViewModel.currentInstitution.username!!).getMentor(sharedViewModel.mentorTypeForProfile,sharedViewModel.mentorIDForProfile)
             else MentorsAccess(requireContext(),sharedViewModel.currentInstitution.username!!).getMentor(sharedViewModel.currentMentor.type,sharedViewModel.currentUserID)
             getProfileCoroutineScope.cancel()
             if(mentor == null){

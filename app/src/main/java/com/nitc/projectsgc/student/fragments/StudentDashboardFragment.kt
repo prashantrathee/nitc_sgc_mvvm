@@ -55,7 +55,7 @@ class StudentDashboardFragment: Fragment() {
 //        studentLive!!.observe(viewLifecycleOwner){student->
 //            if(student != null){
 //                sharedViewModel.currentStudent = student
-//                Log.d("student",student.name)
+//                Log.d(1,student.name)
 //            }
 //        }
 

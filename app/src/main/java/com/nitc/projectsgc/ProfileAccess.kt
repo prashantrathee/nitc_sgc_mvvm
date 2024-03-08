@@ -36,7 +36,7 @@ class ProfileAccess(var context: Context,var sharedViewModel: SharedViewModel,va
                     var loggedIn = sharedPreferences.getBoolean("loggedIn", false)
                     if (loggedIn) {
                         Log.d("sharedP", "logged in")
-                        var userType = sharedPreferences.getString("userType", null)
+                        var userType = sharedPreferences.getInt("userType", 1)
                         if (userType != null) {
                             Log.d("sharedP", "user type not null")
                             var email = sharedPreferences.getString("email", null)
@@ -49,7 +49,7 @@ class ProfileAccess(var context: Context,var sharedViewModel: SharedViewModel,va
                                         if (authTask.isSuccessful) {
                                             Log.d("sharedP", "auth successful")
                                             when (userType) {
-                                                "Student" -> {
+                                                1 -> {
                                                     if (username != null) {
                                                         Log.d("sharedP", "username not null")
                                                         reference.child("students")
@@ -114,7 +114,7 @@ class ProfileAccess(var context: Context,var sharedViewModel: SharedViewModel,va
                                                     }
                                                 }
 
-                                                "Mentor" -> {
+                                                2 -> {
                                                     if (username != null) {
                                                         var mentorType =
                                                             sharedPreferences.getString(
@@ -230,7 +230,7 @@ class ProfileAccess(var context: Context,var sharedViewModel: SharedViewModel,va
                                                     }
                                                 }
 
-                                                "Admin" -> {
+                                                0 -> {
                                                     Log.d(
                                                         "emailForProfile",
                                                         username!!.length.toString()
@@ -244,7 +244,7 @@ class ProfileAccess(var context: Context,var sharedViewModel: SharedViewModel,va
                                                                         sharedViewModel.currentAdmin =
                                                                             snapshot.getValue(Admin::class.java)!!
                                                                         sharedViewModel.userType =
-                                                                            "Admin"
+                                                                            0
                                                                         sharedViewModel.currentUserID =
                                                                             username
                                                                         Log.d(
@@ -313,7 +313,7 @@ class ProfileAccess(var context: Context,var sharedViewModel: SharedViewModel,va
 //            // Get the FCM token
 //            val token = task.result
 //            val database = FirebaseDatabase.getInstance()
-//            if(userType == "Mentor") {
+//            if(userType == 2) {
 //                val reference = database.reference.child(sharedViewModel.username).child("types/$mentorType/$username")
 //                val updates = mapOf<String, String>(
 //                    "fcmToken" to token

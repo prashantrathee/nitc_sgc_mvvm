@@ -40,9 +40,9 @@ class AllAlertsFragment:Fragment() {
             override fun handleOnBackPressed() {
                 // Call a method in your Fragment to handle the navigation
                 when(sharedViewModel.userType){
-                    "Student"-> findNavController().navigate(R.id.studentDashBoardFragment)
-                    "Mentor"-> findNavController().navigate(R.id.mentorDashboardFragment)
-                    "Admin"-> findNavController().navigate(R.id.adminDashboardFragment)
+                    1-> findNavController().navigate(R.id.studentDashBoardFragment)
+                    2-> findNavController().navigate(R.id.mentorDashboardFragment)
+                    0-> findNavController().navigate(R.id.adminDashboardFragment)
                 }
             }
         }

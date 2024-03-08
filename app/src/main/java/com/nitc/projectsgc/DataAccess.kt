@@ -10,7 +10,7 @@ class DataAccess(
 ) {
     fun saveUsername(
         password: String,
-        userType: String,
+        userType: Int,
         mentorType: String,
         email:String,
         username: String,
@@ -25,7 +25,7 @@ class DataAccess(
         if (editor != null) {
             editor.putBoolean("loggedIn", true)
             editor.putString("password", password)
-            editor.putString("userType", userType)
+            editor.putInt("userType", userType)
             editor.putString("mentorType", mentorType)
             editor.putString("email", email)
             editor.putString("institutionUsername", institutionUsername)
@@ -55,7 +55,7 @@ class DataAccess(
             sharedViewModel.mentorTypeForProfile = "NA"
             sharedViewModel.viewAppointmentStudentID = "NA"
             sharedViewModel.pastRecordStudentID = "NA"
-            sharedViewModel.userType = "NA"
+            sharedViewModel.userType = 1
             sharedViewModel.currentUserID = "NA"
             return true
         }else return false

@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 
 class AdminDashboardFragment : Fragment() {
     lateinit var binding : FragmentAdminDashboardBinding
-    var userType = "Student"
+    var userType = 1
     private val sharedViewModel:SharedViewModel by activityViewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

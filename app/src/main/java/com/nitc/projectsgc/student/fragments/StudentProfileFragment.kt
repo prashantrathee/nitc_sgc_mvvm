@@ -36,9 +36,9 @@ class StudentProfileFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentStudentProfileBinding.inflate(inflater, container, false)
-        if (sharedViewModel.userType == "Student" || sharedViewModel.userType == "Admin") {
+        if (sharedViewModel.userType == 1 || sharedViewModel.userType == 0) {
 
-                if (sharedViewModel.userType == "Admin") {
+                if (sharedViewModel.userType == 0) {
                     getStudent(sharedViewModel.idForStudentProfile)
                 } else {
                     getStudent(sharedViewModel.currentUserID)

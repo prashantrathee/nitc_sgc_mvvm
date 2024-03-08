@@ -50,16 +50,16 @@ class IntroductoryFragment : Fragment(),CircleLoadingDialog {
                 if(institution!= null) sharedViewModel.currentInstitution = institution
             }
             if (sharedPreferences.getBoolean("loggedIn", false)) {
-                when (sharedPreferences.getString("userType", "NA")) {
-                    "Student" -> {
+                when (sharedPreferences.getInt("userType",1)) {
+                    1 -> {
                         findNavController().navigate(R.id.studentDashBoardFragment)
                     }
 
-                    "Admin" -> {
+                    0 -> {
                         findNavController().navigate(R.id.adminDashboardFragment)
                     }
 
-                    "Mentor" -> {
+                    2 -> {
                         findNavController().navigate(R.id.mentorDashboardFragment)
                     }
                 }
@@ -82,9 +82,9 @@ class IntroductoryFragment : Fragment(),CircleLoadingDialog {
             }
         }
 //        userTypeLive.observe(viewLifecycleOwner){userType->
-//            if(userType == "Student"){
+//            if(userType == 1){
 //                findNavController().navigate()
-//            }else if(userType == "Mentor"){
+//            }else if(userType == 2){
 //                findNavController().navigate(R.id.mentorUpdateFragment)
 //            }else{
 //                findNavController().navigate(R.id.loginFragment)
