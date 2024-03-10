@@ -1,8 +1,13 @@
 plugins {
+//    kotlin("kapt")
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'com.google.gms.google-services'
+    id("com.google.dagger.hilt.android")
+//    kotlin("kapt")
 }
+
+apply plugin: 'kotlin-kapt'
 
 android {
 //    packagingOptions{
@@ -43,7 +48,9 @@ android {
         jvmTarget = '17'
     }
 }
-
+kapt {
+    correctErrorTypes = true
+}
 dependencies {
 
     implementation 'androidx.core:core-ktx:1.12.0'
@@ -92,7 +99,9 @@ dependencies {
     // Optional - Integration with RxJava
     implementation("androidx.compose.runtime:runtime-rxjava2")
 
-    //hilt viewmodel
+    //hilt
+    implementation("com.google.dagger:hilt-android:2.49")
+    kapt("com.google.dagger:hilt-android-compiler:2.44")
     implementation("androidx.hilt:hilt-navigation-fragment:1.2.0")
 
     implementation("androidx.navigation:navigation-compose:2.7.7")

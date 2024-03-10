@@ -1,4 +1,4 @@
-package com.nitc.projectsgc.composable.screens
+package com.nitc.projectsgc.composable.student.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,9 +9,7 @@ import com.nitc.projectsgc.composable.login.LoginViewModel
 
 
 @Composable
-fun MentorDashboardScreen(
-    loginViewModel: LoginViewModel,
-    navController: NavController
+fun StudentDashboardScreen(
 ){
     Column(
         modifier = Modifier.fillMaxSize()

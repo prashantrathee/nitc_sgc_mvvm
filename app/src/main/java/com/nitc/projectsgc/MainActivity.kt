@@ -16,51 +16,66 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navigation
 import com.nitc.projectsgc.composable.components.HeadingText
 import com.nitc.projectsgc.composable.components.SimpleSnackBar
 import com.nitc.projectsgc.composable.components.SimpleToast
-import com.nitc.projectsgc.composable.screens.AdminDashboardScreen
 import com.nitc.projectsgc.composable.login.LoginScreen
-import com.nitc.projectsgc.composable.screens.MentorDashboardScreen
-import com.nitc.projectsgc.composable.screens.StudentDashboardScreen
+import com.nitc.projectsgc.composable.mentor.MentorDashboardScreen
+import com.nitc.projectsgc.composable.student.screens.StudentDashboardScreen
 import com.nitc.projectsgc.composable.util.StorageAccess
 import com.nitc.projectsgc.composable.login.LoginViewModel
+import com.nitc.projectsgc.composable.navigation.NavigationScreen
+import com.nitc.projectsgc.composable.navigation.graphs.adminGraph
+import com.nitc.projectsgc.composable.navigation.graphs.mentorGraph
+import com.nitc.projectsgc.composable.navigation.graphs.studentGraph
 import com.nitc.projectsgc.databinding.ActivityMainBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     lateinit var binding: ActivityMainBinding
-    val sharedViewModel:SharedViewModel by viewModels()
+    val sharedViewModel: SharedViewModel by viewModels()
     val loginViewModel: LoginViewModel by viewModels()
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val titleState = remember{
+            val titleState = remember {
                 mutableStateOf("Login")
             }
             Scaffold(
                 topBar = {
-                    TopAppBar(title = {
-                    HeadingText(text = "Login", fontColor = Color.Black,modifier = Modifier)
-                },
-                    colors = TopAppBarColors(
-                        containerColor = Color.LightGray,
-                        titleContentColor = Color.Black,
-                        actionIconContentColor = Color.White,
-                        scrolledContainerColor = Color.Yellow,
-                        navigationIconContentColor = Color.Black
+                    TopAppBar(
+                        title = {
+                            HeadingText(
+                                text = "Login",
+                                fontColor = Color.Black,
+                                modifier = Modifier
+                            )
+                        },
+                        colors = TopAppBarColors(
+                            containerColor = Color.LightGray,
+                            titleContentColor = Color.Black,
+                            actionIconContentColor = Color.White,
+                            scrolledContainerColor = Color.Yellow,
+                            navigationIconContentColor = Color.Black
+                        )
                     )
-                )
                 },
-                content = {paddingValues ->
+                content = { paddingValues ->
                     Column(
-                        modifier = Modifier.fillMaxSize().padding(paddingValues)
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues)
                     ) {
-                        AllNavigations()
+                        AllNavigation()
                     }
                 }
             )
@@ -70,12 +85,11 @@ class MainActivity : ComponentActivity() {
 
 
     @Composable
-    fun AllNavigations(){
+    fun AllNavigation() {
         val navController = rememberNavController()
-
-        NavHost(navController = navController, startDestination = "Login"){
-            composable(route = "Login"){
-                LoginScreen(navController = navController,loginViewModel = loginViewModel){
+        NavHost(navController = navController, startDestination = "Login") {
+            composable(route = "Login") {
+                LoginScreen(navController = navController, loginViewModel = loginViewModel) {
                     storeData(
                         loginViewModel.userType.value,
                         loginViewModel.username.value,
@@ -84,20 +98,12 @@ class MainActivity : ComponentActivity() {
                     sharedViewModel.userType = loginViewModel.userType.value
                 }
             }
-            composable(route = "Admin Dashboard"){
-                AdminDashboardScreen(loginViewModel = loginViewModel, navController = navController)
-            }
-
-            composable(route = "Mentor Dashboard"){
-                MentorDashboardScreen(loginViewModel = loginViewModel, navController = navController)
-            }
-
-            composable(route = "Student Dashboard"){
-                StudentDashboardScreen(loginViewModel = loginViewModel, navController = navController)
-            }
-
+            adminGraph(navController)
+            studentGraph(navController)
+            mentorGraph(navController)
         }
     }
+
 
     private fun storeData(userType: Int, username: String, password: String) {
         val stored = StorageAccess(this).saveUsername(

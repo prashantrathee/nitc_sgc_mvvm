@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -19,6 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CardElevation
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
@@ -33,6 +36,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.models.Mentor
 import com.nitc.projectsgc.models.Student
@@ -66,7 +70,7 @@ fun StudentCard(
     student: Student,
     deleteCallback: () -> Unit,
     clickCallback: () -> Unit,
-    appointmentsCallback:()->Unit
+    appointmentsCallback: () -> Unit
 ) {
     val deleteMenuState = remember {
         mutableStateOf(false)
@@ -82,7 +86,7 @@ fun StudentCard(
     ) {
         Card(
             modifier = Modifier
-                .background(Color.Transparent)
+                .background(colorResource(id = R.color.lavender))
                 .padding(10.dp)
                 .combinedClickable(
                     onClick = {
@@ -94,13 +98,15 @@ fun StudentCard(
                     }
                 )
         ) {
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(colorResource(id = R.color.lavender))
+                    .background(colorResource(id = R.color.lavender)),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
-                    modifier = Modifier.align(Alignment.CenterStart)
+                    modifier = Modifier.background(Color.Transparent)
                 ) {
                     Image(
                         modifier = Modifier
@@ -137,16 +143,18 @@ fun StudentCard(
                             shape = RoundedCornerShape(15.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = colorResource(id = R.color.purple_700)
-                            )
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(5.dp)
                         ) {
-                            Text(text = "View Appointments",color = Color.White)
+                            Text(text = "View Appointments", color = Color.White)
                         }
                     }
                 }
-                SubHeadingText(
-                    text = student.dateOfBirth, fontColor = Color.Black, modifier = Modifier.align(
-                        Alignment.TopEnd
-                    )
+                Text(
+                    text = student.dateOfBirth,
+                    color = Color.Black,
+                    fontSize = 15.sp,
+                    modifier = Modifier.align(Alignment.Top)
                 )
             }
         }
