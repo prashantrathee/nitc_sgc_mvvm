@@ -7,6 +7,16 @@ class StorageAccess(
     var activity:ComponentActivity
 ) {
 
+    fun getUserType():Int{
+        var sharedPreferences = activity.getSharedPreferences(
+            "sgcLogin",
+            Context.MODE_PRIVATE
+        )
+        if(sharedPreferences != null){
+            val userType = sharedPreferences.getInt("userType",-1)
+            return userType
+        }else return -1
+    }
 
     fun saveUsername(
         userType: Int,

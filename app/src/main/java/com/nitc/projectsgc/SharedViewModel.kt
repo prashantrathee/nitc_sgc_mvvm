@@ -1,5 +1,7 @@
 package com.nitc.projectsgc
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import com.nitc.projectsgc.models.Admin
 import com.nitc.projectsgc.models.Appointment
@@ -7,6 +9,8 @@ import com.nitc.projectsgc.models.Event
 import com.nitc.projectsgc.models.Institution
 import com.nitc.projectsgc.models.Mentor
 import com.nitc.projectsgc.models.Student
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 class SharedViewModel:ViewModel() {
 

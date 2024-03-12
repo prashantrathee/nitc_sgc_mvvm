@@ -78,6 +78,7 @@ fun StudentCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(5.dp)
             .height(intrinsicSize = IntrinsicSize.Min)
             .clip(
                 RoundedCornerShape(15)

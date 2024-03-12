@@ -1,12 +1,12 @@
 package com.nitc.projectsgc.models
 
 data class Student(
-    val rollNo:String = "",
-    val name:String = "",
-    val userName:String = "",
-    val dateOfBirth:String = "",
-    val emailId:String = "",
-    val gender:String = "",
-    val password:String = "",
-    val phoneNumber:String = ""
+    var rollNo:String = "",
+    var name:String = "",
+    var userName:String = "",
+    var dateOfBirth:String = "",
+    var emailId:String = "",
+    var gender:String = "",
+    var password:String = "",
+    var phoneNumber:String = ""
 )

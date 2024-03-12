@@ -1,7 +1,10 @@
 package com.nitc.projectsgc.composable.admin.repo
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
+import arrow.core.Either
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -9,33 +12,120 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.nitc.projectsgc.models.Appointment
 import com.nitc.projectsgc.models.Student
+import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class StudentsRepo(
-    var context:Context
-) {
+class StudentsRepo @Inject constructor() {
 
-
-    suspend fun getStudent(rollNo: String): Student? {
-        return suspendCoroutine {continuation->
-            var database: FirebaseDatabase = FirebaseDatabase.getInstance()
-            var reference: DatabaseReference = database.reference.child("students")
-            reference.addListenerForSingleValueEvent(object : ValueEventListener {
+    suspend fun getStudent(studentID: String): Either<String, Student> {
+        return suspendCoroutine { continuation ->
+            var isResumed = false
+            val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+            val reference: DatabaseReference =
+                database.reference
+                    .child("students")
+            reference.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    var student = snapshot.child(rollNo).getValue(Student::class.java)
-                    if (student == null) continuation.resume(null)
-                    else continuation.resume(student)
+                    try {
+                        var student = snapshot.child(studentID).getValue(Student::class.java)
+                        if (student != null) {
+                            if (!isResumed) {
+                                isResumed = true
+                                continuation.resume(Either.Right(student))
+                            }
+                        } else {
+                            if (!isResumed) {
+                                isResumed = true
+                                continuation.resume(Either.Left("Could not resolve student"))
+                            }
+                        }
+                    } catch (exc: Exception) {
+                        if (!isResumed) {
+                            isResumed = true
+                            continuation.resume(Either.Left("Error in getting student : $exc"))
+                        }
+                    }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(context, "Error : $error", Toast.LENGTH_LONG).show()
-                    continuation.resume(null)
+                    if (!isResumed) {
+                        isResumed = true
+                        continuation.resume(Either.Left("Error : $error"))
+                    }
                 }
 
             })
         }
     }
+
+    suspend fun updateStudent(
+        student: Student,
+        oldPassword: String
+    ): Boolean {
+        return suspendCoroutine { continuation ->
+            Log.d("updateStudent","In repo")
+            val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+            val reference: DatabaseReference = database.reference.child("students")
+            val auth: FirebaseAuth = FirebaseAuth.getInstance()
+            reference.child(student.rollNo).setValue(student).addOnSuccessListener { task ->
+                Log.d("updateStudent","in add on success")
+                if (student.password != oldPassword) {
+                    Log.d("updateStudent","old password is not same")
+                    auth.signInWithEmailAndPassword(student.emailId, oldPassword)
+                        .addOnSuccessListener { loggedIn ->
+                            if (loggedIn != null) {
+                                val currentUser = FirebaseAuth.getInstance().currentUser
+                                if (currentUser != null) {
+                                    currentUser.updatePassword(student.password)
+                                        .addOnCompleteListener { task ->
+                                            if (task.isSuccessful) {
+                                                // Show success message to the user
+                                                auth.signOut()
+                                                Log.d("updateStudent","Updated student")
+                                                continuation.resume(true)
+                                            } else {
+                                                // Password update failed, show error message to the user
+                                                Log.d("updateStudent","Error in updating password of current user")
+                                                continuation.resume(false)
+                                            }
+                                        }
+                                        .addOnFailureListener { excUpdating ->
+                                            Log.d(
+                                                "updateStudent",
+                                                "Error in updating student : $excUpdating"
+                                            )
+                                            continuation.resume(false)
+                                        }
+                                } else {
+                                    Log.d(
+                                        "updateStudent",
+                                        "current user is null after logging in with old password"
+                                    )
+                                    continuation.resume(false)
+                                }
+                            } else {
+                                Log.d("updateStudent", "Error in logging in with old password")
+                                continuation.resume(false)
+                            }
+                        }
+                        .addOnFailureListener { excLogin ->
+                            Log.d(
+                                "updateStudent",
+                                "Error in logging in with old password : $excLogin"
+                            )
+                            continuation.resume(false)
+                        }
+                } else {
+                    continuation.resume(true)
+                }
+            }.addOnFailureListener { excUpdate ->
+                Log.d("updateStudent", "Error in updating in firebase : $excUpdate")
+                continuation.resume(false)
+            }
+        }
+    }
+
     suspend fun getStudents(): ArrayList<Student>? {
         return suspendCoroutine { continuation ->
             var database: FirebaseDatabase = FirebaseDatabase.getInstance()
@@ -53,7 +143,6 @@ class StudentsRepo(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(context, "Error : $error", Toast.LENGTH_LONG).show()
                     continuation.resume(null)
                 }
 
@@ -61,8 +150,8 @@ class StudentsRepo(
         }
     }
 
-    suspend fun deleteStudent(rollNo: String):Boolean{
-        return suspendCoroutine {continuation->
+    suspend fun deleteStudent(rollNo: String): Boolean {
+        return suspendCoroutine { continuation ->
             var isResumed = false
             var database: FirebaseDatabase = FirebaseDatabase.getInstance()
             var typeReference = database.reference.child("types")
@@ -80,13 +169,13 @@ class StudentsRepo(
                                     "${studentAppointment.mentorType}/${studentAppointment.mentorID}/${studentAppointment.date}/${studentAppointment.timeSlot}"
                                 studentAppointment.status = "Student deleted"
                                 studentAppointment.cancelled = true
-                                typeReference.child(mentorAppointmentPath).setValue(studentAppointment)
+                                typeReference.child(mentorAppointmentPath)
+                                    .setValue(studentAppointment)
                                     .addOnCompleteListener { mentorDeleted ->
                                         if (mentorDeleted.isSuccessful) {
-                                            if(!isResumed) continuation.resume(true)
-                                        }
-                                        else {
-                                            if(!isResumed)continuation.resume(false)
+                                            if (!isResumed) continuation.resume(true)
+                                        } else {
+                                            if (!isResumed) continuation.resume(false)
                                         }
                                     }
                             }
@@ -95,8 +184,7 @@ class StudentsRepo(
                     }
 
                     override fun onCancelled(error: DatabaseError) {
-                        Toast.makeText(context, "Error : $error", Toast.LENGTH_LONG).show()
-                        if(!isResumed)continuation.resume(false)
+                        if (!isResumed) continuation.resume(false)
                     }
 
                 })
@@ -106,13 +194,13 @@ class StudentsRepo(
                 continuation.resume(true)
             }
                 .addOnFailureListener { error ->
-                    Toast.makeText(context, "Error : $error", Toast.LENGTH_LONG).show()
-                    if(!isResumed) continuation.resume(false)
+                    if (!isResumed) continuation.resume(false)
                 }
 
         }
     }
-    suspend fun getAppointments(rollNo:String):ArrayList<Appointment>?{
+
+    suspend fun getAppointments(rollNo: String): ArrayList<Appointment>? {
         return suspendCoroutine { continuation ->
             var isResumed = false
             var appointments = arrayListOf<Appointment>()
@@ -127,12 +215,11 @@ class StudentsRepo(
                                 appointments.add(appointment)
                             }
                         }
-                        if(!isResumed)continuation.resume(appointments)
+                        if (!isResumed) continuation.resume(appointments)
                     }
 
                     override fun onCancelled(error: DatabaseError) {
-                        Toast.makeText(context, "Error : $error", Toast.LENGTH_LONG).show()
-                        if(!isResumed)continuation.resume(null)
+                        if (!isResumed) continuation.resume(null)
                     }
 
                 })

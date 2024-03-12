@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -39,37 +40,38 @@ fun AdminDashboardScreen(
             tabs = listOf("Students", "Mentors"),
             fontColor = Color.Black,
             bg = Color.White,
-            selectedTabIndex = selectedTabIndex
-        )
-        when (selectedTabIndex.intValue) {
-            0 -> {
-                getStudents(
-                    studentListViewModel = studentListViewModel,
-                    viewStudentCallback = {
-                                          viewStudentCallback(it)
-                    },
-                    appointmentsCallback = {
-                        studentAppointmentsCallback(it)
-                    }
-                )
-            }
+        ){pageIndex->
+            when (pageIndex) {
+                0 -> {
+                    GetStudents(
+                        studentListViewModel = studentListViewModel,
+                        viewStudentCallback = {
+                            viewStudentCallback(it)
+                        },
+                        appointmentsCallback = {
+                            studentAppointmentsCallback(it)
+                        }
+                    )
+                }
 
-            1 -> {
-                getMentors(mentorListViewModel,
-                    viewMentorCallback = {
-                        viewMentorCallback(it)
-                    },
-                    appointmentsCallback = {
-                        mentorAppointmentsCallback(it)
-                    }
-                )
+                1 -> {
+                    GetMentors(mentorListViewModel,
+                        viewMentorCallback = {
+                            viewMentorCallback(it)
+                        },
+                        appointmentsCallback = {
+                            mentorAppointmentsCallback(it)
+                        }
+                    )
+                }
             }
         }
+
     }
 }
 
 @Composable
-fun getStudents(
+fun GetStudents(
     studentListViewModel: StudentListViewModel,
     viewStudentCallback: (rollNo: String) -> Unit,
     appointmentsCallback: (rollNo: String) -> Unit
@@ -102,7 +104,7 @@ fun getStudents(
 }
 
 @Composable
-fun getMentors(
+fun GetMentors(
     mentorListViewModel: MentorListViewModel,
     viewMentorCallback: (username: String) -> Unit,
     appointmentsCallback: (username: String) -> Unit

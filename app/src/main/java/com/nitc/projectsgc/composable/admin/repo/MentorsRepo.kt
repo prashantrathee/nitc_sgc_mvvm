@@ -10,12 +10,11 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.nitc.projectsgc.models.Appointment
 import com.nitc.projectsgc.models.Mentor
+import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class MentorsRepo(
-    var context: Context
-) {
+class MentorsRepo @Inject constructor() {
     suspend fun getMentors():ArrayList<Mentor>?{
         return suspendCoroutine { continuation ->
             var database: FirebaseDatabase = FirebaseDatabase.getInstance()
@@ -40,7 +39,6 @@ class MentorsRepo(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(context, "Error : $error", Toast.LENGTH_LONG).show()
                     continuation.resume(null)
                 }
 
@@ -68,7 +66,6 @@ class MentorsRepo(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(context, "Error occurred in getting Mentor", Toast.LENGTH_SHORT).show()
                     Log.d("getMentor","Database Error : $error")
                     if(!isResumed){
                         continuation.resume(null)
@@ -103,7 +100,6 @@ class MentorsRepo(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(context, "Error : $error", Toast.LENGTH_SHORT).show()
 
                     if(!isResumed){
                         continuation.resume(null)
@@ -134,7 +130,6 @@ class MentorsRepo(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(context, "Error : $error", Toast.LENGTH_LONG).show()
                     if(!isResumed) {
                         continuation.resume(null)
                         isResumed = true
@@ -171,7 +166,6 @@ class MentorsRepo(
                     }
 
                     override fun onCancelled(error: DatabaseError) {
-                        Toast.makeText(context, "Error : $error", Toast.LENGTH_LONG).show()
                         continuation.resume(false)
                     }
 
@@ -180,7 +174,6 @@ class MentorsRepo(
                 continuation.resume(true)
             }
                 .addOnFailureListener { error ->
-                    Toast.makeText(context, "Error : $error", Toast.LENGTH_LONG).show()
                     continuation.resume(false)
                 }
         }

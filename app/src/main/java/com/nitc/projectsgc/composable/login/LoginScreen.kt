@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -18,6 +19,7 @@ import com.nitc.projectsgc.composable.components.BasicButton
 import com.nitc.projectsgc.composable.components.BasicCard
 import com.nitc.projectsgc.composable.components.BasicInputField
 import com.nitc.projectsgc.composable.components.LoginCard
+
 
 
 @Composable
@@ -51,7 +53,7 @@ fun LoginScreen(
                     loginViewModel.setPassword(it)
                 }
                 Spacer(modifier = Modifier.size(20.dp))
-                BasicButton(text = "Login", bg = Color.Black, tc = Color.White) {
+                BasicButton(text = "Login", colors = ButtonDefaults.buttonColors(), modifier = Modifier, tc = Color.White) {
                     loginViewModel.authenticate()
 
                 }

@@ -2,6 +2,7 @@ package com.nitc.projectsgc.composable.components
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -10,15 +11,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 
-@Preview
 @Composable
-fun BasicButton(text: String, bg: Color, tc: Color, clickCallback: () -> Unit) {
+fun BasicButton(text: String, colors:ButtonColors, tc: Color,modifier: Modifier, clickCallback: () -> Unit) {
     Button(
         onClick = { clickCallback() },
         shape = RoundedCornerShape(15.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = bg
-        )
+        colors = colors,
+        modifier = modifier
     ) {
         HeadingText(text, tc,modifier = Modifier)
     }

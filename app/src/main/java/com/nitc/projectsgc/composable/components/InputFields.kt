@@ -3,8 +3,11 @@ package com.nitc.projectsgc.composable.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -22,7 +25,7 @@ fun EmailInputField() {
     val emailValue = remember {
         mutableStateOf("")
     }
-    BasicCard(15,3,1,4,CardDefaults.cardColors()) {
+    BasicCard(15, 3, 1, 4, CardDefaults.cardColors()) {
         TextField(
             modifier = Modifier
                 .background(Color.White)
@@ -33,7 +36,7 @@ fun EmailInputField() {
                 emailValue.value = it
             },
             label = {
-                HeadingText(text = "Email", fontColor = Color.Black,modifier = Modifier)
+                HeadingText(text = "Email", fontColor = Color.Black, modifier = Modifier)
             },
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
@@ -48,11 +51,78 @@ fun EmailInputField() {
 
 
 @Composable
-fun BasicInputField(hint:String,isPassword:Boolean,onValueChanged:(String)->Unit) {
+fun CardInputFieldWithValue(
+    hint: String,
+    text:String,
+    isPassword: Boolean,
+    modifier: Modifier,
+    onValueChanged: (String) -> Unit
+) {
+    val inputValue = remember {
+        mutableStateOf(text)
+    }
+    BasicCard(15, 3, 0, 4,CardDefaults.cardColors(
+        containerColor = Color.White,
+        contentColor = Color.White
+    )) {
+        TextField(
+            modifier = modifier,
+            value = inputValue.value,
+            shape = RoundedCornerShape(25.dp),
+            onValueChange = {
+                inputValue.value = it
+                onValueChanged(it)
+            },
+            label = {
+                Text(text = hint, modifier = Modifier)
+            },
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                disabledContainerColor = Color.White
+            )
+        )
+    }
+}
+@Composable
+fun BasicInputFieldWithColors(
+    hint: String,
+    isPassword: Boolean,
+    cardColors: CardColors,
+    textFieldColors: TextFieldColors,
+    onValueChanged: (String) -> Unit
+) {
+    val inputValue = remember {
+        mutableStateOf("")
+    }
+    BasicCard(15, 3, 1, 4, cardColors) {
+        TextField(
+            modifier = Modifier
+                .background(Color.White)
+                .padding(5.dp),
+            value = inputValue.value,
+            shape = RoundedCornerShape(25.dp),
+            onValueChange = {
+                inputValue.value = it
+                onValueChanged(it)
+            },
+            label = {
+                HeadingText(text = hint, fontColor = Color.Black, modifier = Modifier)
+            },
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+            colors = textFieldColors
+        )
+    }
+}
+
+
+@Composable
+fun BasicInputField(hint: String, isPassword: Boolean, onValueChanged: (String) -> Unit) {
     val passwordValue = remember {
         mutableStateOf("")
     }
-    BasicCard(15,3,1,4,CardDefaults.cardColors()) {
+    BasicCard(15, 3, 1, 4, CardDefaults.cardColors()) {
         TextField(
             modifier = Modifier
                 .background(Color.White)
@@ -64,9 +134,9 @@ fun BasicInputField(hint:String,isPassword:Boolean,onValueChanged:(String)->Unit
                 onValueChanged(it)
             },
             label = {
-                HeadingText(text = hint, fontColor = Color.Black,modifier = Modifier)
+                HeadingText(text = hint, fontColor = Color.Black, modifier = Modifier)
             },
-            visualTransformation = if(isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Gray,

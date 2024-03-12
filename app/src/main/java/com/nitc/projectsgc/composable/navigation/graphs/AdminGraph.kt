@@ -1,6 +1,7 @@
 package com.nitc.projectsgc.composable.navigation.graphs
 
-import androidx.activity.viewModels
+import androidx.compose.runtime.MutableState
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -17,18 +18,24 @@ import com.nitc.projectsgc.composable.mentor.MentorViewModel
 import com.nitc.projectsgc.composable.mentor.ViewMentorScreen
 import com.nitc.projectsgc.composable.navigation.NavigationScreen
 import com.nitc.projectsgc.composable.student.screens.StudentAppointmentsScreen
-import com.nitc.projectsgc.composable.student.screens.StudentViewModel
+import com.nitc.projectsgc.composable.student.StudentViewModel
 import com.nitc.projectsgc.composable.student.screens.ViewStudentScreen
 
 
-fun NavGraphBuilder.adminGraph(navController: NavController) {
+fun NavGraphBuilder.adminGraph(
+    titleState:MutableState<String>,
+    navController: NavController,
+    adminViewModel: AdminViewModel,
+    studentListViewModel: StudentListViewModel,
+    mentorListViewModel: MentorListViewModel
+) {
 
     navigation(startDestination = NavigationScreen.AdminDashboard.route, route = "admin") {
         composable(route = NavigationScreen.AdminDashboard.route) {
-            val adminViewModel: AdminViewModel = viewModel()
-            val mentorListViewModel: MentorListViewModel = viewModel()
-            val studentListViewModel: StudentListViewModel = viewModel()
-
+//            val adminViewModel: AdminViewModel = viewModel()
+//            val mentorListViewModel: MentorListViewModel = viewModel()
+//            val studentListViewModel: StudentListViewModel = viewModel()
+            titleState.value = stringResource(id = NavigationScreen.AdminDashboard.resID)
             AdminDashboardScreen(
                 adminViewModel = adminViewModel,
                 mentorListViewModel = mentorListViewModel,
@@ -51,7 +58,8 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
         composable(route = "${NavigationScreen.ViewMentor.route}/{username}", arguments = listOf(
             navArgument("username") { type = NavType.StringType }
         )) { navBackStackEntry ->
-            val mentorViewModel:MentorViewModel = viewModel()
+            titleState.value = stringResource(id = NavigationScreen.ViewMentor.resID)
+            val mentorViewModel: MentorViewModel = viewModel()
             navBackStackEntry.arguments?.getString("username")
                 ?.let { usernameString ->
                     ViewMentorScreen(
@@ -64,39 +72,38 @@ fun NavGraphBuilder.adminGraph(navController: NavController) {
         composable(route = "${NavigationScreen.ViewStudent.route}/{rollNo}", arguments = listOf(
             navArgument("rollNo") { type = NavType.StringType }
         )) { navBackStackEntry ->
-            val studentViewModel: StudentViewModel = viewModel()
+            titleState.value = stringResource(id = NavigationScreen.ViewStudent.resID)
             navBackStackEntry.arguments?.getString("rollNo")
                 ?.let { rollNoString ->
-                    ViewStudentScreen(
-                        rollNo = rollNoString,
-                        studentViewModel = studentViewModel
-                    )
+                    ViewStudentScreen(rollNoString, adminViewModel)
                 }
         }
 
 
-        composable(route = "${NavigationScreen.ViewMentorAppointments.route}/{username}", arguments = listOf(
-            navArgument("username") { type = NavType.StringType }
-        )) { navBackStackEntry ->
-            val mentorViewModel:MentorViewModel = viewModel()
+        composable(route = "${NavigationScreen.ViewMentorAppointments.route}/{username}",
+            arguments = listOf(
+                navArgument("username") { type = NavType.StringType }
+            )) { navBackStackEntry ->
+            titleState.value = stringResource(id = NavigationScreen.ViewMentorAppointments.resID)
             navBackStackEntry.arguments?.getString("username")
                 ?.let { usernameString ->
                     MentorAppointmentsScreen(
                         username = usernameString,
-                        mentorViewModel = mentorViewModel
+                        mentorListViewModel = mentorListViewModel
                     )
                 }
         }
 
-        composable(route = "${NavigationScreen.ViewStudentAppointments.route}/{rollNo}", arguments = listOf(
-            navArgument("rollNo") { type = NavType.StringType }
-        )) { navBackStackEntry ->
-            val studentViewModel: StudentViewModel = viewModel()
+        composable(route = "${NavigationScreen.ViewStudentAppointments.route}/{rollNo}",
+            arguments = listOf(
+                navArgument("rollNo") { type = NavType.StringType }
+            )) { navBackStackEntry ->
+            titleState.value = stringResource(id = NavigationScreen.ViewStudentAppointments.resID)
             navBackStackEntry.arguments?.getString("rollNo")
                 ?.let { rollNoString ->
                     StudentAppointmentsScreen(
                         rollNo = rollNoString,
-                        studentViewModel = studentViewModel
+                        studentListViewModel = studentListViewModel
                     )
                 }
         }

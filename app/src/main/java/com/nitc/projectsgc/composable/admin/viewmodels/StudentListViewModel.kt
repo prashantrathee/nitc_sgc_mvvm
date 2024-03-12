@@ -10,11 +10,16 @@ import com.nitc.projectsgc.composable.admin.repo.MentorsRepo
 import com.nitc.projectsgc.composable.admin.repo.StudentsRepo
 import com.nitc.projectsgc.models.Mentor
 import com.nitc.projectsgc.models.Student
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class StudentListViewModel:ViewModel() {
+@HiltViewModel
+class StudentListViewModel @Inject constructor(
+    private val studentsRepo: StudentsRepo
+):ViewModel() {
 
     private val _studentList = MutableStateFlow(emptyList<Student>())
     val studentList: StateFlow<List<Student>> = _studentList
@@ -23,7 +28,7 @@ class StudentListViewModel:ViewModel() {
     fun getStudents(context:Context){
         try{
             viewModelScope.launch {
-                val students = StudentsRepo(context).getStudents()
+                val students = studentsRepo.getStudents()
                 if(students != null) _studentList.value = students
             }
         }catch(exc:Exception){
@@ -36,7 +41,7 @@ class StudentListViewModel:ViewModel() {
     fun deleteStudent(context: Context,rollNo:String) {
         try{
             viewModelScope.launch {
-                val deleted = StudentsRepo(context).deleteStudent(rollNo)
+                val deleted = studentsRepo.deleteStudent(rollNo)
                 if(deleted){
                     val studentList = _studentList.value.filter{
                         it.rollNo != rollNo
