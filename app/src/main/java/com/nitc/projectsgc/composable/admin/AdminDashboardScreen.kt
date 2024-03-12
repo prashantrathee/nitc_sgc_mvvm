@@ -1,5 +1,6 @@
 package com.nitc.projectsgc.composable.admin
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,6 +24,7 @@ import com.nitc.projectsgc.composable.login.LoginViewModel
 @Composable
 fun AdminDashboardScreen(
     adminViewModel: AdminViewModel,
+    navController: NavController,
     mentorListViewModel: MentorListViewModel,
     studentListViewModel: StudentListViewModel,
     viewStudentCallback: (rollNo: String) -> Unit,
@@ -50,6 +52,9 @@ fun AdminDashboardScreen(
                         },
                         appointmentsCallback = {
                             studentAppointmentsCallback(it)
+                        },
+                        backCallback = {
+                            navController.popBackStack()
                         }
                     )
                 }
@@ -61,6 +66,9 @@ fun AdminDashboardScreen(
                         },
                         appointmentsCallback = {
                             mentorAppointmentsCallback(it)
+                        },
+                        backCallback = {
+                            navController.popBackStack()
                         }
                     )
                 }
@@ -74,11 +82,15 @@ fun AdminDashboardScreen(
 fun GetStudents(
     studentListViewModel: StudentListViewModel,
     viewStudentCallback: (rollNo: String) -> Unit,
-    appointmentsCallback: (rollNo: String) -> Unit
+    appointmentsCallback: (rollNo: String) -> Unit,
+    backCallback:()->Unit
 ) {
     val myContext = LocalContext.current
     studentListViewModel.getStudents(myContext)
     val students = studentListViewModel.studentList.collectAsState()
+    BackHandler(enabled = true) {
+        backCallback()
+    }
     LazyColumn(
 
     ) {
@@ -107,8 +119,12 @@ fun GetStudents(
 fun GetMentors(
     mentorListViewModel: MentorListViewModel,
     viewMentorCallback: (username: String) -> Unit,
-    appointmentsCallback: (username: String) -> Unit
+    appointmentsCallback: (username: String) -> Unit,
+    backCallback: () -> Unit
 ) {
+    BackHandler(enabled = true) {
+        backCallback()
+    }
     val myContext = LocalContext.current
     mentorListViewModel.getMentors(myContext)
     val mentors = mentorListViewModel.mentorList.collectAsState()

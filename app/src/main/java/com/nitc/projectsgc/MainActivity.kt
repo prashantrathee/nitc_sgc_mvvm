@@ -13,11 +13,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -47,66 +49,85 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     lateinit var binding: ActivityMainBinding
     val sharedViewModel: SharedViewModel by viewModels()
-    private val adminViewModel : AdminViewModel by viewModels()
-    private val studentListViewModel : StudentListViewModel by viewModels()
-    private val mentorListViewModel : MentorListViewModel by viewModels()
-    private val loginViewModel : LoginViewModel by viewModels()
-    @OptIn(ExperimentalMaterial3Api::class)
+    private val adminViewModel: AdminViewModel by viewModels()
+    private val studentListViewModel: StudentListViewModel by viewModels()
+    private val mentorListViewModel: MentorListViewModel by viewModels()
+    private val loginViewModel: LoginViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val titleState = remember {
-                mutableStateOf("Login")
-            }
 //            val titleStateHolder = TitleStateHolder(initialTitle = "Login")
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = {
-                            HeadingText(
-                                text = titleState.value,
-                                fontColor = Color.Black,
-                                modifier = Modifier
-                            )
-                        },
-                        colors = TopAppBarColors(
-                            containerColor = Color.LightGray,
-                            titleContentColor = Color.Black,
-                            actionIconContentColor = Color.White,
-                            scrolledContainerColor = Color.Yellow,
-                            navigationIconContentColor = Color.Black
-                        )
-                    )
-                },
-                content = { paddingValues ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                    ) {
-                        AllNavigation(titleState)
-                    }
-                }
-            )
+            AllContent()
 
         }
+
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun AllContent() {
+        val titleState = remember {
+            mutableStateOf("SGC NITC")
+        }
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        HeadingText(
+                            text = titleState.value,
+                            fontColor = Color.Black,
+                            modifier = Modifier
+                        )
+                    },
+                    colors = TopAppBarColors(
+                        containerColor = Color.LightGray,
+                        titleContentColor = Color.Black,
+                        actionIconContentColor = Color.White,
+                        scrolledContainerColor = Color.Yellow,
+                        navigationIconContentColor = Color.Black
+                    )
+                )
+            },
+            content = { paddingValues ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                ) {
+                    AllNavigation(titleState)
+                }
+            }
+        )
+
     }
 
 
     @Composable
     fun AllNavigation(titleState: MutableState<String>) {
-        Log.d("inLogin","Herehreheh")
+        Log.d("inLogin", "Herehreheh")
         val navController = rememberNavController()
-        NavHost(navController = navController, startDestination = NavigationScreen.LoginScreen.route) {
-            composable(route = NavigationScreen.LoginScreen.route) {
-                when(getUserType()){
-                    0->navController.navigate("admin")
-                    1->navController.navigate("student")
-                    2->navController.navigate("mentor")
-                    else->{
-
+        val userType = getUserType()
+//        LaunchedEffect(key1 = Unit) {
+//            navController.navigate(NavigationScreen.FlashScreen.route)
+//        }
+        NavHost(
+            navController = navController,
+            startDestination = NavigationScreen.FlashScreen.route
+        ) {
+            composable(route = NavigationScreen.FlashScreen.route) {
+                FlashScreen {
+                    navController.popBackStack(NavigationScreen.FlashScreen.route,true)
+                    when (userType) {
+                        0 -> navController.navigate("admin")
+                        1 -> navController.navigate("student")
+                        2 -> navController.navigate("mentor")
+                        else -> navController.navigate(NavigationScreen.LoginScreen.route)
                     }
                 }
+            }
+            composable(route = NavigationScreen.LoginScreen.route) {
+
                 LoginScreen(navController = navController, loginViewModel = loginViewModel) {
                     storeData(
                         loginViewModel.userType.value,
@@ -114,18 +135,25 @@ class MainActivity : ComponentActivity() {
                         loginViewModel.password.value
                     )
                     sharedViewModel.userType = loginViewModel.userType.value
-                    when(sharedViewModel.userType) {
-                        0->navController.navigate("admin")
-                        1->navController.navigate("student")
-                        2->navController.navigate("mentor")
+                    when (sharedViewModel.userType) {
+                        0 -> navController.navigate("admin")
+                        1 -> navController.navigate("student")
+                        2 -> navController.navigate("mentor")
                     }
                 }
             }
-            adminGraph(titleState,navController,adminViewModel,studentListViewModel,mentorListViewModel)
+            adminGraph(
+                titleState,
+                navController,
+                adminViewModel,
+                studentListViewModel,
+                mentorListViewModel
+            )
             studentGraph(navController)
             mentorGraph(navController)
         }
     }
+
     @Composable
     fun TitleStateHolder(initialTitle: String) {
         val titleState = remember { mutableStateOf(initialTitle) }
@@ -138,7 +166,7 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    private fun getUserType() :Int{
+    private fun getUserType(): Int {
         val stored = StorageAccess(this).getUserType()
         return stored
     }

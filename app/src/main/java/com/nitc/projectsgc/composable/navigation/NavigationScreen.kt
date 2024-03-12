@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import com.nitc.projectsgc.R
 
 sealed class NavigationScreen(val route:String, @StringRes val resID:Int){
+    data object FlashScreen:NavigationScreen("flashScreen", R.string.app_name)
     data object LoginScreen:NavigationScreen("loginScreen", R.string.login_screen)
     data object AdminDashboard:NavigationScreen("adminDashboard", R.string.admin_dashboard)
     data object MentorDashboard:NavigationScreen("adminDashboard", R.string.mentor_dashboard)

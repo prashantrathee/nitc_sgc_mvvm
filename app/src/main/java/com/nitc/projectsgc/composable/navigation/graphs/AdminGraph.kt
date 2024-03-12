@@ -23,7 +23,7 @@ import com.nitc.projectsgc.composable.student.screens.ViewStudentScreen
 
 
 fun NavGraphBuilder.adminGraph(
-    titleState:MutableState<String>,
+    titleState: MutableState<String>,
     navController: NavController,
     adminViewModel: AdminViewModel,
     studentListViewModel: StudentListViewModel,
@@ -32,12 +32,17 @@ fun NavGraphBuilder.adminGraph(
 
     navigation(startDestination = NavigationScreen.AdminDashboard.route, route = "admin") {
         composable(route = NavigationScreen.AdminDashboard.route) {
+//            navController.popBackStack(
+//                inclusive = false,
+//                route = NavigationScreen.AdminDashboard.route
+//            )
 //            val adminViewModel: AdminViewModel = viewModel()
 //            val mentorListViewModel: MentorListViewModel = viewModel()
 //            val studentListViewModel: StudentListViewModel = viewModel()
             titleState.value = stringResource(id = NavigationScreen.AdminDashboard.resID)
             AdminDashboardScreen(
                 adminViewModel = adminViewModel,
+                navController = navController,
                 mentorListViewModel = mentorListViewModel,
                 studentListViewModel = studentListViewModel,
                 viewStudentCallback = { rollNo ->
