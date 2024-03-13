@@ -56,6 +56,12 @@ fun NavGraphBuilder.adminGraph(
                 },
                 mentorAppointmentsCallback = { username ->
 
+                },
+                addMentorCallback = {
+                    navController.navigate(NavigationScreen.ViewMentor.route + "/no")
+                },
+                addStudentCallback = {
+                    navController.navigate(NavigationScreen.ViewStudent.route + "/no")
                 }
             )
         }
@@ -64,24 +70,19 @@ fun NavGraphBuilder.adminGraph(
             navArgument("username") { type = NavType.StringType }
         )) { navBackStackEntry ->
             titleState.value = stringResource(id = NavigationScreen.ViewMentor.resID)
-            val mentorViewModel: MentorViewModel = viewModel()
-            navBackStackEntry.arguments?.getString("username")
-                ?.let { usernameString ->
-                    ViewMentorScreen(
-                        username = usernameString,
-                        mentorViewModel = mentorViewModel
-                    )
-                }
+            val usernameString = navBackStackEntry.arguments?.getString("username") ?: "no"
+            ViewMentorScreen(
+                username = usernameString,
+                adminViewModel = adminViewModel
+            )
         }
 
         composable(route = "${NavigationScreen.ViewStudent.route}/{rollNo}", arguments = listOf(
             navArgument("rollNo") { type = NavType.StringType }
         )) { navBackStackEntry ->
             titleState.value = stringResource(id = NavigationScreen.ViewStudent.resID)
-            navBackStackEntry.arguments?.getString("rollNo")
-                ?.let { rollNoString ->
-                    ViewStudentScreen(rollNoString, adminViewModel)
-                }
+            val rollNoString = navBackStackEntry.arguments?.getString("rollNo") ?: "no"
+            ViewStudentScreen(rollNoString, adminViewModel)
         }
 
 

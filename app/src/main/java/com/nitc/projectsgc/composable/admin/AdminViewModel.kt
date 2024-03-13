@@ -33,6 +33,19 @@ class AdminViewModel @Inject constructor(
     private val _student = MutableStateFlow<Either<String, Student>?>(null)
     val student: StateFlow<Either<String, Student>?> = _student.asStateFlow()
 
+
+    private val _mentor = MutableStateFlow<Either<String, Mentor>?>(null)
+    val mentor: StateFlow<Either<String, Mentor>?> = _mentor.asStateFlow()
+
+
+
+    fun deleteStudentValue(){
+        _student.value = null
+    }
+    fun deleteMentorValue(){
+        _mentor.value = null
+    }
+
     fun getStudent(rollNo: String) {
         viewModelScope.launch {
             _student.value = studentsRepo.getStudent(rollNo)
@@ -43,14 +56,48 @@ class AdminViewModel @Inject constructor(
         val updateSuccess = withContext(Dispatchers.Main) {
             Log.d("updateStudent", "In adminViewmodel")
             if (studentsRepo.updateStudent(student, oldPassword)) {
-                Log.d("updateStudent","Old password = $oldPassword")
-                Log.d("updateStudent","New password = ${student.password}")
+                Log.d("updateStudent", "Old password = $oldPassword")
+                Log.d("updateStudent", "New password = ${student.password}")
                 _student.value = Either.Right(student)
                 true
             } else false
         }
         return updateSuccess
+    }
 
+    suspend fun addMentor(mentor: Mentor): Either<String,Boolean> {
+        val updateSuccess = withContext(Dispatchers.Main) {
+            Log.d("updateMentor", "In adminViewmodel")
+            mentorsRepo.addMentor(mentor)
+        }
+        return updateSuccess
+    }
+
+    suspend fun updateMentor(mentor: Mentor, oldPassword: String): Boolean {
+        val updateSuccess = withContext(Dispatchers.Main) {
+            Log.d("updateMentor", "In adminViewmodel")
+            if (mentorsRepo.updateMentor(mentor, oldPassword)) {
+                Log.d("updateMentor", "Old password = $oldPassword")
+                Log.d("updateMentor", "New password = ${mentor.password}")
+                _mentor.value = Either.Right(mentor)
+                true
+            } else false
+        }
+        return updateSuccess
+    }
+
+    fun getMentor(username: String) {
+        viewModelScope.launch {
+            _mentor.value = mentorsRepo.getMentor(username)
+        }
+    }
+
+    suspend fun addStudent(newStudent: Student): Either<String,Boolean> {
+        val addSuccess = withContext(Dispatchers.Main) {
+            Log.d("addStudent", "In adminViewmodel")
+            studentsRepo.addStudent(newStudent)
+        }
+        return addSuccess
     }
 //
 //    private val _mentor = MutableStateFlow<Either<String, Mentor>?>(null)

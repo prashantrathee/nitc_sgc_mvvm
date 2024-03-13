@@ -95,7 +95,6 @@ fun StudentCard(
                     },
                     onLongClick = {
                         deleteMenuState.value = true
-
                     }
                 )
         ) {

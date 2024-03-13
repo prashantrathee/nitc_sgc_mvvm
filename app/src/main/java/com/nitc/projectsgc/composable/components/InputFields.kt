@@ -3,6 +3,7 @@ package com.nitc.projectsgc.composable.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -14,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,6 +51,43 @@ fun EmailInputField() {
     }
 }
 
+@Composable
+fun CardInputFieldWithOptions(
+    hint: String,
+    text:String,
+    isPassword: Boolean,
+    modifier: Modifier,
+    keyboardOptions: KeyboardOptions,
+    onValueChanged: (String) -> Unit
+) {
+    val inputValue = remember {
+        mutableStateOf(text)
+    }
+    BasicCard(15, 3, 0, 4,CardDefaults.cardColors(
+        containerColor = Color.White,
+        contentColor = Color.White
+    )) {
+        TextField(
+            modifier = modifier,
+            value = inputValue.value,
+            shape = RoundedCornerShape(25.dp),
+            onValueChange = {
+                inputValue.value = it
+                onValueChanged(it)
+            },
+            label = {
+                Text(text = hint, modifier = Modifier)
+            },
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                disabledContainerColor = Color.White
+            ),
+            keyboardOptions = keyboardOptions
+        )
+    }
+}
 
 @Composable
 fun CardInputFieldWithValue(

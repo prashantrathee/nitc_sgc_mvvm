@@ -39,33 +39,41 @@ fun ViewStudentScreen(
     rollNo: String,
     adminViewModel: AdminViewModel
 ) {
-    adminViewModel.getStudent(rollNo)
     val studentState = remember {
         mutableStateOf<Student?>(null)
+    }
+    if (rollNo != "no") {
+        adminViewModel.getStudent(rollNo)
+    } else {
+        adminViewModel.deleteStudentValue()
+        studentState.value = Student()
     }
     val screenContext = LocalContext.current
     val updatingState = remember {
         mutableStateOf(false)
     }
     val studentEither = adminViewModel.student.collectAsState().value
-
+    var oldPassword = ""
     val coroutineScope = rememberCoroutineScope()
-    studentEither?.fold(
-        { errorMessage ->
+    when (studentEither) {
+        is Either.Left -> {
             Toast.makeText(
                 LocalContext.current,
-                "Error in getting student : $errorMessage",
+                "Error in getting student : ${studentEither.value}",
                 Toast.LENGTH_LONG
             ).show()
-        },
-        { studentFound ->
-            UpdateStudentScreen(studentFound) { updatedStudent ->
+        }
 
+        is Either.Right -> {
+            Log.d("viewStudent", "no error message")
+            studentState.value = studentEither.value
+            oldPassword = studentEither.value.password
+            UpdateStudentScreen(studentEither.value) { updatedStudent ->
                 Log.d("updateStudent", "these are new values ; $updatedStudent")
                 coroutineScope.launch {
                     Log.d("updateStudent", "Now updated : $updatedStudent")
                     val updateSuccess =
-                        adminViewModel.updateStudent(updatedStudent, studentFound.password)
+                        adminViewModel.updateStudent(updatedStudent, oldPassword)
                     if (updateSuccess) {
                         studentState.value = updatedStudent
                         Toast.makeText(screenContext, "Updated Student", Toast.LENGTH_LONG).show()
@@ -80,7 +88,33 @@ fun ViewStudentScreen(
                 }
             }
         }
-    )
+
+        null -> {
+            Log.d("viewStudent", "Student either is null")
+            UpdateStudentScreen(Student()) { newStudent ->
+                coroutineScope.launch {
+                    val addedSuccessEither =
+                        adminViewModel.addStudent(newStudent)
+                    when (addedSuccessEither) {
+                        is Either.Left -> {
+                            Toast.makeText(
+                                screenContext,
+                                addedSuccessEither.value,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+
+                        is Either.Right -> {
+                            Toast.makeText(screenContext, "Added Student", Toast.LENGTH_LONG)
+                                .show()
+                            studentState.value = newStudent
+                        }
+                    }
+                    updatingState.value = false
+                }
+            }
+        }
+    }
 //
 }
 
@@ -152,7 +186,7 @@ fun UpdateStudentScreen(studentFound: Student, onUpdate: (student: Student) -> U
         Spacer(modifier = Modifier.size(70.dp))
 
         BasicButton(
-            text = "Update",
+            text = if (studentFound.name.isEmpty()) "Add" else "Update",
             colors = ButtonDefaults.buttonColors(),
             modifier = Modifier.padding(20.dp),
             tc = Color.White

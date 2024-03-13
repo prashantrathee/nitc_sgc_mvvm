@@ -1,19 +1,19 @@
 package com.nitc.projectsgc.models
 
 data class Appointment(
-    var date:String? = null,
-    var timeSlot:String? = null,
-    var mentorType:String? = null,
+    var date:String = "",
+    var timeSlot:String = "",
+    var mentorType:String = "",
     var rescheduled:Boolean = false,
-    var mentorID:String? = null,
-    var studentID:String? = null,
-    var mentorName:String? = null,
-    var studentName:String? = null,
+    var mentorID:String = "",
+    var studentID:String = "",
+    var mentorName:String = "",
+    var studentName:String = "",
     var completed:Boolean = false,
-    var status:String? = null,
-    var remarks:String? = null,
+    var status:String = "",
+    var remarks:String = "",
     var cancelled:Boolean = false,
     var expanded:Boolean = false,
-    var id:String? = null,
-    var problemDescription:String? = null
+    var id:String = "",
+    var problemDescription:String? = ""
 )

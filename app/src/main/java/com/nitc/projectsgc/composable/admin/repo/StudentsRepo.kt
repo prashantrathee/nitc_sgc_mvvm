@@ -64,14 +64,14 @@ class StudentsRepo @Inject constructor() {
         oldPassword: String
     ): Boolean {
         return suspendCoroutine { continuation ->
-            Log.d("updateStudent","In repo")
+            Log.d("updateStudent", "In repo")
             val database: FirebaseDatabase = FirebaseDatabase.getInstance()
             val reference: DatabaseReference = database.reference.child("students")
             val auth: FirebaseAuth = FirebaseAuth.getInstance()
             reference.child(student.rollNo).setValue(student).addOnSuccessListener { task ->
-                Log.d("updateStudent","in add on success")
+                Log.d("updateStudent", "in add on success")
                 if (student.password != oldPassword) {
-                    Log.d("updateStudent","old password is not same")
+                    Log.d("updateStudent", "old password is not same")
                     auth.signInWithEmailAndPassword(student.emailId, oldPassword)
                         .addOnSuccessListener { loggedIn ->
                             if (loggedIn != null) {
@@ -82,11 +82,14 @@ class StudentsRepo @Inject constructor() {
                                             if (task.isSuccessful) {
                                                 // Show success message to the user
                                                 auth.signOut()
-                                                Log.d("updateStudent","Updated student")
+                                                Log.d("updateStudent", "Updated student")
                                                 continuation.resume(true)
                                             } else {
                                                 // Password update failed, show error message to the user
-                                                Log.d("updateStudent","Error in updating password of current user")
+                                                Log.d(
+                                                    "updateStudent",
+                                                    "Error in updating password of current user"
+                                                )
                                                 continuation.resume(false)
                                             }
                                         }
@@ -225,5 +228,58 @@ class StudentsRepo @Inject constructor() {
                 })
         }
     }
+
+    suspend fun addStudent(
+        student: Student
+    ): Either<String, Boolean> {
+        return suspendCoroutine { continuation ->
+            Log.d("addStudent", "In repo")
+            var isResumed = false
+            val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+            val reference: DatabaseReference = database.reference.child("students")
+            val auth: FirebaseAuth = FirebaseAuth.getInstance()
+            reference.child(student.rollNo).setValue(student).addOnSuccessListener { task ->
+                Log.d("addStudent", "in add on success")
+                Log.d("addStudent", "old password is not same")
+                auth.createUserWithEmailAndPassword(student.emailId, student.password)
+                    .addOnSuccessListener { loggedIn ->
+                        if (loggedIn != null) {
+                            Log.d("addStudent", "Updated student")
+                            if (!isResumed) {
+                                isResumed = true
+                                continuation.resume(Either.Right(true))
+                            }
+                        } else {
+                            // Password add failed, show error message to the user
+                            Log.d(
+                                "addStudent",
+                                "Error in adding password of current user"
+                            )
+                            if(!isResumed){
+                                isResumed = true
+                                continuation.resume(Either.Left("Error in adding student"))
+                            }
+                        }
+                    }
+                    .addOnFailureListener { excAdding ->
+                        Log.d(
+                            "addStudent",
+                            "Error in adding student : $excAdding"
+                        )
+                        if(!isResumed){
+                            isResumed = true
+                            continuation.resume(Either.Left("Error in adding student : $excAdding"))
+                        }
+            }
+        }.addOnFailureListener { excAdd ->
+            Log.d("addStudent", "Error in adding in firebase : $excAdd")
+            if(!isResumed){
+                isResumed = true
+                continuation.resume(Either.Left("Error in adding student : $excAdd"))
+            }
+        }
+    }
+}
+
 
 }

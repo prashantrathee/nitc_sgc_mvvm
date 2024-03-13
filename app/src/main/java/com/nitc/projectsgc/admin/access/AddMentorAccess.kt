@@ -10,8 +10,8 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class AddMentorAccess(
-    var context : Context,
-    val emailSuffix:String
+    var context: Context,
+    val emailSuffix: String
 ) {
     suspend fun addMentor(
         mentor: Mentor
@@ -19,7 +19,8 @@ class AddMentorAccess(
         return suspendCoroutine { continuation ->
 
             val database: FirebaseDatabase = FirebaseDatabase.getInstance()
-            val reference: DatabaseReference = database.reference.child(emailSuffix).child("types").child(mentor.type)
+            val reference: DatabaseReference =
+                database.reference.child(emailSuffix).child("types").child(mentor.type)
             val auth: FirebaseAuth = FirebaseAuth.getInstance()
             reference.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -39,9 +40,13 @@ class AddMentorAccess(
                                             reference.child(mentor.userName).removeValue()
                                             continuation.resume(false)
                                         }
-                                    }.addOnFailureListener{errAuth->
-                                        Toast.makeText(context,"Error in adding mentor",Toast.LENGTH_SHORT).show()
-                                        Log.d("addMentor","Error in adding auth mentor : $errAuth")
+                                    }.addOnFailureListener { errAuth ->
+                                        Toast.makeText(
+                                            context,
+                                            "Error in adding mentor",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        Log.d("addMentor", "Error in adding auth mentor : $errAuth")
                                         continuation.resume(false)
                                     }
                                 } else {
@@ -49,13 +54,16 @@ class AddMentorAccess(
                                     continuation.resume(false)
                                 }
                             }
-                            .addOnFailureListener{errAdd->
-                                Toast.makeText(context,"Error in adding mentor",Toast.LENGTH_SHORT).show()
-                                Log.d("addMentor","Error in adding mentor : $errAdd")
+                            .addOnFailureListener { errAdd ->
+                                Toast.makeText(
+                                    context,
+                                    "Error in adding mentor",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                Log.d("addMentor", "Error in adding mentor : $errAdd")
                                 continuation.resume(false)
                             }
-                    }
-                    else {
+                    } else {
                         Toast.makeText(
                             context,
                             "Another mentor found with same email.",
@@ -66,25 +74,26 @@ class AddMentorAccess(
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Log.d("addMentor","Database error : $error")
-                    Toast.makeText(context,"Database error in adding mentor",Toast.LENGTH_SHORT).show()
+                    Log.d("addMentor", "Database error : $error")
+                    Toast.makeText(context, "Database error in adding mentor", Toast.LENGTH_SHORT)
+                        .show()
                     continuation.resume(false)
                 }
             })
 
-
-
         }
     }
+
     suspend fun updateMentor(
         mentor: Mentor,
-        oldPassword:String
+        oldPassword: String
     ): Boolean {
         return suspendCoroutine { continuation ->
             val database: FirebaseDatabase = FirebaseDatabase.getInstance()
-            val reference: DatabaseReference = database.reference.child(emailSuffix).child("types").child(mentor.type)
+            val reference: DatabaseReference =
+                database.reference.child(emailSuffix).child("types").child(mentor.type)
             val auth: FirebaseAuth = FirebaseAuth.getInstance()
-            val updates = mapOf<String,String>(
+            val updates = mapOf<String, String>(
                 "name" to mentor.name,
                 "password" to mentor.password,
                 "phone" to mentor.phone
@@ -93,7 +102,7 @@ class AddMentorAccess(
             reference.child(mentor.userName).updateChildren(updates).addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("accessAddMentor", "here in addMentor access")
-                    if(mentor.password != oldPassword) {
+                    if (mentor.password != oldPassword) {
 //                        auth.signInWithEmailAndPassword(mentor.email, oldPassword)
 //                            .addOnCompleteListener { loggedIn ->
 //                                if (loggedIn.isSuccessful) {
@@ -117,18 +126,27 @@ class AddMentorAccess(
                         val currentUser = FirebaseAuth.getInstance().currentUser
 
 // Update the password in the Authentication Database
-                        currentUser?.updatePassword(mentor.password)?.addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                // Show success message to the user
-                                Toast.makeText(context, "Password updated successfully", Toast.LENGTH_SHORT).show()
-                                continuation.resume(true)
-                            } else {
-                                // Password update failed, show error message to the user
-                                Toast.makeText(context, "Password update failed", Toast.LENGTH_SHORT).show()
-                                continuation.resume(false)
+                        currentUser?.updatePassword(mentor.password)
+                            ?.addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    // Show success message to the user
+                                    Toast.makeText(
+                                        context,
+                                        "Password updated successfully",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    continuation.resume(true)
+                                } else {
+                                    // Password update failed, show error message to the user
+                                    Toast.makeText(
+                                        context,
+                                        "Password update failed",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    continuation.resume(false)
+                                }
                             }
-                        }
-                    }else{
+                    } else {
                         continuation.resume(true)
                     }
                 } else {

@@ -1,9 +1,12 @@
 package com.nitc.projectsgc.composable.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -25,6 +28,31 @@ import androidx.compose.ui.unit.dp
 fun loadLogin() {
     LoginCard {
 
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ClickableCard(
+    padding: Int,
+    clickCallback:()->Unit,
+    optionsCallback:()->Unit,
+    content: @Composable () -> Unit
+) {
+    Card(modifier = Modifier
+        .background(Color.Transparent)
+        .fillMaxSize()
+        .padding(padding.dp)
+        .combinedClickable(
+            onClick = {
+                clickCallback()
+            },
+            onLongClick = {
+                optionsCallback()
+            }
+        )
+    ) {
+        content()
     }
 }
 
@@ -50,7 +78,7 @@ fun LoginCard(userTypeCallback: (Int) -> Unit) {
         "Student",
         "Warden"
     )
-    BasicCard(25, 2, 1,0,CardDefaults.cardColors()) {
+    BasicCard(25, 2, 1, 0, CardDefaults.cardColors()) {
         Row(
             modifier = Modifier
                 .background(Color.White)
@@ -85,7 +113,14 @@ fun LoginCard(userTypeCallback: (Int) -> Unit) {
 
 
 @Composable
-fun BasicCard(cr: Int, elevation: Int,stroke:Int, padding: Int, cardColors:CardColors, content: @Composable () -> Unit) {
+fun BasicCard(
+    cr: Int,
+    elevation: Int,
+    stroke: Int,
+    padding: Int,
+    cardColors: CardColors,
+    content: @Composable () -> Unit
+) {
     Card(
         modifier = Modifier
             .padding(padding.dp),

@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -54,6 +57,7 @@ fun loadMentorCard() {
 
     }
 }
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MentorCard(
@@ -64,76 +68,88 @@ fun MentorCard(
     val deleteMenuState = remember {
         mutableStateOf(false)
     }
-    Box(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(intrinsicSize = IntrinsicSize.Min)
+            .padding(7.dp)
             .clip(
                 RoundedCornerShape(15)
             )
-            .background(colorResource(id = R.color.lavender))
+            .height(intrinsicSize = IntrinsicSize.Min)
+            .background(colorResource(id = R.color.lavender)),
+        shadowElevation = 4.dp
     ) {
-        Card(
-            modifier = Modifier
-                .background(Color.Transparent)
-                .padding(10.dp)
-                .combinedClickable(
-                    onClick = {
-                        clickCallback()
-                    },
-                    onLongClick = {
-                        deleteMenuState.value = true
 
-                    }
-                )
+        Box(
+            modifier = Modifier
+                .background(colorResource(id = R.color.lavender)),
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(colorResource(id = R.color.lavender))
-            ) {
-                Row(
-                    modifier = Modifier.align(Alignment.CenterStart)
-                ){
-                    Image(
-                        modifier = Modifier
-                            .size(70.dp)
-                            .clip(RoundedCornerShape(50)),
-                        painter = painterResource(id = R.drawable.boy_face),
-                        contentDescription = "Mentor Photo"
-                    )
-                    Spacer(modifier = Modifier.size(20.dp))
-                    Column(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .background(Color.Transparent)
-                    ) {
-                        Spacer(modifier = Modifier.size(5.dp))
-                        SubHeadingText(text = mentor.name, fontColor = Color.Black, modifier = Modifier)
-                        Spacer(modifier = Modifier.size(5.dp))
-                        Text(text = mentor.email, color = Color.Black)
-                        Spacer(modifier = Modifier.size(5.dp))
-                        Text(
-                            text = mentor.phone,
-                            color = Color.Black,
-                            modifier = Modifier
-                        )
-                    }
+            ClickableCard(
+                padding = 10,
+                clickCallback = {
+                    clickCallback()
+                },
+                optionsCallback = {
+                    deleteMenuState.value = true
                 }
-                SubHeadingText(text = mentor.type, fontColor = Color.Black, modifier = Modifier.align(
-                    Alignment.TopEnd))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(colorResource(id = R.color.lavender))
+                ) {
+                    Row(
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    ) {
+                        Image(
+                            modifier = Modifier
+                                .size(70.dp)
+                                .clip(RoundedCornerShape(50)),
+                            painter = painterResource(id = R.drawable.boy_face),
+                            contentDescription = "Mentor Photo"
+                        )
+                        Spacer(modifier = Modifier.size(20.dp))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .background(Color.Transparent)
+                        ) {
+                            Spacer(modifier = Modifier.size(5.dp))
+                            SubHeadingText(
+                                text = mentor.name,
+                                fontColor = Color.Black,
+                                modifier = Modifier
+                            )
+                            Spacer(modifier = Modifier.size(5.dp))
+                            Text(text = mentor.email, color = Color.Black)
+                            Spacer(modifier = Modifier.size(5.dp))
+                            Text(
+                                text = mentor.phone,
+                                color = Color.Black,
+                                modifier = Modifier
+                            )
+                        }
+                    }
+                    SubHeadingText(
+                        text = mentor.type, fontColor = Color.Black, modifier = Modifier.align(
+                            Alignment.TopEnd
+                        )
+                    )
+                }
+            }
+            DropdownMenu(
+                modifier = Modifier.align(Alignment.BottomEnd),
+                expanded = deleteMenuState.value,
+                onDismissRequest = {
+                    deleteMenuState.value = false
+                }) {
+                DropdownMenuItem(text = {
+                    SubHeadingText(text = "Delete", fontColor = Color.Black, modifier = Modifier)
+                }, onClick = {
+                    deleteMenuState.value = false
+                    deleteCallback()
+                })
             }
         }
-        DropdownMenu(expanded = deleteMenuState.value, onDismissRequest = {
-            deleteMenuState.value = false
-        }) {
-            DropdownMenuItem(text = {
-                SubHeadingText(text = "Delete", fontColor = Color.Black, modifier = Modifier)
-            }, onClick = {
-                deleteMenuState.value = false
-                deleteCallback()
-            })
-        }
     }
-
 }
