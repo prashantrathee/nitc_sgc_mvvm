@@ -30,10 +30,12 @@ import com.nitc.projectsgc.composable.components.SimpleToast
 import com.nitc.projectsgc.composable.login.LoginScreen
 import com.nitc.projectsgc.composable.util.StorageAccess
 import com.nitc.projectsgc.composable.login.LoginViewModel
+import com.nitc.projectsgc.composable.mentor.MentorViewModel
 import com.nitc.projectsgc.composable.navigation.NavigationScreen
 import com.nitc.projectsgc.composable.navigation.graphs.adminGraph
 import com.nitc.projectsgc.composable.navigation.graphs.mentorGraph
 import com.nitc.projectsgc.composable.navigation.graphs.studentGraph
+import com.nitc.projectsgc.composable.student.StudentViewModel
 import com.nitc.projectsgc.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -45,6 +47,8 @@ class MainActivity : ComponentActivity() {
     private val studentListViewModel: StudentListViewModel by viewModels()
     private val mentorListViewModel: MentorListViewModel by viewModels()
     private val loginViewModel: LoginViewModel by viewModels()
+    private val mentorViewModel: MentorViewModel by viewModels()
+    private val studentViewModel: StudentViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -141,8 +145,12 @@ class MainActivity : ComponentActivity() {
                 studentListViewModel,
                 mentorListViewModel
             )
-            studentGraph(navController)
-            mentorGraph(navController)
+            studentGraph(navController,studentViewModel)
+            mentorGraph(
+                navController,
+                mentorViewModel,
+                titleState
+            )
         }
     }
 
