@@ -53,7 +53,8 @@ fun loadMentorCard() {
         "Career",
         "password",
         "username"
-    ), deleteCallback = {}) {
+    ), deleteCallback = {},
+    ) {
 
     }
 }
@@ -143,6 +144,14 @@ fun MentorCard(
                 onDismissRequest = {
                     deleteMenuState.value = false
                 }) {
+                DropdownMenuItem(text = {
+                    SubHeadingText(
+                        text = "Appointments",
+                        fontColor = Color.Black,
+                        modifier = Modifier
+                    )
+                }, onClick = {
+                })
                 DropdownMenuItem(text = {
                     SubHeadingText(text = "Delete", fontColor = Color.Black, modifier = Modifier)
                 }, onClick = {

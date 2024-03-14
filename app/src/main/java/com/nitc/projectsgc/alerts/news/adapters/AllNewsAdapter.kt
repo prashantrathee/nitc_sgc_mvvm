@@ -41,7 +41,7 @@ class AllNewsAdapter(
         holder.binding.newsTextInNewsCard.text = news[position].news.toString()
         holder.binding.dateTextInNewsCard.text = news[position].publishDate.toString()
         if(sharedViewModel.userType == 2) {
-            if(sharedViewModel.currentMentor.userName == news[position].mentorID) holder.binding.deleteButtonInNewsCard.visibility = View.VISIBLE
+            if(sharedViewModel.currentMentor.username == news[position].mentorID) holder.binding.deleteButtonInNewsCard.visibility = View.VISIBLE
             else holder.binding.deleteButtonInNewsCard.visibility = View.GONE
         }
         else holder.binding.deleteButtonInNewsCard.visibility = View.GONE

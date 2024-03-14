@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -26,7 +25,6 @@ import com.nitc.projectsgc.composable.admin.viewmodels.StudentListViewModel
 import com.nitc.projectsgc.composable.components.MentorCard
 import com.nitc.projectsgc.composable.components.StudentCard
 import com.nitc.projectsgc.composable.components.TabLayout
-import com.nitc.projectsgc.composable.login.LoginViewModel
 
 
 @Composable
@@ -36,11 +34,9 @@ fun AdminDashboardScreen(
     mentorListViewModel: MentorListViewModel,
     studentListViewModel: StudentListViewModel,
     viewStudentCallback: (rollNo: String) -> Unit,
-    studentAppointmentsCallback: (rollNo: String) -> Unit,
     viewMentorCallback: (username: String) -> Unit,
-    mentorAppointmentsCallback: (username: String) -> Unit,
-    addStudentCallback:()->Unit,
-    addMentorCallback:()->Unit
+    addStudentCallback: () -> Unit,
+    addMentorCallback: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -60,9 +56,6 @@ fun AdminDashboardScreen(
                         viewStudentCallback = {
                             viewStudentCallback(it)
                         },
-                        appointmentsCallback = {
-                            studentAppointmentsCallback(it)
-                        },
                         backCallback = {
                             navController.popBackStack()
                         },
@@ -76,9 +69,6 @@ fun AdminDashboardScreen(
                     GetMentors(mentorListViewModel,
                         viewMentorCallback = {
                             viewMentorCallback(it)
-                        },
-                        appointmentsCallback = {
-                            mentorAppointmentsCallback(it)
                         },
                         backCallback = {
                             navController.popBackStack()
@@ -98,7 +88,6 @@ fun AdminDashboardScreen(
 fun GetStudents(
     studentListViewModel: StudentListViewModel,
     viewStudentCallback: (rollNo: String) -> Unit,
-    appointmentsCallback: (rollNo: String) -> Unit,
     backCallback: () -> Unit,
     addStudentCallback: () -> Unit
 ) {
@@ -125,9 +114,6 @@ fun GetStudents(
                         clickCallback = {
                             viewStudentCallback(student.rollNo)
                         },
-                        appointmentsCallback = {
-                            appointmentsCallback(student.rollNo)
-                        }
                     )
                 }
             )
@@ -150,7 +136,6 @@ fun GetStudents(
 fun GetMentors(
     mentorListViewModel: MentorListViewModel,
     viewMentorCallback: (username: String) -> Unit,
-    appointmentsCallback: (username: String) -> Unit,
     backCallback: () -> Unit,
     addMentorCallback: () -> Unit
 ) {
@@ -171,18 +156,18 @@ fun GetMentors(
                 itemContent = { index: Int ->
                     val mentor = mentors.value[index]
                     MentorCard(mentor = mentor, deleteCallback = {
-                        mentorListViewModel.deleteMentor(myContext, mentor.userName)
+                        mentorListViewModel.deleteMentor(myContext, mentor.username)
                     },
                         clickCallback = {
-                            viewMentorCallback(mentor.userName)
-                        }
+                            viewMentorCallback(mentor.username)
+                        },
                     )
                 }
             )
         }
         FloatingActionButton(
             onClick = {
-                      addMentorCallback()
+                addMentorCallback()
             },
             modifier = Modifier
                 .align(Alignment.BottomEnd)

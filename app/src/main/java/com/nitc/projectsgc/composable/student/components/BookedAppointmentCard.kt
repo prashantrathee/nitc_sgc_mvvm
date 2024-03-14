@@ -70,8 +70,8 @@ fun BookedAppointmentCardPreview() {
 @Composable
 fun BookedAppointmentCard(
     appointment: Appointment,
-    clickCallback: () -> Unit,
-    optionsCallback: () -> Unit
+    rescheduleCallback: () -> Unit,
+    cancelCallback: () -> Unit
 ) {
 
 
@@ -106,7 +106,6 @@ fun BookedAppointmentCard(
                 .align(Alignment.TopCenter)
                 .combinedClickable(
                     onClick = {
-                        clickCallback()
                     },
                     onLongClick = {
                         optionsMenuState.value = true
@@ -179,7 +178,11 @@ fun BookedAppointmentCard(
                                 modifier = Modifier
                             )
                             Spacer(modifier = Modifier.size(5.dp))
-                            Text(text = appointment.mentorType, color = Color.Black, fontSize = 16.sp)
+                            Text(
+                                text = appointment.mentorType,
+                                color = Color.Black,
+                                fontSize = 16.sp
+                            )
                         }
                     }
                 }
@@ -201,14 +204,25 @@ fun BookedAppointmentCard(
                 }
             }
         }
-
-//        DropdownMenu(expanded = optionsMenuState.value, onDismissRequest = {
-//            optionsMenuState.value = false
-//        }) {
-//            DropdownMenuItem(text = {
-//                SubHeadingText(text = "Delete", fontColor = Color.Black, modifier = Modifier)
-//            }, onClick = {
-//                optionsMenuState.value = false
-//            })
+        DropdownMenu(
+            modifier = Modifier.align(Alignment.BottomEnd),
+            expanded = optionsMenuState.value, onDismissRequest = {
+            optionsMenuState.value = false
+        }) {
+            DropdownMenuItem(text = {
+                SubHeadingText(text = "Reschedule", fontColor = Color.Black, modifier = Modifier)
+            }, onClick = {
+                rescheduleCallback()
+                optionsMenuState.value = false
+            }
+            )
+            DropdownMenuItem(text = {
+                SubHeadingText(text = "Cancel", fontColor = Color.Black, modifier = Modifier)
+            }, onClick = {
+                cancelCallback()
+                optionsMenuState.value = false
+            }
+            )
+        }
     }
 }

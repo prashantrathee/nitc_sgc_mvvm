@@ -203,7 +203,7 @@ class StudentsRepo @Inject constructor() {
         }
     }
 
-    suspend fun getAppointments(rollNo: String): ArrayList<Appointment>? {
+    suspend fun getAppointments(rollNo: String): Either<String,List<Appointment>>? {
         return suspendCoroutine { continuation ->
             var isResumed = false
             var appointments = arrayListOf<Appointment>()
@@ -213,18 +213,27 @@ class StudentsRepo @Inject constructor() {
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         for (ds in snapshot.children) {
-                            var appointment = ds.getValue(Appointment::class.java)
-                            if (appointment != null) {
-                                appointments.add(appointment)
+                            try{
+                                val appointment = ds.getValue(Appointment::class.java)
+                                appointments.add(appointment!!)
+                            }catch(excCasting:Exception){
+                                Log.d("getAppointments","Error in casting appointment : $excCasting")
+                                continue
                             }
                         }
-                        if (!isResumed) continuation.resume(appointments)
+                        if (!isResumed) {
+                            isResumed = true
+                            continuation.resume(Either.Right(appointments))
+                        }
                     }
 
                     override fun onCancelled(error: DatabaseError) {
-                        if (!isResumed) continuation.resume(null)
+                        if (!isResumed){
+                            isResumed = true
+                            Log.d("getAppointments","Error in database : $error")
+                            continuation.resume(Either.Left("Error in database : $error"))
+                        }
                     }
-
                 })
         }
     }

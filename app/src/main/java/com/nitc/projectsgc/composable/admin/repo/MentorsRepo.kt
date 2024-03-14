@@ -1,7 +1,6 @@
 package com.nitc.projectsgc.composable.admin.repo
 
 import android.util.Log
-import android.widget.Toast
 import arrow.core.Either
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -11,12 +10,15 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.nitc.projectsgc.models.Appointment
 import com.nitc.projectsgc.models.Mentor
-import com.nitc.projectsgc.models.Student
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class MentorsRepo @Inject constructor() {
+
+
     suspend fun getMentors(): ArrayList<Mentor>? {
         return suspendCoroutine { continuation ->
             var database: FirebaseDatabase = FirebaseDatabase.getInstance()
@@ -60,8 +62,8 @@ class MentorsRepo @Inject constructor() {
             val auth: FirebaseAuth = FirebaseAuth.getInstance()
             reference.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    if (!snapshot.hasChild(mentor.userName)) {
-                        reference.child(mentor.userName)
+                    if (!snapshot.hasChild(mentor.username)) {
+                        reference.child(mentor.username)
                             .setValue(mentor).addOnSuccessListener { task ->
                                 Log.d("addMentor", "here in addMentor access")
 //                                    continuation.resume(true)
@@ -77,7 +79,7 @@ class MentorsRepo @Inject constructor() {
                                         }
                                     } else {
                                         Log.d("addMentor", "auth task is not successful")
-                                        reference.child(mentor.userName).removeValue()
+                                        reference.child(mentor.username).removeValue()
                                         if (!isResumed) {
                                             isResumed = true
                                             continuation.resume(Either.Left("Error in adding mentor"))
@@ -271,13 +273,14 @@ class MentorsRepo @Inject constructor() {
     ): Boolean {
         return suspendCoroutine { continuation ->
             Log.d("updateMentor", "In repo")
+            var isResumed = false
             val database: FirebaseDatabase = FirebaseDatabase.getInstance()
             val reference: DatabaseReference = database.reference.child("types")
             val mentorType =
-                mentor.userName.substring(
-                    mentor.userName.indexOf('_') + 1,
-                    mentor.userName.indexOfLast { it == '_' })
-            val mentorPath = "${mentorType}/${mentor.userName}"
+                mentor.username.substring(
+                    mentor.username.indexOf('_') + 1,
+                    mentor.username.indexOfLast { it == '_' })
+            val mentorPath = "${mentorType}/${mentor.username}"
             val auth: FirebaseAuth = FirebaseAuth.getInstance()
             reference.child(mentorPath).setValue(mentor).addOnSuccessListener { task ->
                 Log.d("updateMentor", "in add on success")
@@ -294,14 +297,20 @@ class MentorsRepo @Inject constructor() {
                                                 // Show success message to the user
                                                 auth.signOut()
                                                 Log.d("updateMentor", "Updated mentor")
-                                                continuation.resume(true)
+                                                if(!isResumed){
+                                                    isResumed = true
+                                                    continuation.resume(true)
+                                                }
                                             } else {
                                                 // Password update failed, show error message to the user
                                                 Log.d(
                                                     "updateMentor",
                                                     "Error in updating password of current user"
                                                 )
-                                                continuation.resume(false)
+                                                if(!isResumed){
+                                                    isResumed = true
+                                                    continuation.resume(false)
+                                                }
                                             }
                                         }
                                         .addOnFailureListener { excUpdating ->
@@ -309,18 +318,27 @@ class MentorsRepo @Inject constructor() {
                                                 "updateMentor",
                                                 "Error in updating mentor : $excUpdating"
                                             )
-                                            continuation.resume(false)
+                                            if(!isResumed){
+                                                isResumed = true
+                                                continuation.resume(false)
+                                            }
                                         }
                                 } else {
                                     Log.d(
                                         "updateMentor",
                                         "current user is null after logging in with old password"
                                     )
-                                    continuation.resume(false)
+                                    if(!isResumed){
+                                        isResumed = true
+                                        continuation.resume(false)
+                                    }
                                 }
                             } else {
                                 Log.d("updateMentor", "Error in logging in with old password")
-                                continuation.resume(false)
+                                if(!isResumed){
+                                    isResumed = true
+                                    continuation.resume(false)
+                                }
                             }
                         }
                         .addOnFailureListener { excLogin ->
@@ -328,14 +346,23 @@ class MentorsRepo @Inject constructor() {
                                 "updateMentor",
                                 "Error in logging in with old password : $excLogin"
                             )
-                            continuation.resume(false)
+                            if(!isResumed){
+                                isResumed = true
+                                continuation.resume(false)
+                            }
                         }
                 } else {
-                    continuation.resume(true)
+                    if(!isResumed){
+                        isResumed = true
+                        continuation.resume(true)
+                    }
                 }
             }.addOnFailureListener { excUpdate ->
                 Log.d("updateMentor", "Error in updating in firebase : $excUpdate")
-                continuation.resume(false)
+                if(!isResumed){
+                    isResumed = true
+                    continuation.resume(false)
+                }
             }
         }
     }

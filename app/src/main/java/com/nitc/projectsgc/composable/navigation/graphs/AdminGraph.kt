@@ -2,7 +2,6 @@ package com.nitc.projectsgc.composable.navigation.graphs
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
@@ -13,12 +12,10 @@ import com.nitc.projectsgc.composable.admin.AdminDashboardScreen
 import com.nitc.projectsgc.composable.admin.AdminViewModel
 import com.nitc.projectsgc.composable.admin.viewmodels.MentorListViewModel
 import com.nitc.projectsgc.composable.admin.viewmodels.StudentListViewModel
-import com.nitc.projectsgc.composable.mentor.MentorAppointmentsScreen
-import com.nitc.projectsgc.composable.mentor.MentorViewModel
-import com.nitc.projectsgc.composable.mentor.ViewMentorScreen
+import com.nitc.projectsgc.composable.mentor.screens.MentorAppointmentsScreen
+import com.nitc.projectsgc.composable.mentor.screens.ViewMentorScreen
 import com.nitc.projectsgc.composable.navigation.NavigationScreen
 import com.nitc.projectsgc.composable.student.screens.StudentAppointmentsScreen
-import com.nitc.projectsgc.composable.student.StudentViewModel
 import com.nitc.projectsgc.composable.student.screens.ViewStudentScreen
 
 
@@ -50,12 +47,6 @@ fun NavGraphBuilder.adminGraph(
                 },
                 viewMentorCallback = { username ->
                     navController.navigate("${NavigationScreen.ViewMentor.route}/$username")
-                },
-                studentAppointmentsCallback = { rollNo ->
-
-                },
-                mentorAppointmentsCallback = { username ->
-
                 },
                 addMentorCallback = {
                     navController.navigate(NavigationScreen.ViewMentor.route + "/no")

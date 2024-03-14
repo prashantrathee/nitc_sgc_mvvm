@@ -19,6 +19,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -66,7 +68,9 @@ fun MentorAppointmentCardPreview() {
             "248545345234"
         ),
         {},
-        {}
+        {},
+        {},
+        {},
     )
 }
 
@@ -76,8 +80,10 @@ fun MentorAppointmentCardPreview() {
 fun MentorAppointmentCard(
     appointment: Appointment,
     student: Student,
-    clickCallback: () -> Unit,
-    optionsCallback: () -> Unit
+    rescheduleCallback: () -> Unit,
+    completeCallback:()->Unit,
+    viewPastRecordCallback:()->Unit,
+    cancelCallback:()->Unit,
 ) {
 
 
@@ -112,7 +118,6 @@ fun MentorAppointmentCard(
                 .align(Alignment.TopCenter)
                 .combinedClickable(
                     onClick = {
-                        clickCallback()
                     },
                     onLongClick = {
                         optionsMenuState.value = true
@@ -227,7 +232,7 @@ fun MentorAppointmentCard(
                         shape = RoundedCornerShape(25),
                         elevation = ButtonDefaults.buttonElevation(3.dp),
                         onClick = {
-
+                            viewPastRecordCallback()
                         }
                     ) {
                         SubHeadingText(
@@ -245,7 +250,7 @@ fun MentorAppointmentCard(
                         modifier = Modifier.padding(2.dp),
                         elevation = ButtonDefaults.buttonElevation(3.dp),
                         onClick = {
-
+                            cancelCallback()
                         }
                     ) {
                         SubHeadingText(
@@ -255,17 +260,25 @@ fun MentorAppointmentCard(
                         )
                     }
                 }
-
             }
         }
 
-//        DropdownMenu(expanded = optionsMenuState.value, onDismissRequest = {
-//            optionsMenuState.value = false
-//        }) {
-//            DropdownMenuItem(text = {
-//                SubHeadingText(text = "Delete", fontColor = Color.Black, modifier = Modifier)
-//            }, onClick = {
-//                optionsMenuState.value = false
-//            })
+        DropdownMenu(
+            expanded = optionsMenuState.value,
+            onDismissRequest = {
+            optionsMenuState.value = false
+        }) {
+            DropdownMenuItem(text = {
+                SubHeadingText(text = "Reschedule", fontColor = Color.Black, modifier = Modifier)
+            }, onClick = {
+                optionsMenuState.value = false
+            })
+
+            DropdownMenuItem(text = {
+                SubHeadingText(text = "Complete", fontColor = Color.Black, modifier = Modifier)
+            }, onClick = {
+                optionsMenuState.value = false
+            })
+        }
     }
 }

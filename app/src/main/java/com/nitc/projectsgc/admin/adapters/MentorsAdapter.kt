@@ -66,13 +66,13 @@ class MentorsAdapter(
             confirmDeleteBuilder.setTitle("Are you sure ?")
                 .setMessage("You want to delete this mentor?")
                 .setPositiveButton("Yes"){dialog,which->
-                    Log.d("deleteMentor","username = ${mentors[position].userName.toString()}")
+                    Log.d("deleteMentor","username = ${mentors[position].username.toString()}")
                     var deleteCoroutineScope = CoroutineScope(Dispatchers.Main)
                     loadingDialog.create()
                     loadingDialog.show()
                     deleteCoroutineScope.launch {
                         var deleted = MentorsAccess(context,sharedViewModel.currentInstitution.username!!).deleteMentor(
-                            mentors[position].userName.toString(),
+                            mentors[position].username.toString(),
                             mentors[position].type.toString()
                         )
                         if (deleted) {
@@ -101,7 +101,7 @@ class MentorsAdapter(
         }
 
         holder.personImage.setOnClickListener {
-                sharedViewModel.mentorIDForProfile = mentors[position].userName.toString()
+                sharedViewModel.mentorIDForProfile = mentors[position].username.toString()
                 sharedViewModel.mentorTypeForProfile = mentors[position].type.toString()
                 parentFragment.findNavController().navigate(R.id.mentorProfileFragment)
 

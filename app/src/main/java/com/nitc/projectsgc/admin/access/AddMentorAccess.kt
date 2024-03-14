@@ -24,8 +24,8 @@ class AddMentorAccess(
             val auth: FirebaseAuth = FirebaseAuth.getInstance()
             reference.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    if (!snapshot.hasChild(mentor.userName)) {
-                        reference.child(mentor.userName)
+                    if (!snapshot.hasChild(mentor.username)) {
+                        reference.child(mentor.username)
                             .setValue(mentor).addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
                                     Log.d("accessAddMentor", "here in addMentor access")
@@ -37,7 +37,7 @@ class AddMentorAccess(
                                         if (authTask.isSuccessful) {
                                             continuation.resume(true)
                                         } else {
-                                            reference.child(mentor.userName).removeValue()
+                                            reference.child(mentor.username).removeValue()
                                             continuation.resume(false)
                                         }
                                     }.addOnFailureListener { errAuth ->
@@ -99,7 +99,7 @@ class AddMentorAccess(
                 "phone" to mentor.phone
             )
 
-            reference.child(mentor.userName).updateChildren(updates).addOnCompleteListener { task ->
+            reference.child(mentor.username).updateChildren(updates).addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.d("accessAddMentor", "here in addMentor access")
                     if (mentor.password != oldPassword) {

@@ -104,14 +104,14 @@ class BookingFragment : Fragment() {
                             0
                         ) { dialog, selectedIndex ->
                             mentorNameSelected = mentors[selectedIndex].name.toString()
-                            mentorID = mentors[selectedIndex].userName.toString()
+                            mentorID = mentors[selectedIndex].username.toString()
                             binding.mentorNameButtonInBookingFragment.text = mentorNameSelected
                             mentors.clear()
                             dialog.dismiss()
                         }
                         mentorNameBuilder.setPositiveButton("Go") { dialog, which ->
                             mentorNameSelected = mentors[0].name
-                            mentorID = mentors[0].userName.toString()
+                            mentorID = mentors[0].username.toString()
                             binding.mentorNameButtonInBookingFragment.text = mentorNameSelected
                             mentors.clear()
                             dialog.dismiss()

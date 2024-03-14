@@ -59,9 +59,8 @@ fun loadStudentCard() {
         "Male",
         "password",
         "248545345234"
-    ), deleteCallback = {}, clickCallback = {}) {
+    ), deleteCallback = {}, clickCallback = {})
 
-    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -70,7 +69,6 @@ fun StudentCard(
     student: Student,
     deleteCallback: () -> Unit,
     clickCallback: () -> Unit,
-    appointmentsCallback: () -> Unit
 ) {
     val deleteMenuState = remember {
         mutableStateOf(false)
@@ -137,17 +135,17 @@ fun StudentCard(
                             color = Color.Black,
                             modifier = Modifier
                         )
-                        Spacer(modifier = Modifier.size(15.dp))
-                        Button(
-                            onClick = { appointmentsCallback() },
-                            shape = RoundedCornerShape(15.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(id = R.color.purple_700)
-                            ),
-                            elevation = ButtonDefaults.buttonElevation(5.dp)
-                        ) {
-                            Text(text = "View Appointments", color = Color.White)
-                        }
+//                        Spacer(modifier = Modifier.size(15.dp))
+//                        Button(
+//                            onClick = {  },
+//                            shape = RoundedCornerShape(15.dp),
+//                            colors = ButtonDefaults.buttonColors(
+//                                containerColor = colorResource(id = R.color.purple_700)
+//                            ),
+//                            elevation = ButtonDefaults.buttonElevation(5.dp)
+//                        ) {
+//                            Text(text = "View Appointments", color = Color.White)
+//                        }
                     }
                 }
                 Text(

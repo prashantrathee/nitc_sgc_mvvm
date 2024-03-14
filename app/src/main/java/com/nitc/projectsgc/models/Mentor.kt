@@ -5,5 +5,5 @@ data class Mentor(val name:String = "",
                   val email:String = "",
                   val type:String = "",
                   val password:String = "",
-                  val userName:String = ""
+                  val username:String = ""
 )
