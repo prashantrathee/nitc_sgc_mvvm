@@ -20,11 +20,11 @@ fun NavGraphBuilder.mentorGraph(
     mentorViewModel: MentorViewModel,
     titleState:MutableState<String>
 ) {
-    topBarState.value = true
-    navigation(startDestination = "${NavigationScreen.MentorDashboard.route}/{username}", route = "mentor") {
+    navigation(startDestination = "${NavigationScreen.MentorDashboard.route}/{username}", route = "mentor/{username}") {
         composable(route = "${NavigationScreen.MentorDashboard.route}/{username}", arguments = listOf(
             navArgument("username"){type = NavType.StringType}
         )) {navBackStackEntry->
+            topBarState.value = true
             titleState.value = stringResource(id = NavigationScreen.MentorDashboard.resID)
             navBackStackEntry.arguments?.getString("username")
                 ?.let { usernameString ->

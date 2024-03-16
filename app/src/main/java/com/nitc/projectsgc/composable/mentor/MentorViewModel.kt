@@ -74,6 +74,7 @@ class MentorViewModel @Inject constructor(
     }
     fun getMentorAppointments(username:String,today: String){
         viewModelScope.launch {
+            deleteMentorAppointments()
             _appointments.value = mentorRepo.getTodayAppointments(username, today)
         }
     }

@@ -34,12 +34,11 @@ import com.nitc.projectsgc.models.Mentor
 @Composable
 fun BookingScreen(
     rollNo: String,
-    studentName:String,
     bookingViewModel: BookingViewModel,
     bookCallback:()->Unit
 ) {
     val appointment = remember {
-        mutableStateOf(Appointment(studentID = rollNo, studentName = studentName))
+        mutableStateOf(Appointment(studentID = rollNo))
     }
     val bookingContext = LocalContext.current
 
@@ -181,7 +180,7 @@ fun BookingScreen(
         BasicButton(text = "Select Date", colors = ButtonDefaults.buttonColors(), tc = Color.White, modifier = Modifier) {
             dateState.value = true
         }
-        DateDialog(heading = "Book for date",isVisible = dateState.value) {dateChosen->
+        DateDialog(heading = "Book for date",isVisible = dateState.value) { dateChosen->
             appointment.value = appointment.value.copy(date=dateChosen)
             dateState.value = false
         }

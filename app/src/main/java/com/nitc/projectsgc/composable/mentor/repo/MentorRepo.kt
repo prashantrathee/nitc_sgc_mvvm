@@ -231,44 +231,54 @@ class MentorRepo @Inject constructor() {
         return suspendCoroutine { continuation ->
             var database = FirebaseDatabase.getInstance()
             var isResumed = false
-            val mentorType = username.substring(username.indexOfFirst { it == '_' } + 1,
-                username.indexOfLast { it == '_' })
-            var refString = "types/${mentorType}/${username}/appointments/${today}"
-            Log.d("refString", refString)
-            var reference = database.reference.child(refString)
-            reference.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    var appointments = arrayListOf<Appointment>()
-                    for (timeSlot in snapshot.children) {
-                        Log.d("refString", timeSlot.key.toString())
-                        try {
-                            appointments.add(timeSlot.getValue(Appointment::class.java)!!)
-                        } catch (excCasting: Exception) {
-                            Log.d("getAppointments", "Error in casting : $excCasting")
-                            continue
+            when(val mentorTypeEither = PathUtils.getMentorType(username)){
+                is Either.Left->{
+                    if(!isResumed){
+                        isResumed = true
+                        continuation.resume(Either.Left(mentorTypeEither.value.message!!))
+                    }
+                }
+                is Either.Right->{
+
+                    var refString = "types/${mentorTypeEither.value}/${username}/appointments/${today}"
+                    Log.d("refString", refString)
+                    var reference = database.reference.child(refString)
+                    reference.addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            var appointments = arrayListOf<Appointment>()
+                            for (timeSlot in snapshot.children) {
+                                Log.d("refString", timeSlot.key.toString())
+                                try {
+                                    appointments.add(timeSlot.getValue(Appointment::class.java)!!)
+                                } catch (excCasting: Exception) {
+                                    Log.d("getAppointments", "Error in casting : $excCasting")
+                                    continue
+                                }
+                            }
+                            val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
+                            Log.d("appointmentsSize", appointments.size.toString())
+                            val sortedAppointments =
+                                appointments.sortedBy { LocalDate.parse(it.date, formatter) }
+                                    .toCollection(ArrayList<Appointment>())
+                            Log.d("getAppointments", "Size : ${appointments.size}")
+                            if (!isResumed) {
+                                isResumed = true
+                                Log.d("getAppointments","Appointments : ${sortedAppointments.size}")
+                                continuation.resume(Either.Right(sortedAppointments))
+                            }
                         }
-                    }
-                    val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-                    Log.d("appointmentsSize", appointments.size.toString())
-                    val sortedAppointments =
-                        appointments.sortedBy { LocalDate.parse(it.date, formatter) }
-                            .toCollection(ArrayList<Appointment>())
-                    Log.d("appointmentsSize", appointments.size.toString())
-                    if (!isResumed) {
-                        isResumed = true
-                        continuation.resume(Either.Right(sortedAppointments))
-                    }
-                }
 
-                override fun onCancelled(error: DatabaseError) {
-                    Log.d("getAppointments", "Error in database ; $error")
-                    if (!isResumed) {
-                        isResumed = true
-                        continuation.resume(Either.Left("Error in database ; $error"))
-                    }
-                }
+                        override fun onCancelled(error: DatabaseError) {
+                            Log.d("getAppointments", "Error in database ; $error")
+                            if (!isResumed) {
+                                isResumed = true
+                                continuation.resume(Either.Left("Error in database ; $error"))
+                            }
+                        }
 
-            })
+                    })
+                }
+            }
         }
     }
 

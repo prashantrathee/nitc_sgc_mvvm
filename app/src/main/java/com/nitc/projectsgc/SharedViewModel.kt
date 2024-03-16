@@ -3,6 +3,7 @@ package com.nitc.projectsgc
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
+import com.nitc.projectsgc.composable.login.LoginCredential
 import com.nitc.projectsgc.models.Admin
 import com.nitc.projectsgc.models.Appointment
 import com.nitc.projectsgc.models.Event
@@ -24,6 +25,7 @@ class SharedViewModel:ViewModel() {
     lateinit var mentorTypeForProfile:String
     var currentUserID = "NA"
     var userType = 1
+    lateinit var loginCredential:LoginCredential
     var rescheduling:Boolean = false
     lateinit var viewAppointmentStudentID:String
     var reschedulingMentorName = "NA"

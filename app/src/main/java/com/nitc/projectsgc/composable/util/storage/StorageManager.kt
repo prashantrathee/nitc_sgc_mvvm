@@ -1,5 +1,7 @@
 package com.nitc.projectsgc.composable.util.storage
 
+import com.nitc.projectsgc.composable.login.LoginCredential
+
 interface StorageManager {
     fun getUserType():Int
 
@@ -10,4 +12,5 @@ interface StorageManager {
     ):Boolean
 
     fun deleteData():Boolean
+    fun getUserInfo(): LoginCredential
 }

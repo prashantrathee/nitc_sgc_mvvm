@@ -32,29 +32,32 @@ fun LoginScreen(
     navController: NavController,
     loginViewModel: LoginViewModel,
     storageViewModel: StorageViewModel,
-    loginCallback:()->Unit
+    loginCallback: (userType: Int) -> Unit
 ) {
     val screenContext = LocalContext.current
     val authenticatedEitherState by loginViewModel.isAuthenticated.collectAsState()
-    LaunchedEffect(authenticatedEitherState){
+    LaunchedEffect(authenticatedEitherState) {
 //        if(loginState.value){
-            Log.d("loginSuccess","in launched effect")
-            when(val authenticated = loginViewModel.isAuthenticated.value){
-                is Either.Left->{
-                    Toast.makeText(screenContext,authenticated.value,Toast.LENGTH_SHORT).show()
-                }
-                is Either.Right->{
-                    storageViewModel.storeUserData(
-                        loginViewModel.userType.value,
-                        loginViewModel.username.value,
-                        loginViewModel.password.value
-                    )
-                    loginCallback()
-                }
-                null->{
-//                    Toast.makeText(screenContext,"Error in logging you in",Toast.LENGTH_LONG).show()
-                }
+        Log.d("loginSuccess", "in launched effect")
+        when (val authenticated = loginViewModel.isAuthenticated.value) {
+            is Either.Left -> {
+                Toast.makeText(screenContext, authenticated.value, Toast.LENGTH_SHORT).show()
             }
+
+            is Either.Right -> {
+                storageViewModel.storeUserData(
+                    loginViewModel.loginCredential.value.userType,
+                    loginViewModel.loginCredential.value.username,
+                    loginViewModel.loginCredential.value.password,
+                )
+                loginCallback(loginViewModel.userType.value)
+            }
+
+            null -> {
+//                    Toast.makeText(screenContext,"Error in logging you in",Toast.LENGTH_LONG).show()
+                Log.d("loginSuccess", "Authenticated state is null")
+            }
+        }
 //        }else Log.d("loginSuccess","value is false")
     }
     Column(
@@ -64,24 +67,29 @@ fun LoginScreen(
     ) {
 //        HeadingText(text = "Login", Color.Black)
 //        Spacer(modifier = Modifier.height(10.dp))
-        BasicCard(15,3,1,4,CardDefaults.cardColors()) {
+        BasicCard(15, 3, 1, 4, CardDefaults.cardColors()) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                LoginCard(){userType->
+                LoginCard() { userType ->
                     loginViewModel.setUserType(userType)
                 }
                 Spacer(modifier = Modifier.size(200.dp))
-                BasicInputField("Email",false){
+                BasicInputField("Email", false) {
                     loginViewModel.setUsername(it)
                 }
                 Spacer(modifier = Modifier.size(20.dp))
-                BasicInputField("Password",true){
+                BasicInputField("Password", true) {
                     loginViewModel.setPassword(it)
                 }
                 Spacer(modifier = Modifier.size(20.dp))
-                BasicButton(text = "Login", colors = ButtonDefaults.buttonColors(), modifier = Modifier, tc = Color.White) {
+                BasicButton(
+                    text = "Login",
+                    colors = ButtonDefaults.buttonColors(),
+                    modifier = Modifier,
+                    tc = Color.White
+                ) {
                     loginViewModel.authenticate()
                 }
             }

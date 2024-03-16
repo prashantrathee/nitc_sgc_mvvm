@@ -23,12 +23,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -39,6 +41,7 @@ import com.nitc.projectsgc.composable.components.HeadingText
 import com.nitc.projectsgc.composable.components.SimpleSnackBar
 import com.nitc.projectsgc.composable.components.SimpleToast
 import com.nitc.projectsgc.composable.components.SubHeadingText
+import com.nitc.projectsgc.composable.login.LoginCredential
 import com.nitc.projectsgc.composable.login.LoginScreen
 import com.nitc.projectsgc.composable.util.storage.StorageManagerImpl
 import com.nitc.projectsgc.composable.login.LoginViewModel
@@ -106,8 +109,8 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                         colors = TopAppBarColors(
-                            containerColor = Color.LightGray,
-                            titleContentColor = Color.Black,
+                            containerColor = colorResource(id = R.color.lavender),
+                            titleContentColor = Color.White,
                             actionIconContentColor = Color.White,
                             scrolledContainerColor = Color.Yellow,
                             navigationIconContentColor = Color.Black
@@ -119,6 +122,7 @@ class MainActivity : ComponentActivity() {
                                 }) {
                                     Icon(
                                         imageVector = Icons.Filled.MoreVert,
+                                        tint = Color.Black,
                                         contentDescription = "More Options"
                                     )
                                 }
@@ -162,7 +166,6 @@ class MainActivity : ComponentActivity() {
                                         },
                                         onClick = {
                                             logout()
-
                                             dropDownState.value = false
                                             logoutState.value = true
                                         })
@@ -178,7 +181,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .padding(paddingValues)
                 ) {
-                    AllNavigation(titleState, topBarState, dashboardState,logoutState)
+                    AllNavigation(titleState, topBarState, dashboardState, logoutState)
                 }
             }
         )
@@ -195,41 +198,38 @@ class MainActivity : ComponentActivity() {
     ) {
         Log.d("inLogin", "Herehreheh")
         val navController = rememberNavController()
-        var userType = -1
-//        LaunchedEffect(key1 = Unit) {
-//            navController.navigate(NavigationScreen.FlashScreen.route)
-//        }
-//        LaunchedEffect(key1 = logoutState.value) {
-//            if (logoutState.value) {
-//                navController.navigate(NavigationScreen.LoginScreen.route)
-//            }
-//        }
-//        LaunchedEffect(key1 = dashboardState.value) {
-//            if (dashboardState.value) {
-//                dashboardState.value = false
-//                navController.popBackStack(NavigationScreen.FlashScreen.route, true)
-//                when (userType) {
-//                    0 -> navController.navigate("admin")
-//                    1 -> navController.navigate("student")
-//                    2 -> navController.navigate("mentor")
-//                    else -> navController.navigate(NavigationScreen.LoginScreen.route)
-//                }
-//            }
-//        }
+        var loginCredential = LoginCredential()
+        LaunchedEffect(key1 = logoutState.value) {
+            if (logoutState.value) {
+                navController.navigate(NavigationScreen.LoginScreen.route)
+            }
+        }
+        LaunchedEffect(key1 = dashboardState.value) {
+            if (dashboardState.value) {
+                dashboardState.value = false
+                navController.popBackStack(NavigationScreen.FlashScreen.route, true)
+                when (storageViewModel.getUserType()) {
+                    0 -> navController.navigate("admin")
+                    1 -> navController.navigate("student")
+                    2 -> navController.navigate("mentor")
+                    else -> navController.navigate(NavigationScreen.LoginScreen.route)
+                }
+            }
+        }
         NavHost(
             navController = navController,
             startDestination = NavigationScreen.FlashScreen.route
         ) {
             composable(route = NavigationScreen.FlashScreen.route) {
-                userType = storageViewModel.getUserType()
+                loginCredential = storageViewModel.getUserInfo()
                 topBarState.value = false
-                Log.d("userType","User type is $userType")
+                Log.d("userType", "User type is ${loginCredential.userType}")
                 FlashScreen {
-//                    navController.popBackStack(NavigationScreen.FlashScreen.route, true)
-                    when (userType) {
+                    navController.popBackStack(NavigationScreen.FlashScreen.route, true)
+                    when (loginCredential.userType) {
                         0 -> navController.navigate("admin")
-                        1 -> navController.navigate("student")
-                        2 -> navController.navigate("mentor")
+                        1 -> navController.navigate("student/${loginCredential.username}")
+                        2 -> navController.navigate("mentor/${loginCredential.username}")
                         else -> navController.navigate(NavigationScreen.LoginScreen.route)
                     }
                 }
@@ -237,28 +237,31 @@ class MainActivity : ComponentActivity() {
             composable(route = NavigationScreen.LoginScreen.route) {
                 topBarState.value = false
 //                logoutState.value = false
-                LoginScreen(navController = navController, loginViewModel = loginViewModel,storageViewModel = storageViewModel) {
-                    Log.d("loginSuccess","Login successful")
-//                    storeData(
-//                        loginViewModel.userType.value,
-//                        loginViewModel.username.value,
-//                        loginViewModel.password.value
-//                    )
-                    userType = storageViewModel.getUserType()
-                    sharedViewModel.userType = userType
-//                    navController.popBackStack(NavigationScreen.LoginScreen.route, true)
-                    Log.d("userType","User type is $userType")
-                    when (userType) {
+                LoginScreen(
+                    navController = navController,
+                    loginViewModel = loginViewModel,
+                    storageViewModel = storageViewModel
+                ) { userTypeSelected ->
+                    Log.d("loginSuccess", "Login successful")
+                    sharedViewModel.userType = userTypeSelected
+                    sharedViewModel.loginCredential = loginViewModel.loginCredential.value
+                    navController.popBackStack(NavigationScreen.LoginScreen.route, true)
+                    Log.d("userType", "User type is $userTypeSelected")
+                    when (userTypeSelected) {
                         0 -> {
-                            Log.d("userType","in 0")
+                            Log.d("userType", "in 0")
                             navController.navigate("admin")
                         }
+
                         1 -> {
-                            navController.navigate("student")
+                            Log.d("loginSuccess","Passed username : ${loginViewModel.loginCredential.value.username}")
+                            navController.navigate("student/${loginViewModel.loginCredential.value.username}")
                         }
+
                         2 -> {
-                            navController.navigate("mentor")
+                            navController.navigate("mentor/${loginViewModel.loginCredential.value.username}")
                         }
+
                         else -> navController.navigate(NavigationScreen.LoginScreen.route)
                     }
 

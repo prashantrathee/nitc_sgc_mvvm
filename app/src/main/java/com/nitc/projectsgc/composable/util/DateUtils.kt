@@ -1,6 +1,7 @@
 package com.nitc.projectsgc.composable.util
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -33,10 +34,19 @@ class DateUtils {
     }
 
 
+    fun reverseDateString(inputDate:String):String{
+        var numbers = inputDate.split('-')
+        numbers = numbers.reversed()
+        return numbers.joinToString('-'.toString())
+    }
     fun dateToString(millis:Long): String {
         val localDate = convertMillisToLocalDate(millis)
         val dateFormatter = DateTimeFormatter.ofPattern("EEEE, dd MMMM, yyyy", Locale.getDefault())
         val dateInMillis = convertMillisToLocalDateWithFormatter(localDate, dateFormatter)
-        return SimpleDateFormat("dd-MM-yyyy",Locale.getDefault()).format(dateInMillis)
+        Log.d("dateToString",dateInMillis.toString())
+//        return SimpleDateFormat("dd-MM-yyyy",Locale.getDefault()).format(SimpleDateFormat("yyyy-MM-dd",Locale.getDefault()).format(dateInMillis))
+        val gotDate = reverseDateString(dateInMillis.toString())
+        Log.d("dateToString","gotdate : $gotDate")
+        return gotDate
     }
 }

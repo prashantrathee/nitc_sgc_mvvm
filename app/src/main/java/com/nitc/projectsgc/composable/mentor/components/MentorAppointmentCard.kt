@@ -50,7 +50,6 @@ fun MentorAppointmentCardPreview() {
             mentorID = "sakshi_health_2",
             mentorName = "Sakshi",
             studentID = "prashant_m210704ca",
-            studentName = "Prashant",
             status = "Booked",
             remarks = "",
             problemDescription = "This is the problem hsdfhs dfhsdf h",

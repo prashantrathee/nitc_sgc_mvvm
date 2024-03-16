@@ -28,25 +28,37 @@ class BookingRepo @Inject constructor() {
             var appointments = arrayListOf<Appointment>()
             var database = FirebaseDatabase.getInstance()
             var reference = database.reference.child("students")
-            reference.child("$rollNo/appointments")
+            Log.d("studentDashboard","outside snapshot")
+            reference.child("$rollNo")
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
-                        for (ds in snapshot.children) {
-                            try {
-                                val appointment = ds.getValue(Appointment::class.java)
-                                appointments.add(appointment!!)
-                            } catch (excCasting: Exception) {
-                                Log.d(
-                                    "getAppointments",
-                                    "Error in casting appointment : $excCasting"
-                                )
-                                continue
+                        Log.d("studentDashboard","In snapshot")
+                        if (snapshot.hasChild("appointments")) {
+
+                            for (ds in snapshot.child("appointments").children) {
+                                try {
+                                    val appointment = ds.getValue(Appointment::class.java)
+                                    appointments.add(appointment!!)
+                                } catch (excCasting: Exception) {
+                                    Log.d(
+                                        "getAppointments",
+                                        "Error in casting appointment : $excCasting"
+                                    )
+                                    continue
+                                }
+                            }
+                            if (!isResumed) {
+                                isResumed = true
+                                continuation.resume(Either.Right(appointments))
+                            }
+                        } else {
+                            Log.d("studentDashboard","No appointment found here")
+                            if (!isResumed) {
+                                isResumed = true
+                                continuation.resume(Either.Right(appointments))
                             }
                         }
-                        if (!isResumed) {
-                            isResumed = true
-                            continuation.resume(Either.Right(appointments))
-                        }
+
                     }
 
                     override fun onCancelled(error: DatabaseError) {
@@ -208,7 +220,8 @@ class BookingRepo @Inject constructor() {
                             if (studentTask.isSuccessful) {
                                 if (!isResumed) continuation.resume(true)
                             } else {
-                                mentorReference.child(appointment.timeSlot.toString()).removeValue()
+                                mentorReference.child(appointment.timeSlot.toString())
+                                    .removeValue()
                                 if (!isResumed) continuation.resume(false)
                             }
                         }
@@ -247,7 +260,7 @@ class BookingRepo @Inject constructor() {
                         availableTimeSlots = totalTimeSlots
                     }
                     if (availableTimeSlots.isNotEmpty()) {
-                        if(!isResumed){
+                        if (!isResumed) {
                             isResumed = true
                             continuation.resume(Either.Right(availableTimeSlots))
                         }
@@ -255,8 +268,8 @@ class BookingRepo @Inject constructor() {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Log.d("getAvailableTimeSlots","Error in database : $error")
-                    if(!isResumed){
+                    Log.d("getAvailableTimeSlots", "Error in database : $error")
+                    if (!isResumed) {
                         isResumed = true
                         continuation.resume(Either.Left("Error in database : $error"))
                     }
@@ -300,7 +313,9 @@ class BookingRepo @Inject constructor() {
                                                     } else {
                                                         mentorNewReference.child(appointment.timeSlot.toString())
                                                             .removeValue()
-                                                        if (!isResumed) continuation.resume(false)
+                                                        if (!isResumed) continuation.resume(
+                                                            false
+                                                        )
                                                     }
                                                 }
                                         } else if (!isResumed) continuation.resume(false)

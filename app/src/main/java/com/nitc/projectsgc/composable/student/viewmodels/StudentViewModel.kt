@@ -61,6 +61,7 @@ class StudentViewModel @Inject constructor(
 
     fun getAppointments(rollNo:String){
         viewModelScope.launch {
+//            deleteAppointmentsValue()
             _appointments.value = bookingRepo.getAppointments(rollNo)
         }
     }

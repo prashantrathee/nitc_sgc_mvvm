@@ -42,10 +42,6 @@ fun MentorDashboardScreen(
         ) { pageIndex ->
             when (pageIndex) {
                 0 -> {
-                    GetProfile(username = username, mentorViewModel = mentorViewModel)
-                }
-
-                1 -> {
                     MentorAppointmentsScreen(
                         username = username,
                         mentorViewModel = mentorViewModel,
@@ -53,6 +49,10 @@ fun MentorDashboardScreen(
                             pastRecordCallback(studentRoll)
                         }
                     )
+                }
+
+                1 -> {
+                    GetProfile(username = username, mentorViewModel = mentorViewModel)
                 }
             }
         }
@@ -64,6 +64,7 @@ fun GetProfile(username: String, mentorViewModel: MentorViewModel) {
     val mentorState = remember {
         mutableStateOf<Mentor?>(if (username != "no") null else Mentor())
     }
+    Log.d("mentorDashboard","username is : $username")
     mentorViewModel.getProfile(username)
     val screenContext = LocalContext.current
     val updatingState = remember {

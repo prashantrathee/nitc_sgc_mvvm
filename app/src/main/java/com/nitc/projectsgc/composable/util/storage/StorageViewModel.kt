@@ -1,6 +1,7 @@
 package com.nitc.projectsgc.composable.util.storage
 
 import androidx.lifecycle.ViewModel
+import com.nitc.projectsgc.composable.login.LoginCredential
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -18,6 +19,9 @@ class StorageViewModel @Inject constructor(
         return storageManager.deleteData()
     }
 
+    fun getUserInfo():LoginCredential{
+        return storageManager.getUserInfo()
+    }
     fun getUserType():Int{
         return storageManager.getUserType()
     }

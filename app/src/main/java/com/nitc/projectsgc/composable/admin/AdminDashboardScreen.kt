@@ -102,7 +102,6 @@ fun GetStudents(
         backCallback()
     }
     Box(modifier = Modifier.fillMaxSize()) {
-
         LazyColumn(
             modifier = Modifier.fillMaxSize()
         ) {

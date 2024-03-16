@@ -80,20 +80,6 @@ fun NavGraphBuilder.adminGraph(
 
 
 
-        composable(route = "${NavigationScreen.ViewStudentAppointments.route}/{rollNo}",
-            arguments = listOf(
-                navArgument("rollNo") { type = NavType.StringType }
-            )) { navBackStackEntry ->
-            topBarState.value = true
-            titleState.value = stringResource(id = NavigationScreen.ViewStudentAppointments.resID)
-            navBackStackEntry.arguments?.getString("rollNo")
-                ?.let { rollNoString ->
-                    StudentAppointmentsScreen(
-                        rollNo = rollNoString,
-                        studentListViewModel = studentListViewModel
-                    )
-                }
-        }
 
     }
 }

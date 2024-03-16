@@ -19,7 +19,7 @@ class LoginRepo {
         username: String,
         userType: Int,
         password: String
-    ): Either<String,Boolean> {
+    ): Either<String, Boolean> {
         return suspendCoroutine { continuation ->
 //            var dataAccess = DataAccess(context, parentFragment, sharedViewModel)
             var isResumed = false
@@ -30,34 +30,33 @@ class LoginRepo {
                 "loginCredentials",
                 "Credentials : $username and password : $password and usertype = $userType"
             )
-            var verified = 0
-            auth.signInWithEmailAndPassword(username, password).addOnCompleteListener() { task ->
-                if (task.isSuccessful) {
-                    verified = 1
-                    var verification = auth.currentUser?.isEmailVerified
-                    if (userType == 0) verification = true
-                    if (verification == true) {
-                        Log.d("loginSuccess", "Login is successful with username and password")
-                        when (userType) {
-                            1 -> {
-                                reference.child("students").child(
-                                    username.substring(
-                                        username.indexOf('_'),
-                                        username.indexOf('@')
-                                    )
-                                )
-                                    .addListenerForSingleValueEvent(object : ValueEventListener {
-                                        override fun onDataChange(snapshot: DataSnapshot) {
-                                            Log.d(
-                                                "loginSuccess",
-                                                "Login is successful with database"
-                                            )
-                                            if (snapshot.hasChild(username)) {
-                                                if (!isResumed) {
-                                                    isResumed = true
-                                                    continuation.resume(Either.Right(true))
-
-                                                } else {
+            auth.signInWithEmailAndPassword(username, password).addOnSuccessListener { authResult ->
+                if (authResult != null) {
+                    Log.d("loginSuccess", "Login is successful with username and password")
+                    when (userType) {
+                        1 -> {
+                            when(val rollNoEither = PathUtils.getUsernameFromEmail(userType,username)){
+                                is Either.Left->{
+                                    if(!isResumed){
+                                        isResumed = true
+                                        continuation.resume(Either.Left(rollNoEither.value.message!!))
+                                    }
+                                }
+                                is Either.Right->{
+                                    val rollNo = rollNoEither.value
+                                    reference.child("students").child(rollNo)
+                                        .addListenerForSingleValueEvent(object : ValueEventListener {
+                                            override fun onDataChange(snapshot: DataSnapshot) {
+                                                Log.d(
+                                                    "loginSuccess",
+                                                    "Login is successful with database"
+                                                )
+                                                if (snapshot.exists()) {
+                                                    if (!isResumed) {
+                                                        isResumed = true
+                                                        continuation.resume(Either.Right(true))
+                                                    }
+                                                }else{
                                                     auth.currentUser!!.delete()
                                                         .addOnCompleteListener { deleteTask ->
                                                             if (!isResumed) {
@@ -77,99 +76,105 @@ class LoginRepo {
                                                         }
                                                 }
                                             }
-                                        }
 
-                                        override fun onCancelled(error: DatabaseError) {
-                                            Log.d("loginError", "Database error : $error")
-                                            if (!isResumed) {
-                                                isResumed = true
-                                                continuation.resume(Either.Left("Database error : $error"))
+                                            override fun onCancelled(error: DatabaseError) {
+                                                Log.d("loginError", "Database error : $error")
+                                                if (!isResumed) {
+                                                    isResumed = true
+                                                    continuation.resume(Either.Left("Database error : $error"))
+                                                }
                                             }
-                                        }
 
-                                    })
-                            }
-
-                            2 -> {
-                                when (val mentorTypeEither = PathUtils.getMentorType(username)) {
-                                    is Either.Left -> {
-                                        Log.d(
-                                            "login",
-                                            "Error in mentor username : ${mentorTypeEither.value.message!!}"
-                                        )
-                                        if (!isResumed) {
-                                            isResumed = true
-                                            continuation.resume(Either.Left(mentorTypeEither.value.message!!))
-                                        }
-                                    }
-
-                                    is Either.Right -> {
-                                        reference.child("types").child(mentorTypeEither.value)
-                                            .child(username)
-                                            .addListenerForSingleValueEvent(object :
-                                                ValueEventListener {
-                                                override fun onDataChange(snapshot: DataSnapshot) {
-                                                    if (snapshot.exists()) {
-                                                        Log.d(
-                                                            "loginSuccess",
-                                                            "Login is successful with database"
-                                                        )
-                                                        if (!isResumed) {
-                                                            isResumed = true
-                                                            continuation.resume(Either.Right(true))
-                                                        }
-                                                    } else {
-                                                        if (!isResumed) {
-                                                            isResumed = true
-                                                            continuation.resume(Either.Left("User not found"))
-                                                        }
-                                                    }
-                                                }
-
-                                                override fun onCancelled(error: DatabaseError) {
-                                                    Log.d("login", "Error in getting data : $error")
-                                                    if (!isResumed) {
-                                                        isResumed = true
-                                                        continuation.resume(Either.Left("Error in getting data : $error"))
-                                                    }
-                                                }
-                                            })
-                                    }
+                                        })
                                 }
                             }
+                        }
 
-                            0 -> {
-                                reference.child("admin")
-                                    .addListenerForSingleValueEvent(object : ValueEventListener {
-                                        override fun onDataChange(snapshot: DataSnapshot) {
-                                            if (snapshot.exists()) {
-                                                Log.d(
-                                                    "loginSuccess",
-                                                    "Login is successful with database"
-                                                )
-                                                if (!isResumed) {
-                                                    isResumed = true
-                                                    continuation.resume(Either.Right(true))
-                                                }
-                                            } else {
-                                                if (!isResumed) {
-                                                    isResumed = true
-                                                    continuation.resume(Either.Left("User not found"))
+                        2 -> {
+                            Log.d("login", "Usertype is 2")
+                            when (val mentorTypeEither = PathUtils.getMentorType(username)) {
+                                is Either.Left -> {
+                                    Log.d(
+                                        "login",
+                                        "Error in mentor username : ${mentorTypeEither.value.message!!}"
+                                    )
+                                    if (!isResumed) {
+                                        isResumed = true
+                                        continuation.resume(Either.Left(mentorTypeEither.value.message!!))
+                                    }
+                                }
+
+                                is Either.Right -> {
+                                    Log.d("login", "In either right for mentor")
+                                    val derivedUsername =
+                                        PathUtils.getUsernameFromEmailSure(2, username)
+                                    Log.d("login", "Username = $derivedUsername")
+                                    reference.child("types").child(mentorTypeEither.value)
+                                        .child(derivedUsername)
+                                        .addListenerForSingleValueEvent(object :
+                                            ValueEventListener {
+                                            override fun onDataChange(snapshot: DataSnapshot) {
+                                                if (snapshot.exists()) {
+                                                    Log.d(
+                                                        "loginSuccess",
+                                                        "Login is successful with database"
+                                                    )
+                                                    if (!isResumed) {
+                                                        isResumed = true
+                                                        continuation.resume(Either.Right(true))
+                                                    }
+                                                } else {
+                                                    if (!isResumed) {
+                                                        isResumed = true
+                                                        continuation.resume(Either.Left("User not found"))
+                                                    }
                                                 }
                                             }
-                                        }
 
-                                        override fun onCancelled(error: DatabaseError) {
-                                            Log.d("login", "Error in getting data : $error")
-                                            if (!isResumed) {
-                                                isResumed = true
-                                                continuation.resume(Either.Left("Error in getting data : $error"))
+                                            override fun onCancelled(error: DatabaseError) {
+                                                Log.d("login", "Error in getting data : $error")
+                                                if (!isResumed) {
+                                                    isResumed = true
+                                                    continuation.resume(Either.Left("Error in getting data : $error"))
+                                                }
                                             }
-                                        }
-                                    })
+                                        })
+                                }
                             }
                         }
+
+                        0 -> {
+                            reference.child("admin")
+                                .addListenerForSingleValueEvent(object : ValueEventListener {
+                                    override fun onDataChange(snapshot: DataSnapshot) {
+                                        if (snapshot.exists()) {
+                                            Log.d(
+                                                "loginSuccess",
+                                                "Login is successful with database"
+                                            )
+                                            if (!isResumed) {
+                                                isResumed = true
+                                                continuation.resume(Either.Right(true))
+                                            }
+                                        } else {
+                                            if (!isResumed) {
+                                                isResumed = true
+                                                continuation.resume(Either.Left("User not found"))
+                                            }
+                                        }
+                                    }
+
+                                    override fun onCancelled(error: DatabaseError) {
+                                        Log.d("login", "Error in getting data : $error")
+                                        if (!isResumed) {
+                                            isResumed = true
+                                            continuation.resume(Either.Left("Error in getting data : $error"))
+                                        }
+                                    }
+                                })
+                        }
                     }
+
                 }
 
 
