@@ -203,40 +203,6 @@ class StudentsRepo @Inject constructor() {
         }
     }
 
-    suspend fun getAppointments(rollNo: String): Either<String,List<Appointment>>? {
-        return suspendCoroutine { continuation ->
-            var isResumed = false
-            var appointments = arrayListOf<Appointment>()
-            var database = FirebaseDatabase.getInstance()
-            var reference = database.reference.child("students")
-            reference.child("$rollNo/appointments")
-                .addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        for (ds in snapshot.children) {
-                            try{
-                                val appointment = ds.getValue(Appointment::class.java)
-                                appointments.add(appointment!!)
-                            }catch(excCasting:Exception){
-                                Log.d("getAppointments","Error in casting appointment : $excCasting")
-                                continue
-                            }
-                        }
-                        if (!isResumed) {
-                            isResumed = true
-                            continuation.resume(Either.Right(appointments))
-                        }
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        if (!isResumed){
-                            isResumed = true
-                            Log.d("getAppointments","Error in database : $error")
-                            continuation.resume(Either.Left("Error in database : $error"))
-                        }
-                    }
-                })
-        }
-    }
 
     suspend fun addStudent(
         student: Student

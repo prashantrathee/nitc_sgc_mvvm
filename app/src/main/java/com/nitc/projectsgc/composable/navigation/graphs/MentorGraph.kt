@@ -15,10 +15,12 @@ import com.nitc.projectsgc.composable.navigation.NavigationScreen
 
 
 fun NavGraphBuilder.mentorGraph(
+    topBarState:MutableState<Boolean>,
     navController: NavController,
     mentorViewModel: MentorViewModel,
     titleState:MutableState<String>
 ) {
+    topBarState.value = true
     navigation(startDestination = "${NavigationScreen.MentorDashboard.route}/{username}", route = "mentor") {
         composable(route = "${NavigationScreen.MentorDashboard.route}/{username}", arguments = listOf(
             navArgument("username"){type = NavType.StringType}

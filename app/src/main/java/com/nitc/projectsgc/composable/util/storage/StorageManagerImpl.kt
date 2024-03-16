@@ -1,14 +1,16 @@
-package com.nitc.projectsgc.composable.util
+package com.nitc.projectsgc.composable.util.storage
 
 import android.content.Context
-import androidx.activity.ComponentActivity
+import javax.inject.Inject
 
-class StorageAccess(
-    var activity:ComponentActivity
-) {
 
+class StorageManagerImpl @Inject constructor(
+    private val context: Context
+) : StorageManager {
+
+    override
     fun getUserType():Int{
-        var sharedPreferences = activity.getSharedPreferences(
+        var sharedPreferences = context.getSharedPreferences(
             "sgcLogin",
             Context.MODE_PRIVATE
         )
@@ -18,13 +20,13 @@ class StorageAccess(
         }else return -1
     }
 
-    fun saveUsername(
+    override fun saveUsername(
         userType: Int,
         username: String,
         password: String,
     ):Boolean{
         var saved = false
-        var sharedPreferences = activity.getSharedPreferences(
+        var sharedPreferences = context.getSharedPreferences(
             "sgcLogin",
             Context.MODE_PRIVATE
         )
@@ -37,5 +39,20 @@ class StorageAccess(
             saved = true
         }
         return saved
+    }
+
+    override fun deleteData(): Boolean {
+        val sharedPreferences = context.getSharedPreferences(
+            "sgcLogin",
+            Context.MODE_PRIVATE
+        )
+        val editor = sharedPreferences.edit()
+        return if(editor != null){
+            editor.remove("password")
+            editor.remove("userType")
+            editor.remove("username")
+            editor.apply()
+            true
+        }else false
     }
 }

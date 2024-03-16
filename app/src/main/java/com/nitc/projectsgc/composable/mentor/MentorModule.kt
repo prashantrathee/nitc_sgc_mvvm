@@ -16,18 +16,13 @@ object MentorModule {
 
     @Provides
     @ViewModelScoped
-    fun provideStudentsRepo(): StudentsRepo {
-        return StudentsRepo()
-    }
-    @Provides
-    @ViewModelScoped
     fun provideMentorRepo(): MentorRepo {
         return MentorRepo()
     }
 
     @Provides
     @ViewModelScoped
-    fun provideMentorViewModel(mentorRepo: MentorRepo,studentsRepo: StudentsRepo): MentorViewModel {
-        return MentorViewModel(mentorRepo,studentsRepo)
+    fun provideMentorViewModel(mentorRepo: MentorRepo): MentorViewModel {
+        return MentorViewModel(mentorRepo)
     }
 }

@@ -1,6 +1,7 @@
 package com.nitc.projectsgc.composable.mentor.screens
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,11 +16,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import arrow.core.Either
 import com.nitc.projectsgc.composable.components.BasicButton
 import com.nitc.projectsgc.composable.components.CardInputFieldWithOptions
 import com.nitc.projectsgc.composable.components.CardInputFieldWithValue
+import com.nitc.projectsgc.composable.components.SimpleToast
+import com.nitc.projectsgc.composable.util.PathUtils
 import com.nitc.projectsgc.models.Mentor
 
 
@@ -29,6 +34,7 @@ fun UpdateMentorScreen(mentorFound: Mentor, onUpdate: (mentor: Mentor) -> Unit) 
     val mentorState = remember {
         mutableStateOf(mentorFound)
     }
+    val screenContext = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -57,11 +63,11 @@ fun UpdateMentorScreen(mentorFound: Mentor, onUpdate: (mentor: Mentor) -> Unit) 
 
         CardInputFieldWithValue(
             hint = "Username",
-            text = mentorState.value!!.username,
+            text = mentorState.value!!.userName,
             isPassword = false,
             modifier = Modifier.fillMaxWidth(0.75F)
         ) { newUsername ->
-            mentorState.value = mentorState.value!!.copy(username = newUsername)
+            mentorState.value = mentorState.value!!.copy(userName = newUsername)
 
         }
         Spacer(modifier = Modifier.size(20.dp))
@@ -91,16 +97,25 @@ fun UpdateMentorScreen(mentorFound: Mentor, onUpdate: (mentor: Mentor) -> Unit) 
         Spacer(modifier = Modifier.size(70.dp))
 
         BasicButton(
-            text = if(mentorFound.name.isEmpty()) "Add" else "Update",
+            text = if (mentorFound.name.isEmpty()) "Add" else "Update",
             colors = ButtonDefaults.buttonColors(),
             modifier = Modifier.padding(20.dp),
             tc = Color.White
         ) {
             Log.d("updateMentor", "Now updated : ${mentorState.value}")
 //                updatingState.value = true
-            val username = mentorState.value.username
-            mentorState.value = mentorState.value.copy( type = username.substring(username.indexOfFirst { it == '_' }+1,username.indexOfLast { it=='_' }))
-            onUpdate(mentorState.value)
+            val username = mentorState.value.userName
+            when(val mentorTypeEither = PathUtils.getMentorType(username)){
+                is Either.Left->{
+                    Toast.makeText(screenContext,mentorTypeEither.value.message!!,Toast.LENGTH_LONG).show()
+                }
+                is Either.Right->{
+                    mentorState.value = mentorState.value.copy(
+                        type = mentorTypeEither.value
+                    )
+                    onUpdate(mentorState.value)
+                }
+            }
 //            if(mentorFound.name.isEmpty()){
 //            }
         }

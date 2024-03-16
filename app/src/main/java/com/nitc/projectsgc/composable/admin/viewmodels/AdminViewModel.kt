@@ -1,4 +1,4 @@
-package com.nitc.projectsgc.composable.admin
+package com.nitc.projectsgc.composable.admin.viewmodels
 
 import android.content.Context
 import android.util.Log

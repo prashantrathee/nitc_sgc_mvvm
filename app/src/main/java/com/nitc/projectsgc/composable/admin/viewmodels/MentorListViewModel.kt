@@ -5,14 +5,11 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import arrow.core.Either
 import com.nitc.projectsgc.composable.admin.repo.MentorsRepo
-import com.nitc.projectsgc.models.Appointment
 import com.nitc.projectsgc.models.Mentor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -45,7 +42,7 @@ class MentorListViewModel @Inject constructor(
                 val deleted = mentorsRepo.deleteMentor(username)
                 if(deleted){
                     val mentorList = _mentorList.value.filter{
-                        it.username != username
+                        it.userName != username
                     }
                     _mentorList.value = mentorList
                 }

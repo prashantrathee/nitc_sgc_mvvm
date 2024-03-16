@@ -10,4 +10,14 @@
     <string name="view_mentor">Mentor</string>
     <string name="view_mentor_appointments">Mentor Appointments</string>
     <string name="view_student_appointments">Student Appointments</string>
+    <string name="booking_screen">Book Apointment</string>
+    <string name="reschedule_screen">Reschedule Appointment</string>
+    <string-array name="time_slots">
+        <item>9–10</item>
+        <item>10–11</item>
+        <item>11–12</item>
+        <item>13–14</item>
+        <item>14–15</item>
+        <item>15–16</item>
+    </string-array>
 </resources>

@@ -51,7 +51,7 @@ class AddNewsFragment: Fragment() {
                 var addedNews = NewsAccess(requireContext(),sharedViewModel,this@AddNewsFragment).addNews(
                     News(
                         news = newsText,
-                        mentorID = sharedViewModel.currentMentor.username,
+                        mentorID = sharedViewModel.currentMentor.userName,
                         publishDate = SimpleDateFormat("dd-MM-yyyy").format(Date()),
                         mentorName = sharedViewModel.currentMentor.name.toString()
                     )

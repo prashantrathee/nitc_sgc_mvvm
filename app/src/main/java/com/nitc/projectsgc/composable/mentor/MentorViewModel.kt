@@ -22,7 +22,6 @@ import javax.inject.Inject
 @HiltViewModel
 class MentorViewModel @Inject constructor(
     private val mentorRepo: MentorRepo,
-    private val studentsRepo: StudentsRepo
 ) :ViewModel() {
 
 
@@ -48,7 +47,7 @@ class MentorViewModel @Inject constructor(
 
     fun getStudent(rollNo:String){
         viewModelScope.launch {
-            _student.value = studentsRepo.getStudent(rollNo)
+            _student.value = mentorRepo.getStudent(rollNo)
         }
     }
     fun getProfile(username: String) {

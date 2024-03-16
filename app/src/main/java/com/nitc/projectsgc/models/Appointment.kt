@@ -15,5 +15,5 @@ data class Appointment(
     var cancelled:Boolean = false,
     var expanded:Boolean = false,
     var id:String = "",
-    var problemDescription:String? = ""
+    var problemDescription:String = ""
 )

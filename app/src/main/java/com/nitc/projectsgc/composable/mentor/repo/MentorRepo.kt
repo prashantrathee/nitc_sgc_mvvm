@@ -1,7 +1,6 @@
 package com.nitc.projectsgc.composable.mentor.repo
 
 import android.util.Log
-import android.widget.Toast
 import arrow.core.Either
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -9,8 +8,10 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.nitc.projectsgc.composable.util.PathUtils
 import com.nitc.projectsgc.models.Appointment
 import com.nitc.projectsgc.models.Mentor
+import com.nitc.projectsgc.models.Student
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -20,42 +21,94 @@ import kotlin.coroutines.suspendCoroutine
 class MentorRepo @Inject constructor() {
 
 
+    suspend fun getStudent(studentID: String): Either<String, Student> {
+        return suspendCoroutine { continuation ->
+            var isResumed = false
+            val database: FirebaseDatabase = FirebaseDatabase.getInstance()
+            val reference: DatabaseReference =
+                database.reference
+                    .child("students")
+            reference.addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    try {
+                        var student = snapshot.child(studentID).getValue(Student::class.java)
+                        if (student != null) {
+                            if (!isResumed) {
+                                isResumed = true
+                                continuation.resume(Either.Right(student))
+                            }
+                        } else {
+                            if (!isResumed) {
+                                isResumed = true
+                                continuation.resume(Either.Left("Could not resolve student"))
+                            }
+                        }
+                    } catch (exc: Exception) {
+                        if (!isResumed) {
+                            isResumed = true
+                            continuation.resume(Either.Left("Error in getting student : $exc"))
+                        }
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    if (!isResumed) {
+                        isResumed = true
+                        continuation.resume(Either.Left("Error : $error"))
+                    }
+                }
+
+            })
+        }
+    }
+
     suspend fun getProfile(username: String): Either<String, Mentor> {
         return suspendCoroutine { continuation ->
             var isResumed = false
             var database: FirebaseDatabase = FirebaseDatabase.getInstance()
-            val mentorType =
-                username.substring(username.indexOf('_') + 1, username.indexOfLast { it == '_' })
-            var reference: DatabaseReference =
-                database.reference.child("types/${mentorType}/${username}")
-
-            reference.addListenerForSingleValueEvent(object : ValueEventListener {
-
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    try {
-                        val mentor = snapshot.getValue(Mentor::class.java)
-                        if (!isResumed) {
-                            isResumed = true
-                            continuation.resume(Either.Right(mentor!!))
-                        }
-                    } catch (exc: Exception) {
-                        Log.d("getMentor", "Error in getting mentor : $exc")
-                        if (!isResumed) {
-                            isResumed = true
-                            continuation.resume(Either.Left("Error in getting mentor : $exc"))
-                        }
-                    }
-
-                }
-
-                override fun onCancelled(error: DatabaseError) {
-                    Log.d("getMentor", "Database Error : $error")
+            val mentorTypeEither = PathUtils.getMentorType(username)
+            when (mentorTypeEither) {
+                is Either.Left -> {
                     if (!isResumed) {
-                        continuation.resume(Either.Left("Database error ; $error"))
                         isResumed = true
+                        continuation.resume(Either.Left(mentorTypeEither.value.message!!))
                     }
                 }
-            })
+
+                is Either.Right -> {
+                    var reference: DatabaseReference =
+                        database.reference.child("types/${mentorTypeEither.value}/${username}")
+
+                    reference.addListenerForSingleValueEvent(object : ValueEventListener {
+
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            try {
+                                val mentor = snapshot.getValue(Mentor::class.java)
+                                if (!isResumed) {
+                                    isResumed = true
+                                    continuation.resume(Either.Right(mentor!!))
+                                }
+                            } catch (exc: Exception) {
+                                Log.d("getMentor", "Error in getting mentor : $exc")
+                                if (!isResumed) {
+                                    isResumed = true
+                                    continuation.resume(Either.Left("Error in getting mentor : $exc"))
+                                }
+                            }
+
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {
+                            Log.d("getMentor", "Database Error : $error")
+                            if (!isResumed) {
+                                continuation.resume(Either.Left("Database error ; $error"))
+                                isResumed = true
+                            }
+                        }
+                    })
+
+                }
+            }
         }
     }
 
@@ -69,103 +122,118 @@ class MentorRepo @Inject constructor() {
             var isResumed = false
             val database: FirebaseDatabase = FirebaseDatabase.getInstance()
             val reference: DatabaseReference = database.reference.child("types")
-            val mentorType =
-                mentor.username.substring(
-                    mentor.username.indexOf('_') + 1,
-                    mentor.username.indexOfLast { it == '_' })
-            val mentorPath = "${mentorType}/${mentor.username}"
-            val auth: FirebaseAuth = FirebaseAuth.getInstance()
-            reference.child(mentorPath).setValue(mentor).addOnSuccessListener { task ->
-                Log.d("updateMentor", "in add on success")
-                if (mentor.password != oldPassword) {
-                    Log.d("updateMentor", "old password is not same")
-                    auth.signInWithEmailAndPassword(mentor.email, oldPassword)
-                        .addOnSuccessListener { loggedIn ->
-                            if (loggedIn != null) {
-                                val currentUser = FirebaseAuth.getInstance().currentUser
-                                if (currentUser != null) {
-                                    currentUser.updatePassword(mentor.password)
-                                        .addOnCompleteListener { task ->
-                                            if (task.isSuccessful) {
-                                                // Show success message to the user
-                                                auth.signOut()
-                                                Log.d("updateMentor", "Updated mentor")
-                                                if(!isResumed){
-                                                    isResumed = true
-                                                    continuation.resume(true)
+            when (val mentorTypeEither = PathUtils.getMentorType(mentor.userName)) {
+                is Either.Left -> {
+                    Log.d("updateMentor","Error in updating : ${mentorTypeEither.value.message!!}")
+                    if (!isResumed) {
+                        isResumed = true
+                        continuation.resume(false)
+                    }
+                }
+
+                is Either.Right -> {
+                    val mentorPath = "${mentorTypeEither.value}/${mentor.userName}"
+                    val auth: FirebaseAuth = FirebaseAuth.getInstance()
+                    reference.child(mentorPath).setValue(mentor).addOnSuccessListener { task ->
+                        Log.d("updateMentor", "in add on success")
+                        if (mentor.password != oldPassword) {
+                            Log.d("updateMentor", "old password is not same")
+                            auth.signInWithEmailAndPassword(mentor.email, oldPassword)
+                                .addOnSuccessListener { loggedIn ->
+                                    if (loggedIn != null) {
+                                        val currentUser = FirebaseAuth.getInstance().currentUser
+                                        if (currentUser != null) {
+                                            currentUser.updatePassword(mentor.password)
+                                                .addOnCompleteListener { task ->
+                                                    if (task.isSuccessful) {
+                                                        // Show success message to the user
+                                                        auth.signOut()
+                                                        Log.d("updateMentor", "Updated mentor")
+                                                        if (!isResumed) {
+                                                            isResumed = true
+                                                            continuation.resume(true)
+                                                        }
+                                                    } else {
+                                                        // Password update failed, show error message to the user
+                                                        Log.d(
+                                                            "updateMentor",
+                                                            "Error in updating password of current user"
+                                                        )
+                                                        if (!isResumed) {
+                                                            isResumed = true
+                                                            continuation.resume(false)
+                                                        }
+                                                    }
                                                 }
-                                            } else {
-                                                // Password update failed, show error message to the user
-                                                Log.d(
-                                                    "updateMentor",
-                                                    "Error in updating password of current user"
-                                                )
-                                                if(!isResumed){
-                                                    isResumed = true
-                                                    continuation.resume(false)
+                                                .addOnFailureListener { excUpdating ->
+                                                    Log.d(
+                                                        "updateMentor",
+                                                        "Error in updating mentor : $excUpdating"
+                                                    )
+                                                    if (!isResumed) {
+                                                        isResumed = true
+                                                        continuation.resume(false)
+                                                    }
                                                 }
-                                            }
-                                        }
-                                        .addOnFailureListener { excUpdating ->
+                                        } else {
                                             Log.d(
                                                 "updateMentor",
-                                                "Error in updating mentor : $excUpdating"
+                                                "current user is null after logging in with old password"
                                             )
-                                            if(!isResumed){
+                                            if (!isResumed) {
                                                 isResumed = true
                                                 continuation.resume(false)
                                             }
                                         }
-                                } else {
+                                    } else {
+                                        Log.d(
+                                            "updateMentor",
+                                            "Error in logging in with old password"
+                                        )
+                                        if (!isResumed) {
+                                            isResumed = true
+                                            continuation.resume(false)
+                                        }
+                                    }
+                                }
+                                .addOnFailureListener { excLogin ->
                                     Log.d(
                                         "updateMentor",
-                                        "current user is null after logging in with old password"
+                                        "Error in logging in with old password : $excLogin"
                                     )
-                                    if(!isResumed){
+                                    if (!isResumed) {
                                         isResumed = true
                                         continuation.resume(false)
                                     }
                                 }
-                            } else {
-                                Log.d("updateMentor", "Error in logging in with old password")
-                                if(!isResumed){
-                                    isResumed = true
-                                    continuation.resume(false)
-                                }
-                            }
-                        }
-                        .addOnFailureListener { excLogin ->
-                            Log.d(
-                                "updateMentor",
-                                "Error in logging in with old password : $excLogin"
-                            )
-                            if(!isResumed){
+                        } else {
+                            if (!isResumed) {
                                 isResumed = true
-                                continuation.resume(false)
+                                continuation.resume(true)
                             }
                         }
-                } else {
-                    if(!isResumed){
-                        isResumed = true
-                        continuation.resume(true)
+                    }.addOnFailureListener { excUpdate ->
+                        Log.d("updateMentor", "Error in updating in firebase : $excUpdate")
+                        if (!isResumed) {
+                            isResumed = true
+                            continuation.resume(false)
+                        }
                     }
-                }
-            }.addOnFailureListener { excUpdate ->
-                Log.d("updateMentor", "Error in updating in firebase : $excUpdate")
-                if(!isResumed){
-                    isResumed = true
-                    continuation.resume(false)
                 }
             }
         }
     }
 
-    suspend fun getTodayAppointments(username:String,today:String): Either<String, ArrayList<Appointment>>?{
+    suspend fun getTodayAppointments(
+        username: String,
+        today: String
+    ): Either<String, ArrayList<Appointment>>? {
         return suspendCoroutine { continuation ->
             var database = FirebaseDatabase.getInstance()
             var isResumed = false
-            val mentorType = username.substring(username.indexOfFirst { it == '_' }+1,username.indexOfLast { it == '_' })
-            var refString ="types/${mentorType}/${username}/appointments/${today}"
+            val mentorType = username.substring(username.indexOfFirst { it == '_' } + 1,
+                username.indexOfLast { it == '_' })
+            var refString = "types/${mentorType}/${username}/appointments/${today}"
             Log.d("refString", refString)
             var reference = database.reference.child(refString)
             reference.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -173,29 +241,29 @@ class MentorRepo @Inject constructor() {
                     var appointments = arrayListOf<Appointment>()
                     for (timeSlot in snapshot.children) {
                         Log.d("refString", timeSlot.key.toString())
-                        try{
+                        try {
                             appointments.add(timeSlot.getValue(Appointment::class.java)!!)
-                        }catch(excCasting:Exception){
-                            Log.d("getAppointments","Error in casting : $excCasting")
+                        } catch (excCasting: Exception) {
+                            Log.d("getAppointments", "Error in casting : $excCasting")
                             continue
                         }
                     }
                     val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-                    Log.d("appointmentsSize",appointments.size.toString())
+                    Log.d("appointmentsSize", appointments.size.toString())
                     val sortedAppointments =
                         appointments.sortedBy { LocalDate.parse(it.date, formatter) }
                             .toCollection(ArrayList<Appointment>())
-                    Log.d("appointmentsSize",appointments.size.toString())
-                    if(!isResumed){
+                    Log.d("appointmentsSize", appointments.size.toString())
+                    if (!isResumed) {
                         isResumed = true
                         continuation.resume(Either.Right(sortedAppointments))
                     }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Log.d("getAppointments","Error in database ; $error")
-                    if(!isResumed){
-                        isResumed= true
+                    Log.d("getAppointments", "Error in database ; $error")
+                    if (!isResumed) {
+                        isResumed = true
                         continuation.resume(Either.Left("Error in database ; $error"))
                     }
                 }
@@ -204,7 +272,7 @@ class MentorRepo @Inject constructor() {
         }
     }
 
-    suspend fun cancelAppointment(appointment: Appointment):Boolean{
+    suspend fun cancelAppointment(appointment: Appointment): Boolean {
         return suspendCoroutine { continuation ->
             var database = FirebaseDatabase.getInstance()
             var refString =
@@ -224,21 +292,21 @@ class MentorRepo @Inject constructor() {
                         .addOnCompleteListener { studentTask ->
                             if (studentTask.isSuccessful) if (!isResumed) continuation.resume(true)
                             else {
-                                if(!isResumed){
+                                if (!isResumed) {
                                     isResumed = true
                                     continuation.resume(false)
                                 }
                             }
                         }
                 } else {
-                    if(!isResumed){
+                    if (!isResumed) {
                         isResumed = true
                         continuation.resume(false)
                     }
                 }
-            }.addOnFailureListener { errCanceling->
-                Log.d("cancelAppointment","Error in cancelling appointment : $errCanceling")
-                if(!isResumed){
+            }.addOnFailureListener { errCanceling ->
+                Log.d("cancelAppointment", "Error in cancelling appointment : $errCanceling")
+                if (!isResumed) {
                     isResumed = true
                     continuation.resume(false)
                 }
@@ -247,7 +315,10 @@ class MentorRepo @Inject constructor() {
     }
 
 
-    suspend fun getStudentRecord(mentorUsername:String,studentID:String):ArrayList<Appointment>?{
+    suspend fun getStudentRecord(
+        mentorUsername: String,
+        studentID: String
+    ): ArrayList<Appointment>? {
         return suspendCoroutine { continuation ->
             var isResumed = false
             var appointments = arrayListOf<Appointment>()
@@ -270,11 +341,11 @@ class MentorRepo @Inject constructor() {
                     val sortedAppointments =
                         appointments.sortedBy { LocalDate.parse(it.date, formatter) }
                             .toCollection(ArrayList<Appointment>())
-                    if(!isResumed) continuation.resume(sortedAppointments)
+                    if (!isResumed) continuation.resume(sortedAppointments)
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    if(!isResumed) continuation.resume(null)
+                    if (!isResumed) continuation.resume(null)
                 }
 
             })
@@ -282,7 +353,7 @@ class MentorRepo @Inject constructor() {
     }
 
 
-    suspend fun giveRemarks(appointment: Appointment):Boolean{
+    suspend fun giveRemarks(appointment: Appointment): Boolean {
         return suspendCoroutine { continuation ->
             var isResumed = false
             var database = FirebaseDatabase.getInstance()
@@ -300,26 +371,26 @@ class MentorRepo @Inject constructor() {
                                 .child(mentorRefString)
                         mentorReference.setValue(appointment).addOnCompleteListener { mentorTask ->
                             if (mentorTask.isSuccessful) {
-                                if(!isResumed){
+                                if (!isResumed) {
                                     isResumed = true
                                     continuation.resume(true)
                                 }
                             } else {
-                                if(!isResumed){
+                                if (!isResumed) {
                                     isResumed = true
                                     continuation.resume(false)
                                 }
                             }
                         }
                     } else {
-                        if(!isResumed){
+                        if (!isResumed) {
                             isResumed = true
                             continuation.resume(false)
                         }
                     }
-                }.addOnFailureListener { errGiveRemarks->
-                    Log.d("giveRemarks","Error in giving remarks : $errGiveRemarks")
-                    if(!isResumed){
+                }.addOnFailureListener { errGiveRemarks ->
+                    Log.d("giveRemarks", "Error in giving remarks : $errGiveRemarks")
+                    if (!isResumed) {
                         isResumed = true
                         continuation.resume(false)
                     }

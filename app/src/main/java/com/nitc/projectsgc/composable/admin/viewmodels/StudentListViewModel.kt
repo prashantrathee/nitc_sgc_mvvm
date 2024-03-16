@@ -27,8 +27,8 @@ class StudentListViewModel @Inject constructor(
     private val _studentList = MutableStateFlow(emptyList<Student>())
     val studentList: StateFlow<List<Student>> = _studentList
 
-    private val _studentAppointments = MutableStateFlow<Either<String, List<Appointment>>?>(null)
-    val studentAppointments : StateFlow<Either<String,List<Appointment>>?> = _studentAppointments.asStateFlow()
+//    private val _studentAppointments = MutableStateFlow<Either<String, List<Appointment>>?>(null)
+//    val studentAppointments : StateFlow<Either<String,List<Appointment>>?> = _studentAppointments.asStateFlow()
 
     fun getStudents(context:Context){
         try{
@@ -42,14 +42,14 @@ class StudentListViewModel @Inject constructor(
         }
     }
 
-    fun deleteStudentAppointments(){
-        _studentAppointments.value = null
-    }
-    fun getStudentAppointments(rollNo: String){
-        viewModelScope.launch {
-            _studentAppointments.value = studentsRepo.getAppointments(rollNo)
-        }
-    }
+//    fun deleteStudentAppointments(){
+//        _studentAppointments.value = null
+//    }
+//    fun getStudentAppointments(rollNo: String){
+//        viewModelScope.launch {
+//            _studentAppointments.value = studentsRepo.getAppointments(rollNo)
+//        }
+//    }
 
     fun deleteStudent(context: Context,rollNo:String) {
         try{

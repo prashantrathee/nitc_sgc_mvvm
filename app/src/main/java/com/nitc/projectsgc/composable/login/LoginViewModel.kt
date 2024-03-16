@@ -1,7 +1,9 @@
 package com.nitc.projectsgc.composable.login
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import arrow.core.Either
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -9,7 +11,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor() : ViewModel() {
+class LoginViewModel @Inject constructor(
+    private val loginRepo: LoginRepo
+) : ViewModel() {
 
 
     private val _username = MutableStateFlow("")
@@ -21,8 +25,8 @@ class LoginViewModel @Inject constructor() : ViewModel() {
     private val _password = MutableStateFlow("")
     val password: StateFlow<String> = _password
 
-    private val _isAuthenticated = MutableStateFlow(false)
-    val isAuthenticated: StateFlow<Boolean> = _isAuthenticated
+    private val _isAuthenticated = MutableStateFlow<Either<String, Boolean>?>(null)
+    val isAuthenticated: StateFlow<Either<String, Boolean>?> = _isAuthenticated
 
     fun setUsername(username: String) {
         _username.value = username
@@ -36,12 +40,11 @@ class LoginViewModel @Inject constructor() : ViewModel() {
         _password.value = password
     }
 
-    private val loginRepo = LoginRepo()
     fun authenticate() {
-        // Assuming you have a login repository
         viewModelScope.launch {
-            val isAuthenticated = loginRepo.login(username.value, userType.value, password.value,"health")
-            _isAuthenticated.value = isAuthenticated
+
+            _isAuthenticated.value = loginRepo.login(username.value, userType.value, password.value)
+            Log.d("loginSuccess","Authenticated value updated")
         }
     }
 

@@ -1,5 +1,6 @@
 package com.nitc.projectsgc.composable.admin
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.nitc.projectsgc.composable.admin.viewmodels.AdminViewModel
 import com.nitc.projectsgc.composable.admin.viewmodels.MentorListViewModel
 import com.nitc.projectsgc.composable.admin.viewmodels.StudentListViewModel
 import com.nitc.projectsgc.composable.components.MentorCard
@@ -38,6 +40,7 @@ fun AdminDashboardScreen(
     addStudentCallback: () -> Unit,
     addMentorCallback: () -> Unit
 ) {
+    Log.d("adminDashboard","Inside the admin dashboard screen")
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -68,6 +71,7 @@ fun AdminDashboardScreen(
                 1 -> {
                     GetMentors(mentorListViewModel,
                         viewMentorCallback = {
+                            Log.d("viewMentor","Getting username : $it")
                             viewMentorCallback(it)
                         },
                         backCallback = {
@@ -156,10 +160,10 @@ fun GetMentors(
                 itemContent = { index: Int ->
                     val mentor = mentors.value[index]
                     MentorCard(mentor = mentor, deleteCallback = {
-                        mentorListViewModel.deleteMentor(myContext, mentor.username)
+                        mentorListViewModel.deleteMentor(myContext, mentor.userName)
                     },
                         clickCallback = {
-                            viewMentorCallback(mentor.username)
+                            viewMentorCallback(mentor.userName)
                         },
                     )
                 }

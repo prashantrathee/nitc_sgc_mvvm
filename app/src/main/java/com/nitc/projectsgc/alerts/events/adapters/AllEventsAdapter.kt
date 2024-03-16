@@ -55,7 +55,7 @@ class AllEventsAdapter(
             holder.binding.linkLayoutInEventCard.visibility = View.VISIBLE
             holder.binding.linkTextInEventCard.text = events[position].link.toString()
         }
-        if(sharedViewModel.userType == 2) if(events[position].mentorID == sharedViewModel.currentMentor.username){
+        if(sharedViewModel.userType == 2) if(events[position].mentorID == sharedViewModel.currentMentor.userName){
             holder.binding.deleteButtonInEventCard.visibility = View.VISIBLE
             holder.binding.updateButtonInEventCard.visibility = View.VISIBLE
         }else{

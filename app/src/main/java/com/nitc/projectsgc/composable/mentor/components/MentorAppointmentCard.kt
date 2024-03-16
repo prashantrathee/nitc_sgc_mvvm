@@ -53,6 +53,7 @@ fun MentorAppointmentCardPreview() {
             studentName = "Prashant",
             status = "Booked",
             remarks = "",
+            problemDescription = "This is the problem hsdfhs dfhsdf h",
             rescheduled = false,
             timeSlot = "4-5",
             mentorType = "Success"
@@ -81,9 +82,9 @@ fun MentorAppointmentCard(
     appointment: Appointment,
     student: Student,
     rescheduleCallback: () -> Unit,
-    completeCallback:()->Unit,
-    viewPastRecordCallback:()->Unit,
-    cancelCallback:()->Unit,
+    completeCallback: () -> Unit,
+    viewPastRecordCallback: () -> Unit,
+    cancelCallback: () -> Unit,
 ) {
 
 
@@ -105,7 +106,6 @@ fun MentorAppointmentCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(5.dp)
-            .height(300.dp)
             .clip(
                 RoundedCornerShape(10)
             )
@@ -133,7 +133,7 @@ fun MentorAppointmentCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.35F)
+                        .fillMaxHeight(0.3F)
                         .padding(top = 15.dp)
                         .background(Color.Transparent),
                     verticalAlignment = Alignment.Top,
@@ -201,6 +201,20 @@ fun MentorAppointmentCard(
                         }
                     }
                 }
+
+                Card(
+                    modifier = Modifier.padding(5.dp).fillMaxWidth(0.8F),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.Magenta
+                    )
+                ) {
+                    SubHeadingText(
+                        text = appointment.problemDescription!!,
+                        fontColor = Color.White,
+                        modifier = Modifier.padding(15.dp)
+                    )
+                }
+
                 Card(
                     modifier = Modifier.padding(5.dp),
                     colors = CardDefaults.cardColors(
@@ -217,10 +231,11 @@ fun MentorAppointmentCard(
                             .align(Alignment.CenterHorizontally)
                     )
                 }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 20.dp),
+                        .padding(top = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
@@ -266,8 +281,8 @@ fun MentorAppointmentCard(
         DropdownMenu(
             expanded = optionsMenuState.value,
             onDismissRequest = {
-            optionsMenuState.value = false
-        }) {
+                optionsMenuState.value = false
+            }) {
             DropdownMenuItem(text = {
                 SubHeadingText(text = "Reschedule", fontColor = Color.Black, modifier = Modifier)
             }, onClick = {

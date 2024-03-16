@@ -24,6 +24,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -73,7 +74,7 @@ fun StudentCard(
     val deleteMenuState = remember {
         mutableStateOf(false)
     }
-    Box(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(5.dp)
@@ -81,60 +82,64 @@ fun StudentCard(
             .clip(
                 RoundedCornerShape(15)
             )
-            .background(colorResource(id = R.color.lavender))
+            .combinedClickable(
+                onClick = {
+                    clickCallback()
+                },
+                onLongClick = {
+                    deleteMenuState.value = true
+                }
+            )
+            .background(Color.Transparent)
     ) {
-        Card(
+
+        Box(
             modifier = Modifier
-                .background(colorResource(id = R.color.lavender))
-                .padding(10.dp)
-                .combinedClickable(
-                    onClick = {
-                        clickCallback()
-                    },
-                    onLongClick = {
-                        deleteMenuState.value = true
-                    }
-                )
         ) {
-            Row(
+            Card(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(colorResource(id = R.color.lavender)),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .background(colorResource(id = R.color.lavender))
+                    .padding(10.dp)
             ) {
                 Row(
-                    modifier = Modifier.background(Color.Transparent)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(colorResource(id = R.color.lavender)),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        modifier = Modifier
-                            .size(70.dp)
-                            .clip(RoundedCornerShape(50)),
-                        painter = if (student.gender == "Male") painterResource(id = R.drawable.boy_face) else painterResource(
-                            id = R.drawable.girl_face
-                        ),
-                        contentDescription = "Mentor Photo"
-                    )
-                    Spacer(modifier = Modifier.size(20.dp))
-                    Column(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .background(Color.Transparent)
+                    Row(
+                        modifier = Modifier.background(Color.Transparent)
                     ) {
-                        Spacer(modifier = Modifier.size(5.dp))
-                        SubHeadingText(
-                            text = student.name,
-                            fontColor = Color.Black,
+                        Image(
                             modifier = Modifier
+                                .size(70.dp)
+                                .clip(RoundedCornerShape(50)),
+                            painter = if (student.gender == "Male") painterResource(id = R.drawable.boy_face) else painterResource(
+                                id = R.drawable.girl_face
+                            ),
+                            contentDescription = "Mentor Photo"
                         )
-                        Spacer(modifier = Modifier.size(5.dp))
-                        Text(text = student.rollNo, color = Color.Black)
-                        Spacer(modifier = Modifier.size(5.dp))
-                        Text(
-                            text = student.phoneNumber,
-                            color = Color.Black,
+                        Spacer(modifier = Modifier.size(20.dp))
+                        Column(
                             modifier = Modifier
-                        )
+                                .fillMaxHeight()
+                                .background(Color.Transparent)
+                        ) {
+                            Spacer(modifier = Modifier.size(5.dp))
+                            SubHeadingText(
+                                text = student.name,
+                                fontColor = Color.Black,
+                                modifier = Modifier
+                            )
+                            Spacer(modifier = Modifier.size(5.dp))
+                            Text(text = student.rollNo, color = Color.Black)
+                            Spacer(modifier = Modifier.size(5.dp))
+                            Text(
+                                text = student.phoneNumber,
+                                color = Color.Black,
+                                modifier = Modifier
+                            )
 //                        Spacer(modifier = Modifier.size(15.dp))
 //                        Button(
 //                            onClick = {  },
@@ -146,26 +151,28 @@ fun StudentCard(
 //                        ) {
 //                            Text(text = "View Appointments", color = Color.White)
 //                        }
+                        }
                     }
+                    Text(
+                        text = student.dateOfBirth,
+                        color = Color.Black,
+                        fontSize = 15.sp,
+                        modifier = Modifier.align(Alignment.Top)
+                    )
                 }
-                Text(
-                    text = student.dateOfBirth,
-                    color = Color.Black,
-                    fontSize = 15.sp,
-                    modifier = Modifier.align(Alignment.Top)
-                )
+            }
+            DropdownMenu(expanded = deleteMenuState.value, onDismissRequest = {
+                deleteMenuState.value = false
+            }) {
+                DropdownMenuItem(text = {
+                    SubHeadingText(text = "Delete", fontColor = Color.Black, modifier = Modifier)
+                }, onClick = {
+                    deleteMenuState.value = false
+                    deleteCallback()
+                })
             }
         }
-        DropdownMenu(expanded = deleteMenuState.value, onDismissRequest = {
-            deleteMenuState.value = false
-        }) {
-            DropdownMenuItem(text = {
-                SubHeadingText(text = "Delete", fontColor = Color.Black, modifier = Modifier)
-            }, onClick = {
-                deleteMenuState.value = false
-                deleteCallback()
-            })
-        }
     }
-
 }
+
+

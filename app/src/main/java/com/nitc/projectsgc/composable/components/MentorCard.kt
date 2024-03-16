@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -30,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,14 +48,16 @@ fun loadMentorCard() {
 //        mentorName = "Alex",
 //        body = "htihsiodhf ohsodfho shfoshfd ohsiofd psh "
 //    )
-    MentorCard(mentor = Mentor(
-        "Name",
-        "Phone",
-        "email sdfsf",
-        "Career",
-        "password",
-        "username"
-    ), deleteCallback = {},
+    MentorCard(
+        mentor = Mentor(
+            "Name",
+            "Phone",
+            "email sdfsf",
+            "Career",
+            "password",
+            "username"
+        ),
+        deleteCallback = {},
     ) {
 
     }
@@ -71,28 +75,34 @@ fun MentorCard(
     }
     Surface(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(7.dp)
+            .background(colorResource(id = R.color.white))
+            .padding(5.dp)
             .clip(
                 RoundedCornerShape(15)
             )
-            .height(intrinsicSize = IntrinsicSize.Min)
-            .background(colorResource(id = R.color.lavender)),
-        shadowElevation = 4.dp
-    ) {
-
-        Box(
-            modifier = Modifier
-                .background(colorResource(id = R.color.lavender)),
-        ) {
-            ClickableCard(
-                padding = 10,
-                clickCallback = {
+            .combinedClickable(
+                onClick = {
                     clickCallback()
                 },
-                optionsCallback = {
+                onLongClick = {
                     deleteMenuState.value = true
                 }
+            )
+            .height(intrinsicSize = IntrinsicSize.Min)
+    ) {
+        Box(
+            modifier = Modifier
+                .background(colorResource(id = R.color.lavender))
+                .padding(5.dp),
+        ) {
+            Card(
+//            padding = 10,
+//            clickCallback = {
+////                            clickCallback()
+//            },
+//            optionsCallback = {
+////                deleteMenuState.value = true
+//            }
             ) {
                 Box(
                     modifier = Modifier
@@ -139,19 +149,19 @@ fun MentorCard(
                 }
             }
             DropdownMenu(
-                modifier = Modifier.align(Alignment.BottomEnd),
+                modifier = Modifier.align(Alignment.BottomEnd).background(Color.White),
                 expanded = deleteMenuState.value,
                 onDismissRequest = {
                     deleteMenuState.value = false
                 }) {
-                DropdownMenuItem(text = {
-                    SubHeadingText(
-                        text = "Appointments",
-                        fontColor = Color.Black,
-                        modifier = Modifier
-                    )
-                }, onClick = {
-                })
+//                DropdownMenuItem(text = {
+//                    SubHeadingText(
+//                        text = "Appointments",
+//                        fontColor = Color.Black,
+//                        modifier = Modifier
+//                    )
+//                }, onClick = {
+//                })
                 DropdownMenuItem(text = {
                     SubHeadingText(text = "Delete", fontColor = Color.Black, modifier = Modifier)
                 }, onClick = {

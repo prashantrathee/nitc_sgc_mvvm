@@ -9,6 +9,8 @@ sealed class NavigationScreen(val route:String, @StringRes val resID:Int){
     data object AdminDashboard:NavigationScreen("adminDashboard", R.string.admin_dashboard)
     data object MentorDashboard:NavigationScreen("adminDashboard", R.string.mentor_dashboard)
     data object StudentDashboard:NavigationScreen("adminDashboard", R.string.student_dashboard)
+    data object BookingScreen:NavigationScreen("bookingScreen", R.string.booking_screen)
+    data object RescheduleScreen:NavigationScreen("rescheduleScreen", R.string.reschedule_screen)
     data object ViewStudent:NavigationScreen("viewStudent", R.string.view_student)
     data object ViewStudentAppointments:NavigationScreen("viewStudentAppointments", R.string.view_student_appointments)
     data object ViewMentor:NavigationScreen("viewMentor", R.string.view_mentor)

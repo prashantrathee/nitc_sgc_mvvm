@@ -8,4 +8,6 @@
     <string name="view_mentor">Mentor</string>
     <string name="view_mentor_appointments">Mentor Appointments</string>
     <string name="view_student_appointments">Student Appointments</string>
+    <string name="booking_screen">Book Apointment</string>
+    <string name="reschedule_screen">Reschedule Appointment</string>
 </resources>
