@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.composable.components.ClickableCard
 import com.nitc.projectsgc.composable.components.HeadingText
+import com.nitc.projectsgc.composable.components.NormalText
 import com.nitc.projectsgc.composable.components.SubHeadingText
 import com.nitc.projectsgc.models.Appointment
 
@@ -93,7 +94,6 @@ fun BookedAppointmentCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(5.dp)
-            .height(200.dp)
             .clip(
                 RoundedCornerShape(15)
             )
@@ -121,58 +121,64 @@ fun BookedAppointmentCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.6F)
-                        .padding(top = 15.dp)
+                        .height(130.dp)
+                        .padding(top = 5.dp)
                         .background(Color.Transparent),
-                    verticalAlignment = Alignment.Top,
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Image(
                         modifier = Modifier
-                            .fillMaxHeight(0.85F)
+                            .fillMaxHeight(0.65F)
                             .clip(RoundedCornerShape(50)),
                         painter = painterResource(id = R.drawable.boy_face),
                         contentDescription = "Mentor image"
                     )
                     Spacer(modifier = Modifier.size(15.dp))
                     Column(
-                        verticalArrangement = Arrangement.Top,
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalArrangement = Arrangement.SpaceEvenly,
                     ) {
-                        Spacer(modifier = Modifier.size(10.dp))
-                        SubHeadingText(
+//                        Spacer(modifier = Modifier.size(10.dp))
+                        NormalText(
                             text = appointment.mentorName,
                             fontColor = Color.Black,
                             modifier = Modifier
                         )
-                        Spacer(modifier = Modifier.size(15.dp))
+//                        Spacer(modifier = Modifier.size(15.dp))
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            SubHeadingText(
+                            NormalText(
                                 text = "Time : ",
                                 fontColor = Color.Black,
                                 modifier = Modifier
                             )
                             Spacer(modifier = Modifier.size(5.dp))
-                            Text(text = appointment.timeSlot, color = Color.Black, fontSize = 16.sp)
+                            NormalText(
+                                text = appointment.timeSlot,
+                                fontColor = Color.Black,
+                                modifier = Modifier
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.size(15.dp))
                     Column(
-                        verticalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalArrangement = Arrangement.SpaceEvenly,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Spacer(modifier = Modifier.size(10.dp))
-                        SubHeadingText(
+//                        Spacer(modifier = Modifier.size(10.dp))
+                        Text(
                             text = appointment.date,
-                            fontColor = Color.Black,
+                            color = Color.Black,
                             modifier = Modifier
                         )
-                        Spacer(modifier = Modifier.size(15.dp))
+//                        Spacer(modifier = Modifier.size(15.dp))
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            SubHeadingText(
+                            NormalText(
                                 text = "Type : ",
                                 fontColor = Color.Black,
                                 modifier = Modifier
@@ -181,7 +187,7 @@ fun BookedAppointmentCard(
                             Text(
                                 text = appointment.mentorType,
                                 color = Color.Black,
-                                fontSize = 16.sp
+                                modifier = Modifier
                             )
                         }
                     }
@@ -194,7 +200,7 @@ fun BookedAppointmentCard(
                     elevation = CardDefaults.cardElevation(2.dp),
                     shape = RoundedCornerShape(40),
                 ) {
-                    SubHeadingText(
+                    NormalText(
                         text = appointment.status,
                         fontColor = Color.Black,
                         modifier = Modifier
@@ -204,20 +210,22 @@ fun BookedAppointmentCard(
                 }
             }
         }
+
         DropdownMenu(
-            modifier = Modifier.align(Alignment.BottomEnd),
-            expanded = optionsMenuState.value, onDismissRequest = {
-            optionsMenuState.value = false
-        }) {
+            modifier = Modifier.align(Alignment.TopCenter).background(Color.White),
+            expanded = optionsMenuState.value,
+            onDismissRequest = {
+                optionsMenuState.value = false
+            }) {
             DropdownMenuItem(text = {
-                SubHeadingText(text = "Reschedule", fontColor = Color.Black, modifier = Modifier)
+                NormalText(text = "Reschedule", fontColor = Color.Black, modifier = Modifier)
             }, onClick = {
                 rescheduleCallback()
                 optionsMenuState.value = false
             }
             )
             DropdownMenuItem(text = {
-                SubHeadingText(text = "Cancel", fontColor = Color.Black, modifier = Modifier)
+                NormalText(text = "Cancel", fontColor = Color.Black, modifier = Modifier)
             }, onClick = {
                 cancelCallback()
                 optionsMenuState.value = false
@@ -225,4 +233,5 @@ fun BookedAppointmentCard(
             )
         }
     }
+
 }

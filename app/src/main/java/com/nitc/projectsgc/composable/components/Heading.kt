@@ -35,6 +35,17 @@ fun SubHeadingText(text: String, fontColor: Color,modifier: Modifier) {
 }
 
 @Composable
+fun NormalText(text: String, fontColor: Color,modifier: Modifier) {
+    Text(
+        text = text,
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Medium,
+        color = fontColor,
+        modifier = modifier
+    )
+}
+
+@Composable
 fun HeadingCard(text: String, bg: Color, fontColor: Color) {
     Card(
         modifier = Modifier.background(bg).padding(10.dp)

@@ -22,3 +22,15 @@ fun BasicButton(text: String, colors:ButtonColors, tc: Color,modifier: Modifier,
         HeadingText(text, tc,modifier = Modifier)
     }
 }
+
+@Composable
+fun BasicSubHeadingButton(text: String, colors:ButtonColors, tc: Color,modifier: Modifier, clickCallback: () -> Unit) {
+    Button(
+        onClick = { clickCallback() },
+        shape = RoundedCornerShape(15.dp),
+        colors = colors,
+        modifier = modifier
+    ) {
+        SubHeadingText(text, tc,modifier = Modifier)
+    }
+}

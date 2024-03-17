@@ -1,11 +1,14 @@
 package com.nitc.projectsgc.composable.student.screens
 
+import android.content.Context
 import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -13,18 +16,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.dp
 import arrow.core.Either
 import com.nitc.projectsgc.R
-import com.nitc.projectsgc.composable.components.BasicButton
+import com.nitc.projectsgc.composable.components.BasicSubHeadingButton
 import com.nitc.projectsgc.composable.components.CardInputFieldWithValue
 import com.nitc.projectsgc.composable.components.DateDialog
-import com.nitc.projectsgc.composable.components.SimpleToast
 import com.nitc.projectsgc.composable.components.SubHeadingText
 import com.nitc.projectsgc.composable.student.viewmodels.BookingViewModel
 import com.nitc.projectsgc.models.Appointment
@@ -35,9 +40,9 @@ import com.nitc.projectsgc.models.Mentor
 fun BookingScreen(
     rollNo: String,
     bookingViewModel: BookingViewModel,
-    bookCallback:()->Unit
+    bookCallback: () -> Unit
 ) {
-    val appointment = remember {
+    val appointmentState = remember {
         mutableStateOf(Appointment(studentID = rollNo))
     }
     val bookingContext = LocalContext.current
@@ -48,19 +53,25 @@ fun BookingScreen(
     val mentorTypesState = remember {
         mutableStateOf<List<String>?>(null)
     }
-    bookingViewModel.getMentorTypes()
-    when(val mentorTypesEither = bookingViewModel.mentorTypes.collectAsState().value){
-        is Either.Left->{
-            SimpleToast(mentorTypesEither.value)
-        }
-        is Either.Right->{
-            mentorTypesState.value = mentorTypesEither.value
-            if(mentorTypesState.value.isNullOrEmpty()){
-                SimpleToast("No mentor types found")
+    LaunchedEffect(Unit) {
+        bookingViewModel.getMentorTypes()
+        bookingViewModel.mentorTypes.collect { mentorTypesEither ->
+            when (mentorTypesEither) {
+                is Either.Left -> {
+                    showToast(mentorTypesEither.value, bookingContext)
+                }
+
+                is Either.Right -> {
+                    mentorTypesState.value = mentorTypesEither.value
+                    if (mentorTypesState.value.isNullOrEmpty()) {
+                        showToast("No mentor types found", bookingContext)
+                    }
+                }
+
+                null -> {
+//                    showToast("Error in getting mentor types",bookingContext)
+                }
             }
-        }
-        null->{
-            SimpleToast("Error in getting mentor types")
         }
     }
     val mentorsState = remember {
@@ -73,163 +84,291 @@ fun BookingScreen(
         mutableStateOf(false)
     }
 
-
     val timeSlotsDropdownState = remember {
         mutableStateOf(false)
     }
     val timeSlotsState = remember {
-        mutableStateOf<List<String>?>(null)
+        mutableStateOf(emptyList<String>())
     }
 
     val bookAppointmentState = remember {
         mutableStateOf(false)
     }
-    LaunchedEffect(key1 = bookAppointmentState) {
-        val booked = bookingViewModel.bookAppointment(appointment.value)
-        if(booked){
-            bookCallback()
-        }else{
-            Toast.makeText(bookingContext,"Error in booking your appointment",Toast.LENGTH_LONG).show()
-        }
-    }
-    LaunchedEffect(key1 = bookingViewModel.mentors) {
-        when(val mentorsEitherState = bookingViewModel.mentors.value){
-            is Either.Left->{
-                Toast.makeText(bookingContext,mentorsEitherState.value,Toast.LENGTH_LONG).show()
-            }
-            is Either.Right->{
-                mentorsState.value = mentorsEitherState.value
-            }
-            null->{
-                Toast.makeText(bookingContext,"Error in getting mentors",Toast.LENGTH_LONG).show()
+
+    LaunchedEffect(bookAppointmentState.value) {
+        if (bookAppointmentState.value) {
+            val booked = bookingViewModel.bookAppointment(appointmentState.value)
+            if (booked) {
+                showToast("Booked your appointment", bookingContext)
+                bookCallback()
+            } else {
+                showToast("Error in booking your appointment", bookingContext)
             }
         }
     }
-
-    LaunchedEffect(key1 = bookingViewModel.availableTimeSlots) {
-        when(val timeSlotsEither = bookingViewModel.availableTimeSlots.value){
-            is Either.Right->{
-                timeSlotsState.value = timeSlotsEither.value
-            }
-            is Either.Left->{
-                Toast.makeText(bookingContext,timeSlotsEither.value,Toast.LENGTH_LONG).show()
-            }
-            null->{
-                Toast.makeText(bookingContext,"Error in getting time slots",Toast.LENGTH_LONG).show()
-            }
+//    val mentorsEitherState by bookingViewModel.mentors.collectAsState()
+    val getMentorState = remember {
+        mutableStateOf(false)
+    }
+    val getTimeSlotsState = remember {
+        mutableStateOf(false)
+    }
+    val mentorsEitherState by bookingViewModel.mentors.collectAsState()
+    LaunchedEffect(getMentorState.value) {
+        if (getMentorState.value) {
+            bookingViewModel.getMentors(appointmentState.value.mentorType)
         }
     }
+    LaunchedEffect(key1 = mentorsEitherState) {
+//        bookingViewModel.mentors.collect { mentorsEither ->
+        if (getMentorState.value) {
 
+            getMentorState.value = false
+            when (val mentorsEither = mentorsEitherState) {
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Box {
-            Button(onClick = {
-                mentorTypesDropdownState.value = true
-            }) {
-                SubHeadingText(
-                    text = "Select Mentor type",
-                    fontColor = Color.Black,
-                    modifier = Modifier
-                )
-            }
-
-            DropdownMenu(expanded = mentorTypesDropdownState.value, onDismissRequest = {
-                mentorTypesDropdownState.value = false
-            }) {
-                if(!mentorTypesState.value.isNullOrEmpty()){
-                    mentorTypesState.value!!.forEachIndexed { index, mentorType ->
-                        DropdownMenuItem(text = {
-                            Text(text = mentorType,color = Color.Black)
-                        }, onClick = {
-                            appointment.value = appointment.value.copy(mentorType = mentorType)
-                            mentorTypesDropdownState.value = false
-                        })
-                    }
+//            Log.d("getMentorNames", "In launched effect")
+//            if (appointment.value.mentorType.isNotEmpty()) {
+//                when (mentorsEither) {
+                is Either.Left -> {
+                    Toast.makeText(bookingContext, mentorsEither.value, Toast.LENGTH_LONG)
+                        .show()
                 }
-            }
-        }
-        Box {
-            Button(onClick = {
-                if(appointment.value.mentorType.isNotEmpty()) bookingViewModel.getMentors(appointment.value.mentorType)
-                mentorsDropdownState.value = true
-            }) {
-                SubHeadingText(
-                    text = "Select Mentor",
-                    fontColor = Color.Black,
-                    modifier = Modifier
-                )
-            }
 
-            DropdownMenu(expanded = mentorsDropdownState.value, onDismissRequest = {
-                mentorsDropdownState.value = false
-            }) {
-                if(!mentorsState.value.isNullOrEmpty()){
-                    mentorsState.value!!.forEachIndexed { index, mentor ->
-                        DropdownMenuItem(text = {
-                            Text(text = mentor.name,color = Color.Black)
-                        }, onClick = {
-                            appointment.value = appointment.value.copy(mentorID = mentor.userName, mentorName = mentor.name)
-                            mentorsDropdownState.value = false
-                        })
-                    }
+                is Either.Right -> {
+                    mentorsState.value = mentorsEither.value
+                    mentorsDropdownState.value = true
                 }
-            }
-        }
-        BasicButton(text = "Select Date", colors = ButtonDefaults.buttonColors(), tc = Color.White, modifier = Modifier) {
-            dateState.value = true
-        }
-        DateDialog(heading = "Book for date",isVisible = dateState.value) { dateChosen->
-            appointment.value = appointment.value.copy(date=dateChosen)
-            dateState.value = false
-        }
-        Box(modifier = Modifier){
-            BasicButton(text = "Select Time Slot", colors = ButtonDefaults.buttonColors(), tc = Color.White, modifier = Modifier) {
-                if(appointment.value.mentorID.isNotEmpty() && appointment.value.date.isNotEmpty() && appointment.value.mentorType.isNotEmpty()){
-                    bookingViewModel.getAvailableTimeSlots(
-                        appointment.value.mentorType,
-                        appointment.value.mentorID,
-                        appointment.value.date
+
+                null -> {
+                    Toast.makeText(
+                        bookingContext,
+                        "Error in getting mentors",
+                        Toast.LENGTH_LONG
                     )
+                        .show()
+                }
+            }
+        }
+    }
+
+    val timeSlotsEitherState by bookingViewModel.availableTimeSlots.collectAsState()
+
+    LaunchedEffect(getTimeSlotsState.value) {
+        if (getTimeSlotsState.value) {
+            bookingViewModel.getAvailableTimeSlots(
+                appointmentState.value.mentorType,
+                appointmentState.value.mentorID,
+                appointmentState.value.date
+            )
+
+        }
+    }
+    LaunchedEffect(key1 = timeSlotsEitherState) {
+        if (getTimeSlotsState.value) {
+            getTimeSlotsState.value = false
+            when (val timeSlotsEither = timeSlotsEitherState) {
+                is Either.Right -> {
+                    timeSlotsState.value = timeSlotsEither.value
                     timeSlotsDropdownState.value = true
                 }
+
+                is Either.Left -> {
+                    showToast(
+                        timeSlotsEither.value,
+                        bookingContext
+                    )
+                }
+
+                null -> {
+                    showToast(
+                        "Error in getting time slots",
+                        bookingContext,
+                    )
+                }
             }
-            DropdownMenu(expanded = timeSlotsDropdownState.value, onDismissRequest = {
-                timeSlotsDropdownState.value = false
-            }) {
-                if(!timeSlotsState.value.isNullOrEmpty()){
-                    timeSlotsState.value!!.forEachIndexed{index,timeSlot->
-                        DropdownMenuItem(text = {
-                            SubHeadingText(text = timeSlot, fontColor = Color.Black, modifier = Modifier)
-                        }, onClick = {
-                            appointment.value = appointment.value.copy(timeSlot = timeSlot)
-                            timeSlotsDropdownState.value = false
-                        })
+        }
+    }
+
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(30.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        item {
+            Box {
+                BasicSubHeadingButton(
+                    text = appointmentState.value.mentorType.ifEmpty { "Select Mentor Type" },
+                    tc = Color.White,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(id = R.color.navy_blue)
+                    ),
+                    clickCallback = {
+                        mentorTypesDropdownState.value = true
+                    },
+                    modifier = Modifier
+                )
+
+
+                DropdownMenu(expanded = mentorTypesDropdownState.value,
+                    onDismissRequest = {
+                        mentorTypesDropdownState.value = false
+                    }) {
+                    if (!mentorTypesState.value.isNullOrEmpty()) {
+                        mentorTypesState.value!!.forEachIndexed { index, mentorType ->
+                            DropdownMenuItem(text = {
+                                Text(text = mentorType, color = Color.Black)
+                            }, onClick = {
+                                appointmentState.value =
+                                    appointmentState.value.copy(mentorType = mentorType)
+                                mentorTypesDropdownState.value = false
+                            })
+                        }
+                    }
+                }
+            }
+
+        }
+        item {
+            Box {
+                BasicSubHeadingButton(
+                    clickCallback = {
+                        if (appointmentState.value.mentorType.isNotEmpty()) {
+                            getMentorState.value = true
+//                            bookingViewModel.getMentors(
+//                                appointment.value.mentorType
+//                            )
+                            mentorsDropdownState.value = true
+                        } else showToast("Choose a mentorship type first", bookingContext)
+                    },
+                    text = appointmentState.value.mentorName.ifEmpty { "Select Mentor" },
+                    modifier = Modifier,
+                    tc = Color.Black,
+                    colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.light_gray))
+                )
+
+//                if(!mentorsState.value.isNullOrEmpty()) {
+                DropdownMenu(expanded = mentorsDropdownState.value, onDismissRequest = {
+                    mentorsDropdownState.value = false
+                }) {
+                    if (!getMentorState.value && !mentorsState.value.isNullOrEmpty()) {
+                        mentorsState.value!!.forEachIndexed { index, mentor ->
+                            DropdownMenuItem(text = {
+                                Text(text = mentor.name, color = Color.Black)
+                            }, onClick = {
+                                appointmentState.value = appointmentState.value.copy(
+                                    mentorID = mentor.userName,
+                                    mentorName = mentor.name
+                                )
+                                mentorsDropdownState.value = false
+                            })
+                        }
+                    }
+//                    }
+                }
+            }
+        }
+        item {
+            Box {
+                BasicSubHeadingButton(
+                    text = appointmentState.value.date.ifEmpty { "Select Date" },
+                    colors = ButtonDefaults.buttonColors(),
+                    tc = Color.White,
+                    modifier = Modifier
+                ) {
+                    dateState.value = true
+                }
+                if (dateState.value) {
+                    DateDialog(
+                        heading = "Book for date",
+                        isVisible = dateState.value
+                    ) { dateChosen ->
+                        appointmentState.value = appointmentState.value.copy(date = dateChosen)
+                        dateState.value = false
+                    }
+                }
+            }
+        }
+        item {
+
+            Box(modifier = Modifier) {
+                BasicSubHeadingButton(
+                    text = appointmentState.value.timeSlot.ifEmpty { "Select Time Slot" },
+                    colors = ButtonDefaults.buttonColors(),
+                    tc = Color.White,
+                    modifier = Modifier
+                ) {
+                    if (appointmentState.value.mentorID.isNotEmpty() && appointmentState.value.date.isNotEmpty() && appointmentState.value.mentorType.isNotEmpty()) {
+                        getTimeSlotsState.value = true
+                        timeSlotsDropdownState.value = true
+                    } else {
+                        showToast("Choose mentorship type and mentor first", bookingContext)
+                    }
+                }
+                if (!getTimeSlotsState.value && timeSlotsState.value.isNotEmpty()) {
+                    DropdownMenu(expanded = timeSlotsDropdownState.value, onDismissRequest = {
+                        timeSlotsDropdownState.value = false
+                    }) {
+                        if (timeSlotsState.value.isNotEmpty()) {
+                            timeSlotsState.value.forEachIndexed { index, timeSlot ->
+                                DropdownMenuItem(text = {
+                                    SubHeadingText(
+                                        text = timeSlot,
+                                        fontColor = Color.Black,
+                                        modifier = Modifier
+                                    )
+                                }, onClick = {
+                                    appointmentState.value = appointmentState.value.copy(timeSlot = timeSlot)
+                                    timeSlotsDropdownState.value = false
+                                })
+                            }
+                        } else showToast(
+                            "No Time slots available for the given date",
+                            bookingContext
+                        )
                     }
                 }
             }
         }
 
-        CardInputFieldWithValue(
-            hint = "Problem Description",
-            text = "",
-            isPassword = false,
-            modifier = Modifier.fillMaxWidth(0.7F)
-        ) {problemDesc->
-            appointment.value = appointment.value.copy(problemDescription = problemDesc)
+        item {
+            CardInputFieldWithValue(
+                hint = "Problem Description",
+                text = "",
+                isPassword = false,
+                modifier = Modifier.fillMaxWidth(0.7F)
+            ) { problemDesc ->
+                appointmentState.value = appointmentState.value.copy(problemDescription = problemDesc)
+            }
+
         }
 
+        item {
 
-        BasicButton(text = "Submit", colors = ButtonDefaults.buttonColors(
-            containerColor = colorResource(id = R.color.navy_blue)
-        ), tc = Color.White, modifier = Modifier) {
-            if(appointment.value.problemDescription.isEmpty()){
-                Toast.makeText(bookingContext,"Write your problem description",Toast.LENGTH_LONG).show()
-            }else{
-                appointment.value = appointment.value.copy(status = "Booked")
+            BasicSubHeadingButton(
+                text = "Submit", colors = ButtonDefaults.buttonColors(
+                    containerColor = colorResource(id = R.color.navy_blue)
+                ), tc = Color.White, modifier = Modifier
+            ) {
+                if (appointmentState.value.problemDescription.isEmpty()) {
+                    Toast.makeText(
+                        bookingContext,
+                        "Write your problem description",
+                        Toast.LENGTH_LONG
+                    )
+                        .show()
+                } else {
+                    appointmentState.value = appointmentState.value.copy(status = "Booked")
+                    bookAppointmentState.value = true
 
+                }
             }
+            Spacer(modifier = Modifier.size(100.dp))
         }
     }
+}
+
+fun showToast(message: String, context: Context) {
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 }

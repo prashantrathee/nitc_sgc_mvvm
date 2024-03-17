@@ -8,5 +8,5 @@ data class Student(
     var emailId:String = "",
     var gender:String = "",
     var password:String = "",
-    var phoneNumber:String = ""
+    var phoneNumber:String = "",
 )

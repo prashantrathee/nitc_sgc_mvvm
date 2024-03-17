@@ -35,22 +35,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import arrow.core.Either
 import com.nitc.projectsgc.R
-import com.nitc.projectsgc.composable.admin.viewmodels.StudentListViewModel
-import com.nitc.projectsgc.composable.components.DateDialog
-import com.nitc.projectsgc.composable.mentor.components.MentorAppointmentCard
+import com.nitc.projectsgc.composable.components.RescheduleDialog
 import com.nitc.projectsgc.composable.student.components.BookedAppointmentCard
+import com.nitc.projectsgc.composable.student.viewmodels.BookingViewModel
 import com.nitc.projectsgc.composable.student.viewmodels.StudentViewModel
 import com.nitc.projectsgc.models.Appointment
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 
 @Composable
 fun StudentAppointmentsScreen(
     rollNo: String,
     studentViewModel: StudentViewModel,
-    bookCallback:()->Unit
+    bookingViewModel: BookingViewModel,
+    bookCallback: () -> Unit
 ) {
 
     val myContext = LocalContext.current
@@ -59,10 +56,12 @@ fun StudentAppointmentsScreen(
         mutableStateOf(true)
     }
     LaunchedEffect(Unit) {
-
         studentViewModel.getAppointments(rollNo)
     }
 
+    val reschedulingState = remember {
+        mutableStateOf<Appointment?>(null)
+    }
     val coroutineScope = rememberCoroutineScope()
     val appointmentsEither = studentViewModel.appointments.collectAsState()
 
@@ -74,7 +73,7 @@ fun StudentAppointmentsScreen(
         Log.d("studentDashboard", "apointments changed")
         when (val appointmentsEitherState = appointmentsEither.value) {
             is Either.Right -> {
-                Log.d("studentDashboard","apointments state something")
+                Log.d("studentDashboard", "apointments state something")
                 if (appointmentsEitherState.value.isEmpty()) {
                     Toast.makeText(
                         myContext,
@@ -84,8 +83,8 @@ fun StudentAppointmentsScreen(
                 } else {
                     appointmentsState.value = appointmentsEitherState.value
                     Log.d("studentDashboard", "Appointments got")
-                    isLoading.value = false
                 }
+                isLoading.value = false
             }
 
             is Either.Left -> {
@@ -96,66 +95,83 @@ fun StudentAppointmentsScreen(
                 ).show()
                 isLoading.value = false
             }
+
             null -> {
                 isLoading.value = false
-                Toast.makeText(
-                    myContext,
-                    "Error in accessing appointments",
-                    Toast.LENGTH_SHORT
-                ).show()
+//                Toast.makeText(
+//                    myContext,
+//                    "Error in accessing appointments",
+//                    Toast.LENGTH_SHORT
+//                ).show()
             }
         }
     }
-    Box(modifier = Modifier.fillMaxSize()) {
-        if (isLoading.value) CircularProgressIndicator(Modifier.fillMaxSize())
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(
-                count = appointmentsState.value.size,
-                itemContent = { index ->
-                    BookedAppointmentCard(
-                        appointment = appointmentsState.value[index],
-                        rescheduleCallback = {
-
-                        },
-                        cancelCallback = {
-
-                        })
-                })
-        }
-
-        FloatingActionButton(
-            onClick = {
-                bookCallback()
+    if (reschedulingState.value != null) {
+        RescheduleDialog(
+            oldAppointment = reschedulingState.value!!,
+            onDismiss = {
+                reschedulingState.value = null
+                studentViewModel.getAppointments(rollNo)
             },
-            shape = RoundedCornerShape(25),
-            containerColor = colorResource(id = R.color.navy_blue),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(10.dp)
-                .clip(RoundedCornerShape(25))
-                .background(colorResource(id = R.color.navy_blue))
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .background(Color.Transparent)
-                    .padding(7.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Icon(Icons.Filled.DateRange, "Book Appointment", tint = Color.White)
-                Spacer(modifier = Modifier.size(10.dp))
-                Text(
-                    text = "Book\nAppointment",
-                    textAlign = TextAlign.Center,
-                    color = Color.White,
-                    modifier = Modifier.padding(horizontal = 7.dp)
-                )
-            }
-        }
+            bookingViewModel = bookingViewModel
+        )
+    } else {
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (isLoading.value) CircularProgressIndicator(
+                Modifier
+                    .fillMaxSize(0.6F)
+                    .align(Alignment.Center)
+            )
 
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(
+                    count = appointmentsState.value.size,
+                    itemContent = { index ->
+                        BookedAppointmentCard(
+                            appointment = appointmentsState.value[index],
+                            rescheduleCallback = {
+                                reschedulingState.value = appointmentsState.value[index]
+                            },
+                            cancelCallback = {
+
+                            })
+                    })
+            }
+
+            FloatingActionButton(
+                onClick = {
+                    bookCallback()
+                },
+                shape = RoundedCornerShape(25),
+                containerColor = colorResource(id = R.color.navy_blue),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(10.dp)
+                    .clip(RoundedCornerShape(25))
+                    .background(colorResource(id = R.color.navy_blue))
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .background(Color.Transparent)
+                        .padding(7.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Icon(Icons.Filled.DateRange, "Book Appointment", tint = Color.White)
+                    Spacer(modifier = Modifier.size(10.dp))
+                    Text(
+                        text = "Book\nAppointment",
+                        textAlign = TextAlign.Center,
+                        color = Color.White,
+                        modifier = Modifier.padding(horizontal = 7.dp)
+                    )
+                }
+            }
+
+        }
     }
 }
 

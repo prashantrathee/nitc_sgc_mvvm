@@ -37,6 +37,7 @@ class BookingViewModel @Inject constructor(
 
     fun getMentors(mentorType: String) {
         viewModelScope.launch {
+//            _mentors.value = null
             _mentors.value = bookingRepo.getMentorNames(mentorType)
         }
     }
@@ -66,6 +67,14 @@ class BookingViewModel @Inject constructor(
             bookingRepo.bookAppointment(appointment)
         }
         return booked
+    }
+
+
+    suspend fun rescheduleAppointment(oldAppointment: Appointment,appointment: Appointment): Boolean {
+        val rescheduled = withContext(Dispatchers.Main) {
+            bookingRepo.rescheduleAppointment(oldAppointment,appointment)
+        }
+        return rescheduled
     }
 
 

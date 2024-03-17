@@ -28,11 +28,11 @@ class BookingRepo @Inject constructor() {
             var appointments = arrayListOf<Appointment>()
             var database = FirebaseDatabase.getInstance()
             var reference = database.reference.child("students")
-            Log.d("studentDashboard","outside snapshot")
+            Log.d("studentDashboard", "outside snapshot")
             reference.child("$rollNo")
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
-                        Log.d("studentDashboard","In snapshot")
+                        Log.d("studentDashboard", "In snapshot")
                         if (snapshot.hasChild("appointments")) {
 
                             for (ds in snapshot.child("appointments").children) {
@@ -52,7 +52,7 @@ class BookingRepo @Inject constructor() {
                                 continuation.resume(Either.Right(appointments))
                             }
                         } else {
-                            Log.d("studentDashboard","No appointment found here")
+                            Log.d("studentDashboard", "No appointment found here")
                             if (!isResumed) {
                                 isResumed = true
                                 continuation.resume(Either.Right(appointments))
@@ -154,6 +154,7 @@ class BookingRepo @Inject constructor() {
                             continue
                         }
                     }
+                    Log.d("getMentorNames", "Mentor names found : $mentors")
                     if (!isResumed) {
                         continuation.resume(Either.Right(mentors))
                         isResumed = true
@@ -240,30 +241,26 @@ class BookingRepo @Inject constructor() {
             var totalTimeSlots =
                 arrayListOf<String>("9-10", "10-11", "11-12", "1-2", "2-3", "3-4", "4-5")
             var mentorTimeSlots = arrayListOf<String>()
-            var availableTimeSlots = arrayListOf<String>()
-            val reference = FirebaseDatabase.getInstance().reference
+            val reference = FirebaseDatabase.getInstance().reference.child("types")
             reference.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     var dateRef = "$mentorTypeSelected/$mentorID/appointments/$selectedDate"
                     if (snapshot.hasChild(dateRef)) {
+                        Log.d("getSlots", "dateref : $dateRef")
                         for (timeSlots in snapshot.child(dateRef).children) {
                             mentorTimeSlots.add(timeSlots.key.toString())
-                            Log.d("totalAdded", timeSlots.key.toString())
+                            totalTimeSlots.removeIf { it == timeSlots.key.toString() }
+                            Log.d("getSlots", timeSlots.key.toString())
                         }
-                        for (timeslot in totalTimeSlots) {
-                            if (!mentorTimeSlots.contains(timeslot)) {
-                                availableTimeSlots.add(timeslot)
-                            }
-                        }
-
-                    } else {
-                        availableTimeSlots = totalTimeSlots
+//                        for (timeslot in totalTimeSlots) {
+//                            if (!mentorTimeSlots.contains(timeslot)) {
+//                                availableTimeSlots.add(timeslot)
+//                            }
+//                        }
                     }
-                    if (availableTimeSlots.isNotEmpty()) {
-                        if (!isResumed) {
-                            isResumed = true
-                            continuation.resume(Either.Right(availableTimeSlots))
-                        }
+                    if (!isResumed) {
+                        isResumed = true
+                        continuation.resume(Either.Right(totalTimeSlots))
                     }
                 }
 

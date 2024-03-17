@@ -4,9 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import arrow.core.Either
-import com.nitc.projectsgc.composable.admin.repo.StudentsRepo
 import com.nitc.projectsgc.composable.mentor.repo.MentorRepo
-import com.nitc.projectsgc.composable.student.repo.StudentRepo
 import com.nitc.projectsgc.models.Appointment
 import com.nitc.projectsgc.models.Mentor
 import com.nitc.projectsgc.models.Student
@@ -59,7 +57,7 @@ class MentorViewModel @Inject constructor(
     suspend fun updateProfile(mentor: Mentor, oldPassword: String): Boolean {
         val updateSuccess = withContext(Dispatchers.Main) {
             Log.d("updateMentor", "In adminViewmodel")
-            if (mentorRepo.updateMentor(mentor, oldPassword)) {
+            if (mentorRepo.updateProfile(mentor, oldPassword)) {
                 Log.d("updateMentor", "Old password = $oldPassword")
                 Log.d("updateMentor", "New password = ${mentor.password}")
                 _mentor.value = Either.Right(mentor)

@@ -1,5 +1,6 @@
 package com.nitc.projectsgc.composable.navigation.graphs
 
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
@@ -14,6 +15,7 @@ import com.nitc.projectsgc.composable.student.screens.StudentAppointmentsScreen
 import com.nitc.projectsgc.composable.student.viewmodels.StudentViewModel
 import com.nitc.projectsgc.composable.student.screens.StudentDashboardScreen
 import com.nitc.projectsgc.composable.student.viewmodels.BookingViewModel
+import com.nitc.projectsgc.models.Appointment
 
 
 fun NavGraphBuilder.studentGraph(
@@ -36,12 +38,14 @@ fun NavGraphBuilder.studentGraph(
             titleState.value = stringResource(NavigationScreen.StudentDashboard.resID)
             topBarState.value = true
             val roll = navEntry.arguments?.getString("rollNo") ?: ""
+            Log.d("studentDashboard", "Roll no found : $roll")
             StudentDashboardScreen(
                 roll,
                 studentViewModel,
+                bookingViewModel,
                 goToBooking = {
-                    navController.navigate(NavigationScreen.BookingScreen.route+"/${roll}")
-            }
+                    navController.navigate(NavigationScreen.BookingScreen.route + "/${roll}")
+                }
             )
         }
 //        composable(
@@ -60,11 +64,13 @@ fun NavGraphBuilder.studentGraph(
                 navArgument("rollNo") { type = NavType.StringType },
             )
         ) { navEntry ->
+            titleState.value = stringResource(NavigationScreen.BookingScreen.resID)
             val roll = navEntry.arguments?.getString("rollNo") ?: ""
             BookingScreen(
                 rollNo = roll,
                 bookingViewModel = bookingViewModel,
                 bookCallback = {
+                    navController.popBackStack(NavigationScreen.BookingScreen.route, true)
                     navController.navigate("${NavigationScreen.StudentDashboard.route}/${roll}")
                 })
         }

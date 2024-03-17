@@ -17,9 +17,8 @@ import androidx.navigation.NavController
 import arrow.core.Either
 import com.nitc.projectsgc.composable.components.TabLayout
 import com.nitc.projectsgc.composable.login.LoginViewModel
-import com.nitc.projectsgc.composable.mentor.screens.MentorAppointmentsScreen
+import com.nitc.projectsgc.composable.student.viewmodels.BookingViewModel
 import com.nitc.projectsgc.composable.student.viewmodels.StudentViewModel
-import com.nitc.projectsgc.models.Mentor
 import com.nitc.projectsgc.models.Student
 import kotlinx.coroutines.launch
 
@@ -28,6 +27,7 @@ import kotlinx.coroutines.launch
 fun StudentDashboardScreen(
     rollNo: String,
     studentViewModel: StudentViewModel,
+    bookingViewModel:BookingViewModel,
     goToBooking:()->Unit
 ) {
 
@@ -48,6 +48,7 @@ fun StudentDashboardScreen(
                     StudentAppointmentsScreen(
                         rollNo = rollNo,
                         studentViewModel = studentViewModel,
+                        bookingViewModel = bookingViewModel,
                         bookCallback = {
                             goToBooking()
                         }
@@ -88,18 +89,18 @@ fun GetProfile(rollNo: String, studentViewModel: StudentViewModel) {
         }
 
         is Either.Right -> {
-            Log.d("viewMentor", "no error message")
+            Log.d("viewStudent", "no error message")
             studentState.value = studentEither.value
             oldPassword = studentEither.value.password
             UpdateStudentScreen(studentEither.value) { updatedStudent ->
-                Log.d("updateMentor", "these are new values ; $updatedStudent")
+                Log.d("updateStudent", "these are new values ; $updatedStudent")
                 coroutineScope.launch {
-                    Log.d("updateMentor", "Now updated : $updatedStudent")
+                    Log.d("updateStudent", "Now updated : $updatedStudent")
                     val updateSuccess =
                         studentViewModel.updateProfile(updatedStudent, oldPassword)
                     if (updateSuccess) {
                         studentState.value = updatedStudent
-                        Toast.makeText(screenContext, "Updated Mentor", Toast.LENGTH_LONG).show()
+                        Toast.makeText(screenContext, "Updated", Toast.LENGTH_LONG).show()
                     } else {
                         Toast.makeText(
                             screenContext,
@@ -113,7 +114,7 @@ fun GetProfile(rollNo: String, studentViewModel: StudentViewModel) {
         }
 
         null -> {
-            Log.d("viewMentor", "Mentor either is null")
+            Log.d("viewStudent", "Student either is null")
         }
     }
 }

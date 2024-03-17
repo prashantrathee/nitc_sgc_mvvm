@@ -7,10 +7,13 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.MutableData
+import com.google.firebase.database.Transaction
 import com.google.firebase.database.ValueEventListener
 import com.nitc.projectsgc.composable.util.PathUtils
 import com.nitc.projectsgc.models.Appointment
 import com.nitc.projectsgc.models.Mentor
+import com.nitc.projectsgc.models.Student
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -124,14 +127,15 @@ class MentorsRepo @Inject constructor() {
             var isResumed = false
             var database: FirebaseDatabase = FirebaseDatabase.getInstance()
             val mentorTypeEither = PathUtils.getMentorType(username)
-            when(mentorTypeEither){
-                is Either.Left->{
-                    if(!isResumed){
+            when (mentorTypeEither) {
+                is Either.Left -> {
+                    if (!isResumed) {
                         isResumed = true
                         continuation.resume(Either.Left(mentorTypeEither.value.message!!))
                     }
                 }
-                is Either.Right->{
+
+                is Either.Right -> {
                     var reference: DatabaseReference =
                         database.reference.child("types/${mentorTypeEither.value}/${username}")
                     reference.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -318,91 +322,129 @@ class MentorsRepo @Inject constructor() {
                 is Either.Right -> {
                     val mentorPath = "${mentorTypeEither.value}/${mentor.userName}"
                     val auth: FirebaseAuth = FirebaseAuth.getInstance()
-                    reference.child(mentorPath).setValue(mentor).addOnSuccessListener { task ->
-                        Log.d("updateMentor", "in add on success")
-                        if (mentor.password != oldPassword) {
-                            Log.d("updateMentor", "old password is not same")
-                            auth.signInWithEmailAndPassword(mentor.email, oldPassword)
-                                .addOnSuccessListener { loggedIn ->
-                                    if (loggedIn != null) {
-                                        val currentUser = FirebaseAuth.getInstance().currentUser
-                                        if (currentUser != null) {
-                                            currentUser.updatePassword(mentor.password)
-                                                .addOnCompleteListener { task ->
-                                                    if (task.isSuccessful) {
-                                                        // Show success message to the user
-                                                        auth.signOut()
-                                                        Log.d("updateMentor", "Updated mentor")
-                                                        if (!isResumed) {
-                                                            isResumed = true
-                                                            continuation.resume(true)
+
+                    reference.child(mentorPath).runTransaction(object : Transaction.Handler {
+                        override fun doTransaction(currentData: MutableData): Transaction.Result {
+                            return try {
+                                currentData.child("name").value = mentor.name
+                                currentData.child("userName").value = mentor.userName
+                                currentData.child("type").value = mentor.type
+                                currentData.child("email").value = mentor.email
+                                currentData.child("phone").value = mentor.phone
+                                currentData.child("password").value = mentor.password
+                                Transaction.success(currentData)
+                            } catch (excCasting: Exception) {
+                                if (!isResumed) {
+                                    isResumed = true
+                                    continuation.resume(false)
+                                }
+                                Transaction.abort()
+                            }
+                        }
+
+                        override fun onComplete(
+                            errorDatabase: DatabaseError?,
+                            committed: Boolean,
+                            currentData: DataSnapshot?
+                        ) {
+                            if (errorDatabase != null) {
+                                Log.d("updateStudent", "Error in updating student : $errorDatabase")
+                                if (!isResumed) {
+                                    isResumed = true
+                                    continuation.resume(false)
+                                }
+                            } else if (committed) {
+
+                                Log.d("updateMentor", "in add on success")
+                                if (mentor.password != oldPassword) {
+                                    Log.d("updateMentor", "old password is not same")
+                                    auth.signInWithEmailAndPassword(mentor.email, oldPassword)
+                                        .addOnSuccessListener { loggedIn ->
+                                            if (loggedIn != null) {
+                                                val currentUser =
+                                                    FirebaseAuth.getInstance().currentUser
+                                                if (currentUser != null) {
+                                                    currentUser.updatePassword(mentor.password)
+                                                        .addOnCompleteListener { task ->
+                                                            if (task.isSuccessful) {
+                                                                // Show success message to the user
+                                                                auth.signOut()
+                                                                Log.d(
+                                                                    "updateMentor",
+                                                                    "Updated mentor"
+                                                                )
+                                                                if (!isResumed) {
+                                                                    isResumed = true
+                                                                    continuation.resume(true)
+                                                                }
+                                                            } else {
+                                                                // Password update failed, show error message to the user
+                                                                Log.d(
+                                                                    "updateMentor",
+                                                                    "Error in updating password of current user"
+                                                                )
+                                                                if (!isResumed) {
+                                                                    isResumed = true
+                                                                    continuation.resume(false)
+                                                                }
+                                                            }
                                                         }
-                                                    } else {
-                                                        // Password update failed, show error message to the user
-                                                        Log.d(
-                                                            "updateMentor",
-                                                            "Error in updating password of current user"
-                                                        )
-                                                        if (!isResumed) {
-                                                            isResumed = true
-                                                            continuation.resume(false)
+                                                        .addOnFailureListener { excUpdating ->
+                                                            Log.d(
+                                                                "updateMentor",
+                                                                "Error in updating mentor : $excUpdating"
+                                                            )
+                                                            if (!isResumed) {
+                                                                isResumed = true
+                                                                continuation.resume(false)
+                                                            }
                                                         }
-                                                    }
-                                                }
-                                                .addOnFailureListener { excUpdating ->
+                                                } else {
                                                     Log.d(
                                                         "updateMentor",
-                                                        "Error in updating mentor : $excUpdating"
+                                                        "current user is null after logging in with old password"
                                                     )
                                                     if (!isResumed) {
                                                         isResumed = true
                                                         continuation.resume(false)
                                                     }
                                                 }
-                                        } else {
+                                            } else {
+                                                Log.d(
+                                                    "updateMentor",
+                                                    "Error in logging in with old password"
+                                                )
+                                                if (!isResumed) {
+                                                    isResumed = true
+                                                    continuation.resume(false)
+                                                }
+                                            }
+                                        }
+                                        .addOnFailureListener { excLogin ->
                                             Log.d(
                                                 "updateMentor",
-                                                "current user is null after logging in with old password"
+                                                "Error in logging in with old password : $excLogin"
                                             )
                                             if (!isResumed) {
                                                 isResumed = true
                                                 continuation.resume(false)
                                             }
                                         }
-                                    } else {
-                                        Log.d(
-                                            "updateMentor",
-                                            "Error in logging in with old password"
-                                        )
-                                        if (!isResumed) {
-                                            isResumed = true
-                                            continuation.resume(false)
-                                        }
-                                    }
-                                }
-                                .addOnFailureListener { excLogin ->
-                                    Log.d(
-                                        "updateMentor",
-                                        "Error in logging in with old password : $excLogin"
-                                    )
+                                } else {
                                     if (!isResumed) {
                                         isResumed = true
-                                        continuation.resume(false)
+                                        continuation.resume(true)
                                     }
                                 }
-                        } else {
-                            if (!isResumed) {
-                                isResumed = true
-                                continuation.resume(true)
+                            } else {
+                                Log.d("updateMentor", "Transaction not committed")
+                                if (!isResumed) {
+                                    isResumed = true
+                                    continuation.resume(false)
+                                }
                             }
                         }
-                    }.addOnFailureListener { excUpdate ->
-                        Log.d("updateMentor", "Error in updating in firebase : $excUpdate")
-                        if (!isResumed) {
-                            isResumed = true
-                            continuation.resume(false)
-                        }
-                    }
+                    })
                 }
             }
         }
