@@ -2,11 +2,13 @@ package com.nitc.projectsgc.composable.login
 
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
@@ -16,13 +18,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import arrow.core.Either
+import com.nitc.projectsgc.R
 import com.nitc.projectsgc.composable.components.BasicButton
 import com.nitc.projectsgc.composable.components.BasicCard
 import com.nitc.projectsgc.composable.components.BasicInputField
+import com.nitc.projectsgc.composable.components.CardInputFieldWithValue
 import com.nitc.projectsgc.composable.components.LoginCard
 import com.nitc.projectsgc.composable.util.storage.StorageViewModel
 
@@ -63,30 +70,48 @@ fun LoginScreen(
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
     ) {
 //        HeadingText(text = "Login", Color.Black)
+        Image(
+            modifier = Modifier.fillMaxSize(0.3F),
+            contentScale = ContentScale.Fit,
+            painter = painterResource(id = R.drawable.sgc_logo_blue_1),
+            contentDescription = "NITC SGC"
+        )
+        LoginCard() { userType ->
+            loginViewModel.setUserType(userType)
+        }
 //        Spacer(modifier = Modifier.height(10.dp))
-        BasicCard(15, 3, 1, 4, CardDefaults.cardColors()) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                LoginCard() { userType ->
-                    loginViewModel.setUserType(userType)
-                }
-                Spacer(modifier = Modifier.size(200.dp))
-                BasicInputField("Email", false) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            items(1) {
+
+
+                Spacer(modifier = Modifier.size(50.dp))
+                CardInputFieldWithValue(
+                    hint = "Email", isPassword = false,
+                    text = "",
+                    modifier = Modifier
+                ) {
                     loginViewModel.setUsername(it)
                 }
                 Spacer(modifier = Modifier.size(20.dp))
-                BasicInputField("Password", true) {
+                CardInputFieldWithValue(
+                    hint = "Password",
+                    isPassword = true,
+                    text = "",
+                    modifier = Modifier
+                ) {
                     loginViewModel.setPassword(it)
                 }
-                Spacer(modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.size(50.dp))
                 BasicButton(
                     text = "Login",
-                    colors = ButtonDefaults.buttonColors(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(id = R.color.navy_blue)
+                    ),
                     modifier = Modifier,
                     tc = Color.White
                 ) {

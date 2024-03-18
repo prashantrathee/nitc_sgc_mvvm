@@ -26,15 +26,15 @@ class NewsViewModel @Inject constructor(
         }
     }
 
-    suspend fun deleteNews(newsID:String):Boolean{
+    suspend fun deleteNews(userType:Int,newsID:String):Boolean{
         val deleted = withContext(Dispatchers.Main){
-            newsRepo.deleteNews(newsID)
+            newsRepo.deleteNews(userType,newsID)
         }
         return deleted
     }
-    suspend fun addNews(news: News):Boolean{
+    suspend fun addNews(userType: Int,news: News):Boolean{
         val added = withContext(Dispatchers.Main){
-            newsRepo.addNews(news)
+            newsRepo.addNews(userType,news)
         }
         return added
     }

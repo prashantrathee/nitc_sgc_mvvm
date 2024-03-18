@@ -12,6 +12,7 @@
     <string name="view_student_appointments">Student Appointments</string>
     <string name="booking_screen">Book Apointment</string>
     <string name="reschedule_screen">Reschedule Appointment</string>
+    <string name="news_screen">News</string>
     <string-array name="time_slots">
         <item>9–10</item>
         <item>10–11</item>

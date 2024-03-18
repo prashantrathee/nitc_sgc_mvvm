@@ -100,7 +100,7 @@ fun CardInputFieldWithValue(
     val inputValue = remember {
         mutableStateOf(text)
     }
-    BasicCard(15, 3, 0, 4,CardDefaults.cardColors(
+    BasicCard(15, 3, 0, 7,CardDefaults.cardColors(
         containerColor = Color.White,
         contentColor = Color.White
     )) {

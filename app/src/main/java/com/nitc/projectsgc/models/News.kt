@@ -1,9 +1,9 @@
 package com.nitc.projectsgc.models
 
 data class News(
-    var newsID:String? = null,
-    var news:String? = null,
-    var mentorID:String? = null,
-    var publishDate:String? = null,
-    var mentorName:String? = null
+    var newsID:String = "",
+    var news:String = "",
+    var mentorID:String = "",
+    var publishDate:String = "",
+    var mentorName:String = ""
 )

@@ -6,6 +6,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.nitc.projectsgc.composable.util.UserRole
 import com.nitc.projectsgc.models.News
 import javax.inject.Inject
 import kotlin.coroutines.resume
@@ -14,34 +15,38 @@ import kotlin.coroutines.suspendCoroutine
 class NewsRepo @Inject constructor(){
 
 
-    suspend fun addNews(news: News):Boolean{
+    suspend fun addNews(userType:Int,news: News):Boolean{
         return suspendCoroutine {continuation ->
 
-            var database = FirebaseDatabase.getInstance()
-            var reference = database.reference.child("news")
-            var newsID = reference.push().key.toString()
-            news.newsID = newsID
-            reference.child(newsID).setValue(news).addOnCompleteListener { task->
-                if(task.isSuccessful){
-                    continuation.resume(true)
-                }else{
-                    continuation.resume(false)
+            if(userType == UserRole.Admin || userType == UserRole.Mentor) {
+                var database = FirebaseDatabase.getInstance()
+                var reference = database.reference.child("news")
+                var newsID = reference.push().key.toString()
+                news.newsID = newsID
+                reference.child(newsID).setValue(news).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        continuation.resume(true)
+                    } else {
+                        continuation.resume(false)
+                    }
                 }
-            }
+            }else continuation.resume(false)
         }
     }
-    suspend fun deleteNews(newsID:String):Boolean{
+    suspend fun deleteNews(userType:Int,newsID:String):Boolean{
         return suspendCoroutine {continuation ->
+            if(userType == UserRole.Admin || userType == UserRole.Mentor) {
 
-            var database = FirebaseDatabase.getInstance()
-            var reference = database.reference.child("news")
-            reference.child(newsID).removeValue().addOnCompleteListener { task->
-                if(task.isSuccessful){
-                    continuation.resume(true)
-                }else{
-                    continuation.resume(false)
+                var database = FirebaseDatabase.getInstance()
+                var reference = database.reference.child("news")
+                reference.child(newsID).removeValue().addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        continuation.resume(true)
+                    } else {
+                        continuation.resume(false)
+                    }
                 }
-            }
+            }else continuation.resume(false)
         }
     }
 

@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,9 +50,12 @@ import com.nitc.projectsgc.composable.mentor.MentorViewModel
 import com.nitc.projectsgc.composable.navigation.NavigationScreen
 import com.nitc.projectsgc.composable.navigation.graphs.adminGraph
 import com.nitc.projectsgc.composable.navigation.graphs.mentorGraph
+import com.nitc.projectsgc.composable.navigation.graphs.newsGraph
 import com.nitc.projectsgc.composable.navigation.graphs.studentGraph
+import com.nitc.projectsgc.composable.news.NewsViewModel
 import com.nitc.projectsgc.composable.student.viewmodels.BookingViewModel
 import com.nitc.projectsgc.composable.student.viewmodels.StudentViewModel
+import com.nitc.projectsgc.composable.util.UserRole
 import com.nitc.projectsgc.composable.util.storage.StorageViewModel
 import com.nitc.projectsgc.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -68,6 +72,7 @@ class MainActivity : ComponentActivity() {
     private val studentViewModel: StudentViewModel by viewModels()
     private val bookingViewModel: BookingViewModel by viewModels()
     private val storageViewModel: StorageViewModel by viewModels()
+    private val newsViewModel: NewsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -97,6 +102,11 @@ class MainActivity : ComponentActivity() {
         val logoutState = remember {
             mutableStateOf(false)
         }
+
+        val newsState = remember {
+            mutableStateOf(false)
+        }
+
         Scaffold(
             topBar = {
                 if (topBarState.value) {
@@ -116,6 +126,15 @@ class MainActivity : ComponentActivity() {
                             navigationIconContentColor = Color.Black
                         ),
                         actions = {
+                            IconButton(onClick = {
+                                newsState.value = true
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Notifications,
+                                    tint = Color.Black,
+                                    contentDescription = "News"
+                                )
+                            }
                             Box(modifier = Modifier) {
                                 IconButton(onClick = {
                                     dropDownState.value = true
@@ -181,7 +200,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .padding(paddingValues)
                 ) {
-                    AllNavigation(titleState, topBarState, dashboardState, logoutState)
+                    AllNavigation(titleState, topBarState, dashboardState, newsState,logoutState)
                 }
             }
         )
@@ -194,13 +213,15 @@ class MainActivity : ComponentActivity() {
         titleState: MutableState<String>,
         topBarState: MutableState<Boolean>,
         dashboardState: MutableState<Boolean>,
+        newsState:MutableState<Boolean>,
         logoutState: MutableState<Boolean>
     ) {
         Log.d("inLogin", "Herehreheh")
         val navController = rememberNavController()
-        var loginCredential = LoginCredential()
+        var loginCredential = storageViewModel.getUserInfo()
         LaunchedEffect(key1 = logoutState.value) {
             if (logoutState.value) {
+                navController.popBackStack()
                 navController.navigate(NavigationScreen.LoginScreen.route)
             }
         }
@@ -209,11 +230,17 @@ class MainActivity : ComponentActivity() {
                 dashboardState.value = false
                 navController.popBackStack(NavigationScreen.FlashScreen.route, true)
                 when (storageViewModel.getUserType()) {
-                    0 -> navController.navigate("admin")
-                    1 -> navController.navigate("student")
-                    2 -> navController.navigate("mentor")
+                    UserRole.Admin -> navController.navigate("admin")
+                    UserRole.Student-> navController.navigate("student/${loginCredential.username}")
+                    UserRole.Mentor -> navController.navigate("mentor/${loginCredential.username}")
                     else -> navController.navigate(NavigationScreen.LoginScreen.route)
                 }
+            }
+        }
+        LaunchedEffect(key1 = newsState.value) {
+            if(newsState.value){
+                newsState.value = false
+                navController.navigate("news/${loginCredential.userType.toString()}/${loginCredential.username}")
             }
         }
         NavHost(
@@ -227,9 +254,9 @@ class MainActivity : ComponentActivity() {
                 FlashScreen {
                     navController.popBackStack(NavigationScreen.FlashScreen.route, true)
                     when (loginCredential.userType) {
-                        0 -> navController.navigate("admin")
-                        1 -> navController.navigate("student/${loginCredential.username}")
-                        2 -> navController.navigate("mentor/${loginCredential.username}")
+                        UserRole.Admin -> navController.navigate("admin")
+                        UserRole.Student-> navController.navigate("student/${loginCredential.username}")
+                        UserRole.Mentor -> navController.navigate("mentor/${loginCredential.username}")
                         else -> navController.navigate(NavigationScreen.LoginScreen.route)
                     }
                 }
@@ -248,17 +275,17 @@ class MainActivity : ComponentActivity() {
                     navController.popBackStack(NavigationScreen.LoginScreen.route, true)
                     Log.d("userType", "User type is $userTypeSelected")
                     when (userTypeSelected) {
-                        0 -> {
+                        UserRole.Admin -> {
                             Log.d("userType", "in 0")
                             navController.navigate("admin")
                         }
 
-                        1 -> {
+                        UserRole.Student-> {
                             Log.d("loginSuccess","Passed username : ${loginViewModel.loginCredential.value.username}")
                             navController.navigate("student/${loginViewModel.loginCredential.value.username}")
                         }
 
-                        2 -> {
+                        UserRole.Mentor -> {
                             navController.navigate("mentor/${loginViewModel.loginCredential.value.username}")
                         }
 
@@ -288,6 +315,13 @@ class MainActivity : ComponentActivity() {
                 navController,
                 mentorViewModel,
                 titleState
+            )
+
+            newsGraph(
+                topBarState,
+                navController,
+                titleState,
+                newsViewModel
             )
         }
     }
