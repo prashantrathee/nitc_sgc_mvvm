@@ -30,6 +30,7 @@ class MentorRepo @Inject constructor() {
             val reference: DatabaseReference =
                 database.reference
                     .child("students")
+            Log.d("getStudent", "in getting studnet for mentor")
             reference.addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     try {
@@ -37,6 +38,7 @@ class MentorRepo @Inject constructor() {
                         if (student != null) {
                             if (!isResumed) {
                                 isResumed = true
+                                Log.d("getStudent", "got student : $student")
                                 continuation.resume(Either.Right(student))
                             }
                         } else {
@@ -113,7 +115,6 @@ class MentorRepo @Inject constructor() {
             }
         }
     }
-
 
 
     suspend fun updateProfile(
@@ -263,6 +264,7 @@ class MentorRepo @Inject constructor() {
             }
         }
     }
+
     suspend fun getTodayAppointments(
         username: String,
         today: String
@@ -270,16 +272,18 @@ class MentorRepo @Inject constructor() {
         return suspendCoroutine { continuation ->
             var database = FirebaseDatabase.getInstance()
             var isResumed = false
-            when(val mentorTypeEither = PathUtils.getMentorType(username)){
-                is Either.Left->{
-                    if(!isResumed){
+            when (val mentorTypeEither = PathUtils.getMentorType(username)) {
+                is Either.Left -> {
+                    if (!isResumed) {
                         isResumed = true
                         continuation.resume(Either.Left(mentorTypeEither.value.message!!))
                     }
                 }
-                is Either.Right->{
 
-                    var refString = "types/${mentorTypeEither.value}/${username}/appointments/${today}"
+                is Either.Right -> {
+
+                    var refString =
+                        "types/${mentorTypeEither.value}/${username}/appointments/${today}"
                     Log.d("refString", refString)
                     var reference = database.reference.child(refString)
                     reference.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -302,7 +306,10 @@ class MentorRepo @Inject constructor() {
                             Log.d("getAppointments", "Size : ${appointments.size}")
                             if (!isResumed) {
                                 isResumed = true
-                                Log.d("getAppointments","Appointments : ${sortedAppointments.size}")
+                                Log.d(
+                                    "getAppointments",
+                                    "Appointments : ${sortedAppointments.size}"
+                                )
                                 continuation.resume(Either.Right(sortedAppointments))
                             }
                         }
@@ -367,7 +374,7 @@ class MentorRepo @Inject constructor() {
     suspend fun getStudentRecord(
         mentorUsername: String,
         studentID: String
-    ): ArrayList<Appointment>? {
+    ): Either<String, ArrayList<Appointment>>? {
         return suspendCoroutine { continuation ->
             var isResumed = false
             var appointments = arrayListOf<Appointment>()
@@ -379,22 +386,31 @@ class MentorRepo @Inject constructor() {
             mentorReference.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     for (ds in snapshot.children) {
-                        var appointment = ds.getValue(Appointment::class.java)
-                        if (appointment != null) {
-                            if (appointment.mentorID != mentorUsername && appointment.completed) {
+                        try {
+                            val appointment = ds.getValue(Appointment::class.java)
+                            if (appointment!!.mentorID != mentorUsername) {
                                 appointments.add(appointment)
                             }
+                        }catch(excCasting:Exception){
+                            Log.d("getStudentRecord","Error in casting appointment")
+                            continue
                         }
                     }
                     val formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
                     val sortedAppointments =
                         appointments.sortedBy { LocalDate.parse(it.date, formatter) }
                             .toCollection(ArrayList<Appointment>())
-                    if (!isResumed) continuation.resume(sortedAppointments)
+                    if (!isResumed){
+                        isResumed = true
+                        continuation.resume(Either.Right(sortedAppointments))
+                    }
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    if (!isResumed) continuation.resume(null)
+                    if (!isResumed){
+                        isResumed = true
+                        continuation.resume(Either.Left("Error in database : $error"))
+                    }
                 }
 
             })

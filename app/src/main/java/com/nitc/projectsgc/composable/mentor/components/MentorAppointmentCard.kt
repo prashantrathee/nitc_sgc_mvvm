@@ -1,5 +1,6 @@
 package com.nitc.projectsgc.composable.mentor.components
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -7,6 +8,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -23,6 +25,9 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -34,61 +39,79 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import arrow.core.Either
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.composable.components.BasicButton
 import com.nitc.projectsgc.composable.components.SubHeadingText
+import com.nitc.projectsgc.composable.mentor.MentorViewModel
 import com.nitc.projectsgc.models.Appointment
 import com.nitc.projectsgc.models.Student
 
 
-@Preview
-@Composable
-fun MentorAppointmentCardPreview() {
-    MentorAppointmentCard(
-        appointment = Appointment(
-            date = "24/11/2111",
-            mentorID = "sakshi_health_2",
-            mentorName = "Sakshi",
-            studentID = "prashant_m210704ca",
-            status = "Booked",
-            remarks = "",
-            problemDescription = "This is the problem hsdfhs dfhsdf h",
-            rescheduled = false,
-            timeSlot = "4-5",
-            mentorType = "Success"
-        ),
-        student = Student(
-            "Phone",
-            "Name",
-            "Career",
-            "24/11/2311",
-            "email sdfsf",
-            "Male",
-            "password",
-            "248545345234"
-        ),
-        {},
-        {},
-        {},
-        {},
-    )
-}
+//@Preview
+//@Composable
+//fun MentorAppointmentCardPreview() {
+//    MentorAppointmentCard(
+//        appointment = Appointment(
+//            date = "24/11/2111",
+//            mentorID = "sakshi_health_2",
+//            mentorName = "Sakshi",
+//            studentID = "prashant_m210704ca",
+//            status = "Booked",
+//            remarks = "",
+//            problemDescription = "This is the problem hsdfhs dfhsdf h",
+//            rescheduled = false,
+//            timeSlot = "4-5",
+//            mentorType = "Success"
+//        ),
+//        studentRoll = "m210704ca",
+//        {},
+//        {},
+//        {},
+//    )
+//}
 
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MentorAppointmentCard(
     appointment: Appointment,
-    student: Student,
-    rescheduleCallback: () -> Unit,
+    mentorViewModel: MentorViewModel,
     completeCallback: () -> Unit,
     viewPastRecordCallback: () -> Unit,
     cancelCallback: () -> Unit,
 ) {
 
+    Log.d("getStudent", "in the mentor appointment card")
 
-    val optionsMenuState = remember {
-        mutableStateOf(false)
+    LaunchedEffect(Unit) {
+        mentorViewModel.getStudent(appointment.studentID)
+    }
+    val studentEitherState by mentorViewModel.student.collectAsState()
+
+    val studentState = remember {
+        mutableStateOf(Student())
+    }
+    when (val studentEither = studentEitherState) {
+        is Either.Left -> {
+            Log.d("getStudent", studentEither.value)
+        }
+
+        is Either.Right -> {
+            Log.d("getStudent", "Student either value = ${studentEither.value}")
+            studentState.value = studentEither.value
+            showMentorAppointmentCard(
+                appointment,
+                studentState.value,
+                completeCallback,
+                viewPastRecordCallback,
+                cancelCallback
+            )
+        }
+
+        null -> {
+
+        }
     }
 //    Surface(
 //        modifier = Modifier
@@ -101,6 +124,21 @@ fun MentorAppointmentCard(
 //            .background(colorResource(id = R.color.lavender))
 //    ) {
 
+}
+
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun showMentorAppointmentCard(
+    appointment: Appointment,
+    student: Student,
+    completeCallback: () -> Unit,
+    viewPastRecordCallback: () -> Unit,
+    cancelCallback: () -> Unit
+) {
+    val optionsMenuState = remember {
+        mutableStateOf(false)
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -113,7 +151,7 @@ fun MentorAppointmentCard(
         Card(
             modifier = Modifier
                 .background(colorResource(id = R.color.lavender))
-                .padding(5.dp)
+                .padding(horizontal = 5.dp, vertical = 10.dp)
                 .align(Alignment.TopCenter)
                 .combinedClickable(
                     onClick = {
@@ -132,7 +170,6 @@ fun MentorAppointmentCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .fillMaxHeight(0.3F)
                         .padding(top = 15.dp)
                         .background(Color.Transparent),
                     verticalAlignment = Alignment.Top,
@@ -140,7 +177,7 @@ fun MentorAppointmentCard(
                 ) {
                     Image(
                         modifier = Modifier
-                            .fillMaxHeight(0.85F)
+                            .height(70.dp)
                             .clip(RoundedCornerShape(50)),
                         painter = painterResource(id = R.drawable.boy_face),
                         contentDescription = "Mentor image"
@@ -151,7 +188,7 @@ fun MentorAppointmentCard(
                     ) {
                         Spacer(modifier = Modifier.size(5.dp))
                         SubHeadingText(
-                            text = appointment.studentName,
+                            text = student.name,
                             fontColor = Color.Black,
                             modifier = Modifier
                         )
@@ -202,7 +239,9 @@ fun MentorAppointmentCard(
                 }
 
                 Card(
-                    modifier = Modifier.padding(5.dp).fillMaxWidth(0.8F),
+                    modifier = Modifier
+                        .padding(5.dp)
+                        .fillMaxWidth(0.8F),
                     colors = CardDefaults.cardColors(
                         containerColor = Color.Magenta
                     )
@@ -282,15 +321,17 @@ fun MentorAppointmentCard(
             onDismissRequest = {
                 optionsMenuState.value = false
             }) {
-            DropdownMenuItem(text = {
-                SubHeadingText(text = "Reschedule", fontColor = Color.Black, modifier = Modifier)
-            }, onClick = {
-                optionsMenuState.value = false
-            })
 
             DropdownMenuItem(text = {
                 SubHeadingText(text = "Complete", fontColor = Color.Black, modifier = Modifier)
             }, onClick = {
+                completeCallback()
+                optionsMenuState.value = false
+            })
+            DropdownMenuItem(text = {
+                SubHeadingText(text = "Cancel", fontColor = Color.Black, modifier = Modifier)
+            }, onClick = {
+                cancelCallback()
                 optionsMenuState.value = false
             })
         }

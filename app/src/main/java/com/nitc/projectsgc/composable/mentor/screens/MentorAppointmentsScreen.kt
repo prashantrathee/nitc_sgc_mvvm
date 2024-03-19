@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -33,9 +34,10 @@ import androidx.compose.ui.unit.dp
 import arrow.core.Either
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.composable.components.DateDialog
-import com.nitc.projectsgc.composable.components.SimpleToast
+import com.nitc.projectsgc.composable.components.RemarkDialog
 import com.nitc.projectsgc.composable.mentor.MentorViewModel
 import com.nitc.projectsgc.composable.mentor.components.MentorAppointmentCard
+import com.nitc.projectsgc.composable.news.screens.showToast
 import com.nitc.projectsgc.models.Appointment
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -68,21 +70,57 @@ fun MentorAppointmentsScreen(
         )
     }
 
-    val studentEither = mentorViewModel.student.collectAsState().value
     val coroutineScope = rememberCoroutineScope()
     val appointmentsEither = mentorViewModel.appointments.collectAsState()
 
     val appointmentsState = remember {
         mutableStateOf(listOf<Appointment>())
     }
+    val completeAppointmentState = remember {
+        mutableStateOf<Appointment?>(null)
+    }
+    val completeState = remember {
+        mutableStateOf(false)
+    }
+
+    val cancelAppointmentState = remember {
+        mutableIntStateOf(-1)
+    }
+    LaunchedEffect(key1 = cancelAppointmentState.intValue) {
+        if(cancelAppointmentState.intValue != -1){
+            val cancelled = mentorViewModel.cancelAppointment(appointmentsState.value[cancelAppointmentState.intValue])
+            if(cancelled){
+                showToast("Cancelled appointment",myContext)
+            }else{
+                showToast("Could not cancel the appointment",myContext)
+            }
+            cancelAppointmentState.intValue = -1
+        }
+    }
+    LaunchedEffect(key1 = completeState.value) {
+        if(completeState.value && completeAppointmentState.value != null){
+            val completed = mentorViewModel.completeAppointment(completeAppointmentState.value!!)
+            if(completed){
+                showToast("Completed appointment",myContext)
+            }else{
+                showToast("Error in completing this appointment",myContext)
+            }
+            completeState.value = false
+            completeAppointmentState.value = null
+        }
+    }
 
     LaunchedEffect(appointmentsEither.value) {
         Log.d("mentorDashboard", "apointments changed")
         when (val appointmentsEitherState = appointmentsEither.value) {
             is Either.Right -> {
-                if(appointmentsEitherState.value.isEmpty()){
-                    Toast.makeText(myContext,"No appointments found for given date",Toast.LENGTH_SHORT).show()
-                }else{
+                if (appointmentsEitherState.value.isEmpty()) {
+                    Toast.makeText(
+                        myContext,
+                        "No appointments found for given date",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
                     appointmentsState.value = appointmentsEitherState.value
                     Log.d("mentorDashboard", "Appointments got")
                     isLoading.value = false
@@ -115,39 +153,20 @@ fun MentorAppointmentsScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             if (appointmentsState.value.isEmpty()) {
-
+                
             } else {
                 items(count = appointmentsState.value.size,
                     itemContent = { index ->
-                        mentorViewModel.getStudent(appointmentsState.value[index].studentID)
-                        when (studentEither) {
-                            is Either.Left -> {
-                                Log.d("getStudent", studentEither.value)
-                            }
-
-                            is Either.Right -> {
-                                MentorAppointmentCard(
-                                    appointment = appointmentsState.value!![index],
-                                    student = studentEither.value,
-                                    rescheduleCallback = {
-
-                                    },
-                                    completeCallback = {
-
-                                    },
-                                    viewPastRecordCallback = {
-                                        recordCallback(studentEither.value.rollNo)
-                                    },
-                                    cancelCallback = {
-
-                                    })
-                            }
-
-                            null -> {
-
-                            }
-                        }
-
+                        MentorAppointmentCard(
+                            appointment = appointmentsState.value[index],
+                            mentorViewModel = mentorViewModel,
+                            completeCallback = { completeAppointmentState.value = appointmentsState.value[index] },
+                            viewPastRecordCallback = {
+                                recordCallback(appointmentsState.value[index].studentID)
+                            },
+                            cancelCallback = {
+                                cancelAppointmentState.intValue = index
+                            })
                     })
             }
         }
@@ -187,6 +206,14 @@ fun MentorAppointmentsScreen(
             }
         }
 
+    }
+    if (completeAppointmentState.value != null && !completeState.value) {
+        RemarkDialog(value = "", closeDialog = {
+            completeAppointmentState.value = null
+        }) {remark->
+            completeAppointmentState.value = completeAppointmentState.value!!.copy(remarks = remark)
+            completeState.value = true
+        }
     }
 
 }

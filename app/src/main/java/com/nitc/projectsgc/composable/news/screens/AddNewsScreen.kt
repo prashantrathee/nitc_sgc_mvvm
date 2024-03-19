@@ -22,10 +22,15 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.composable.components.BasicButton
+import com.nitc.projectsgc.composable.components.BasicButtonWithEnabled
+import com.nitc.projectsgc.composable.components.BasicButtonWithState
 import com.nitc.projectsgc.composable.components.CardInputFieldWithValue
 import com.nitc.projectsgc.composable.news.NewsViewModel
 import com.nitc.projectsgc.composable.util.UserRole
 import com.nitc.projectsgc.models.News
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Preview
 @Composable
@@ -45,6 +50,7 @@ fun AddNewsScreen(
         mutableStateOf(
             News(
                 mentorID = mentorID,
+                publishDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
             )
         )
     }
@@ -63,12 +69,12 @@ fun AddNewsScreen(
             }else{
                 showToast("Could not add news",newsContext)
             }
+            submitState.value = false
         }
     }
 
     ModalBottomSheet(
         sheetState = rememberModalBottomSheetState(),
-        shape = RoundedCornerShape(25),
         containerColor = Color.White,
         modifier = Modifier.fillMaxWidth(),
         onDismissRequest = {
@@ -89,10 +95,12 @@ fun AddNewsScreen(
                 newsState.value = newsState.value.copy(news = newsInput)
             }
 
-            BasicButton(text = "Submit", colors = ButtonDefaults.buttonColors(
+            BasicButtonWithEnabled(
+                enabled = newsState.value.news.isNotEmpty(),
+                text = "Submit", colors = ButtonDefaults.buttonColors(
                 containerColor = colorResource(id = R.color.navy_blue)
             ), tc = Color.White, modifier = Modifier) {
-
+                    submitState.value = true
             }
         }
     }

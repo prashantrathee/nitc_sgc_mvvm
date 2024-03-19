@@ -25,7 +25,6 @@ import kotlinx.coroutines.launch
 fun MentorDashboardScreen(
     username: String,
     mentorViewModel: MentorViewModel,
-    navController: NavController,
     pastRecordCallback: (rollNo: String) -> Unit
 ) {
 

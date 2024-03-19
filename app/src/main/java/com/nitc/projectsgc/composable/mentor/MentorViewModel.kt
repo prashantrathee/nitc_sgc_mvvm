@@ -23,7 +23,9 @@ class MentorViewModel @Inject constructor(
 ) :ViewModel() {
 
 
-    private val _appointments = MutableStateFlow<Either<String,List<Appointment>>?>(null)
+    private val _appointments = MutableStateFlow<Either<String,List<Appointment>>?>(Either.Right(
+        emptyList()
+    ))
     val appointments: StateFlow<Either<String, List<Appointment>>?> = _appointments.asStateFlow()
 
 
@@ -54,6 +56,18 @@ class MentorViewModel @Inject constructor(
         }
     }
 
+    suspend fun cancelAppointment(appointment: Appointment):Boolean{
+        val cancelled = withContext(Dispatchers.Main){
+            mentorRepo.cancelAppointment(appointment)
+        }
+        return cancelled
+    }
+    suspend fun completeAppointment(appointment: Appointment):Boolean{
+        val completed = withContext(Dispatchers.Main){
+            mentorRepo.giveRemarks(appointment)
+        }
+        return completed
+    }
     suspend fun updateProfile(mentor: Mentor, oldPassword: String): Boolean {
         val updateSuccess = withContext(Dispatchers.Main) {
             Log.d("updateMentor", "In adminViewmodel")
@@ -77,5 +91,19 @@ class MentorViewModel @Inject constructor(
         }
     }
 
+
+    private val _pastRecord = MutableStateFlow<Either<String,List<Appointment>>?>(Either.Right(
+        emptyList()
+    ))
+    val pastRecord: StateFlow<Either<String, List<Appointment>>?> = _pastRecord.asStateFlow()
+
+    fun deleteStudentPastRecordValue(){
+        _pastRecord.value = null
+    }
+    fun getStudentPastRecord(username:String,rollNo: String){
+        viewModelScope.launch {
+            _pastRecord.value = mentorRepo.getStudentRecord(username, rollNo)
+        }
+    }
 
 }

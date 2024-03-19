@@ -53,12 +53,12 @@ import com.nitc.projectsgc.models.Appointment
 
 
 @Composable
-fun RemarkDialog(value: String, setShowDialog: (Boolean) -> Unit, setValue: (String) -> Unit) {
+fun RemarkDialog(value: String, closeDialog: () -> Unit, setValue: (String) -> Unit) {
 
     val txtFieldError = remember { mutableStateOf("") }
     val txtField = remember { mutableStateOf(value) }
 
-    Dialog(onDismissRequest = { setShowDialog(false) }) {
+    Dialog(onDismissRequest = { closeDialog() }) {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = Color.White,
@@ -90,7 +90,7 @@ fun RemarkDialog(value: String, setShowDialog: (Boolean) -> Unit, setValue: (Str
                             modifier = Modifier
                                 .width(30.dp)
                                 .height(30.dp)
-                                .clickable { setShowDialog(false) }
+                                .clickable { closeDialog() }
                         )
                     }
 
@@ -116,7 +116,7 @@ fun RemarkDialog(value: String, setShowDialog: (Boolean) -> Unit, setValue: (Str
                                 txtFieldError.value = "Field can not be empty"
                             } else {
                                 setValue(txtField.value)
-                                setShowDialog(false)
+                                closeDialog()
                             }
                         },
                         tc = Color.White,

@@ -17,7 +17,7 @@ class NewsViewModel @Inject constructor(
     private val newsRepo:NewsRepo
 ) : ViewModel(){
 
-    private val _news = MutableStateFlow<Either<String,List<News>>?>(null)
+    private val _news = MutableStateFlow<Either<String,List<News>>>(Either.Right(emptyList()))
     val news = _news.asStateFlow()
 
     fun getNews(){

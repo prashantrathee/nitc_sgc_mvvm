@@ -51,11 +51,11 @@ fun NewsScreen(
 
     val newsContext = LocalContext.current
 
-    val newsEitherState by newsViewModel.news.collectAsState()
 
     LaunchedEffect(Unit) {
         newsViewModel.getNews()
     }
+    val newsEitherState by newsViewModel.news.collectAsState()
 
     LaunchedEffect(key1 = newsEitherState) {
         when (val newsEither = newsEitherState) {
@@ -67,9 +67,6 @@ fun NewsScreen(
                 showToast(newsEither.value, newsContext)
             }
 
-            null -> {
-                showToast("Error in getting news", newsContext)
-            }
         }
     }
 
@@ -89,9 +86,6 @@ fun NewsScreen(
             deleteNewsState.value = null
         }
     }
-    val dropDownState = remember {
-        mutableStateOf(false)
-    }
     val addNewsState = remember {
         mutableStateOf(false)
     }
@@ -107,35 +101,21 @@ fun NewsScreen(
 
                     NewsCard(
                         date = newsListState.value[index].publishDate,
-                        mentorName = newsListState.value[index].mentorID.substring(
+                        mentorName = if (newsListState.value[index].mentorID.contains('_')) newsListState.value[index].mentorID.substring(
                             0,
-                            newsListState.value[index].mentorID.indexOfFirst { it == '_' }),
+                            newsListState.value[index].mentorID.indexOfFirst { it == '_' }).replaceFirstChar(Char::titlecase) else newsListState.value[index].mentorID.replaceFirstChar(Char::titlecase),
                         body = newsListState.value[index].news,
                         clickCallback = {
                             if (userType == UserRole.Admin || (userType == UserRole.Mentor && username == newsListState.value[index].mentorID)) {
-                                dropDownState.value = true
+                                deleteNewsState.value = newsListState.value[index].newsID
                             }
                         }
                     )
-                    DropdownMenu(expanded = dropDownState.value, onDismissRequest = {
-                        dropDownState.value = false
-                    }) {
-                        DropdownMenuItem(text = {
-                            SubHeadingText(
-                                text = "Delete",
-                                fontColor = Color.Black,
-                                modifier = Modifier
-                            )
-                        }, onClick = {
-                            deleteNewsState.value = newsListState.value[index].newsID
-                            dropDownState.value = false
-                        })
-                    }
                 }
 
             }
         }
-        if(userType != UserRole.Student) {
+        if (userType != UserRole.Student) {
 
             FloatingActionButton(
                 containerColor = colorResource(id = R.color.navy_blue),

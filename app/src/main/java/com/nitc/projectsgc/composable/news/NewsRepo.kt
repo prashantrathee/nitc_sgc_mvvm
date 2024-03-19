@@ -51,7 +51,7 @@ class NewsRepo @Inject constructor(){
     }
 
 
-    suspend fun getNews(): Either<String,ArrayList<News>>?{
+    suspend fun getNews(): Either<String,ArrayList<News>>{
         return suspendCoroutine { continuation ->
             var database = FirebaseDatabase.getInstance()
             var reference = database.reference.child("news")

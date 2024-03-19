@@ -230,6 +230,12 @@ class MainActivity : ComponentActivity() {
                 dashboardState.value = false
                 navController.popBackStack(NavigationScreen.FlashScreen.route, true)
                 when (storageViewModel.getUserType()) {
+                    UserRole.Admin -> navController.popBackStack("admin",inclusive = true)
+                    UserRole.Student-> navController.popBackStack("student/${loginCredential.username}",inclusive = true)
+                    UserRole.Mentor -> navController.popBackStack("mentor/${loginCredential.username}",inclusive = true)
+                    else -> navController.popBackStack(NavigationScreen.LoginScreen.route,inclusive = true)
+                }
+                when (storageViewModel.getUserType()) {
                     UserRole.Admin -> navController.navigate("admin")
                     UserRole.Student-> navController.navigate("student/${loginCredential.username}")
                     UserRole.Mentor -> navController.navigate("mentor/${loginCredential.username}")
@@ -240,6 +246,7 @@ class MainActivity : ComponentActivity() {
         LaunchedEffect(key1 = newsState.value) {
             if(newsState.value){
                 newsState.value = false
+                navController.popBackStack("news/${loginCredential.userType.toString()}/${loginCredential.username}",inclusive = true)
                 navController.navigate("news/${loginCredential.userType.toString()}/${loginCredential.username}")
             }
         }
