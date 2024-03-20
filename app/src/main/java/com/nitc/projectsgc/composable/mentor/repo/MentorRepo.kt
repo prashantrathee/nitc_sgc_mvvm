@@ -330,6 +330,8 @@ class MentorRepo @Inject constructor() {
 
     suspend fun cancelAppointment(appointment: Appointment): Boolean {
         return suspendCoroutine { continuation ->
+            appointment.cancelled = true
+            appointment.status = "Cancelled by Mentor"
             var database = FirebaseDatabase.getInstance()
             var refString =
                 "types/${appointment.mentorType}/${appointment.mentorID}/appointments/${appointment.date}/${appointment.timeSlot}"
@@ -420,6 +422,8 @@ class MentorRepo @Inject constructor() {
 
     suspend fun giveRemarks(appointment: Appointment): Boolean {
         return suspendCoroutine { continuation ->
+            appointment.status = "Completed"
+            appointment.completed = true
             var isResumed = false
             var database = FirebaseDatabase.getInstance()
             var refString = "students/${appointment.studentID}/appointments"

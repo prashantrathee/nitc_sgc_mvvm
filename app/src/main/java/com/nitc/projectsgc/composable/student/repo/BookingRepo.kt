@@ -105,6 +105,8 @@ class BookingRepo @Inject constructor() {
 
     suspend fun cancelAppointment(appointment: Appointment): Boolean {
         return suspendCoroutine { continuation ->
+            appointment.cancelled = true
+            appointment.status = "Cancelled by Student"
             var isResumed = false
             var database = FirebaseDatabase.getInstance()
             var studentReference =

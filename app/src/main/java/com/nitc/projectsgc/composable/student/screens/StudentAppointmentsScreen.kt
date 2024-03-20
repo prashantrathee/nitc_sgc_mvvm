@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -63,25 +64,41 @@ fun StudentAppointmentsScreen(
         mutableStateOf<Appointment?>(null)
     }
     val coroutineScope = rememberCoroutineScope()
-    val appointmentsEither = studentViewModel.appointments.collectAsState()
+    val appointmentsEitherState by studentViewModel.appointments.collectAsState()
 
     val appointmentsState = remember {
         mutableStateOf(listOf<Appointment>())
     }
 
-    LaunchedEffect(appointmentsEither.value) {
+    val cancelState = remember {
+        mutableStateOf<Appointment?>(null)
+    }
+    LaunchedEffect(cancelState.value) {
+        if (cancelState.value != null) {
+            val cancelled = studentViewModel.cancelAppointment(cancelState.value!!)
+            if (cancelled) {
+                showToast("Cancelled appointment", myContext)
+            } else {
+                showToast("Could not cancel the appointment", myContext)
+            }
+            cancelState.value = null
+            studentViewModel.getAppointments(rollNo)
+        }
+    }
+
+    LaunchedEffect(appointmentsEitherState) {
         Log.d("studentDashboard", "apointments changed")
-        when (val appointmentsEitherState = appointmentsEither.value) {
+        when (val appointmentsEither = appointmentsEitherState) {
             is Either.Right -> {
                 Log.d("studentDashboard", "apointments state something")
-                if (appointmentsEitherState.value.isEmpty()) {
+                if (appointmentsEither.value.isEmpty()) {
                     Toast.makeText(
                         myContext,
                         "No appointments found",
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
-                    appointmentsState.value = appointmentsEitherState.value
+                    appointmentsState.value = appointmentsEither.value
                     Log.d("studentDashboard", "Appointments got")
                 }
                 isLoading.value = false
@@ -90,7 +107,7 @@ fun StudentAppointmentsScreen(
             is Either.Left -> {
                 Toast.makeText(
                     myContext,
-                    (appointmentsEitherState.value),
+                    (appointmentsEither.value),
                     Toast.LENGTH_SHORT
                 ).show()
                 isLoading.value = false
@@ -136,7 +153,7 @@ fun StudentAppointmentsScreen(
                                 reschedulingState.value = appointmentsState.value[index]
                             },
                             cancelCallback = {
-
+                                cancelState.value = appointmentsState.value[index]
                             })
                     })
             }

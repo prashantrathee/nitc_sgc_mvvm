@@ -125,6 +125,39 @@ fun CardInputFieldWithValue(
     }
 }
 @Composable
+fun CardFieldWithValue(
+    hint: String,
+    text:String,
+    modifier: Modifier,
+) {
+    BasicCard(15, 3, 0, 7,CardDefaults.cardColors(
+        containerColor = Color.White,
+        contentColor = Color.White
+    )) {
+        TextField(
+            modifier = modifier,
+            value = text,
+            shape = RoundedCornerShape(25.dp),
+            enabled = false,
+            onValueChange = {
+            },
+            label = {
+                Text(text = hint, modifier = Modifier, color = Color.Black)
+            },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                disabledContainerColor = Color.White,
+                unfocusedTextColor = Color.Black,
+                focusedTextColor = Color.Black,
+                unfocusedLabelColor = Color.Black,
+                focusedLabelColor = Color.Black,
+                disabledTextColor = Color.Black
+            )
+        )
+    }
+}
+@Composable
 fun BasicInputFieldWithColors(
     hint: String,
     isPassword: Boolean,

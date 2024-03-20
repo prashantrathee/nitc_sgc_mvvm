@@ -53,10 +53,12 @@ import com.nitc.projectsgc.models.Appointment
 
 
 @Composable
-fun RemarkDialog(value: String, closeDialog: () -> Unit, setValue: (String) -> Unit) {
+fun RemarkDialog(value: String, closeDialog: () -> Unit, giveRemark: (String) -> Unit) {
 
     val txtFieldError = remember { mutableStateOf("") }
     val txtField = remember { mutableStateOf(value) }
+
+    val dialogContext = LocalContext.current
 
     Dialog(onDismissRequest = { closeDialog() }) {
         Surface(
@@ -102,8 +104,8 @@ fun RemarkDialog(value: String, closeDialog: () -> Unit, setValue: (String) -> U
                         hint = "Remarks",
                         isPassword = false,
                         text = "",
-                        onValueChanged = {
-
+                        onValueChanged = {remarkInput->
+                            txtField.value = remarkInput
                         }
                     )
 
@@ -114,9 +116,9 @@ fun RemarkDialog(value: String, closeDialog: () -> Unit, setValue: (String) -> U
                         clickCallback = {
                             if (txtField.value.isEmpty()) {
                                 txtFieldError.value = "Field can not be empty"
+                                showToast("Give some remark", dialogContext)
                             } else {
-                                setValue(txtField.value)
-                                closeDialog()
+                                giveRemark(txtField.value)
                             }
                         },
                         tc = Color.White,

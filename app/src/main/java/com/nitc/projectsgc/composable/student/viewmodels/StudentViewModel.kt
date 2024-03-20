@@ -37,6 +37,11 @@ class StudentViewModel @Inject constructor(
         }
     }
 
+    suspend fun cancelAppointment(appointment: Appointment):Boolean{
+        return withContext(Dispatchers.Main){
+            bookingRepo.cancelAppointment(appointment)
+        }
+    }
     suspend fun updateProfile(student: Student, oldPassword: String): Boolean {
         val updateSuccess = withContext(Dispatchers.Main) {
             Log.d("updateProfile", "In adminViewmodel")

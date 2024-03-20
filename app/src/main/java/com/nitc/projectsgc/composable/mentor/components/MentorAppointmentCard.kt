@@ -8,17 +8,13 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -31,17 +27,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arrow.core.Either
 import com.nitc.projectsgc.R
-import com.nitc.projectsgc.composable.components.BasicButton
+import com.nitc.projectsgc.composable.components.NormalText
 import com.nitc.projectsgc.composable.components.SubHeadingText
 import com.nitc.projectsgc.composable.mentor.MentorViewModel
 import com.nitc.projectsgc.models.Appointment
@@ -100,7 +96,7 @@ fun MentorAppointmentCard(
         is Either.Right -> {
             Log.d("getStudent", "Student either value = ${studentEither.value}")
             studentState.value = studentEither.value
-            showMentorAppointmentCard(
+            ShowMentorAppointmentCard(
                 appointment,
                 studentState.value,
                 completeCallback,
@@ -127,9 +123,9 @@ fun MentorAppointmentCard(
 }
 
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
-fun showMentorAppointmentCard(
+fun ShowMentorAppointmentCard(
     appointment: Appointment,
     student: Student,
     completeCallback: () -> Unit,
@@ -139,28 +135,44 @@ fun showMentorAppointmentCard(
     val optionsMenuState = remember {
         mutableStateOf(false)
     }
-    Box(
+//    var pointerOffset = Offset.Zero
+//
+//
+//    val cardHeight = remember {
+//        mutableStateOf(0)
+//    }
+//    val cardWidth = remember {
+//        mutableStateOf(0)
+//    }
+    Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(5.dp)
-            .clip(
-                RoundedCornerShape(10)
+//            .onSizeChanged {size->
+//                cardHeight.value = size.height
+//                cardWidth.value = size.width
+//            }
+            .combinedClickable(
+                onClick = {
+                },
+                onLongClick = {
+                    optionsMenuState.value = true
+                }
             )
-            .background(colorResource(id = R.color.lavender))
+//            .pointerInteropFilter {
+//                pointerOffset = Offset(it.x, it.y)
+////                Log.d("pointerOffset","x = ${it.x} and y = ${it.y}")
+//                false
+//            }
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.lavender)),
+        shape = RoundedCornerShape(10)
     ) {
-        Card(
+
+        Box(
+            contentAlignment = Alignment.TopStart,
             modifier = Modifier
-                .background(colorResource(id = R.color.lavender))
-                .padding(horizontal = 5.dp, vertical = 10.dp)
-                .align(Alignment.TopCenter)
-                .combinedClickable(
-                    onClick = {
-                    },
-                    onLongClick = {
-                        optionsMenuState.value = true
-                    }
-                )
                 .fillMaxWidth()
+                .padding(5.dp)
+                .background(colorResource(id = R.color.lavender))
         ) {
             Column(
                 modifier = Modifier
@@ -210,16 +222,15 @@ fun showMentorAppointmentCard(
                         Spacer(modifier = Modifier.size(5.dp))
                         Row {
 
-                            SubHeadingText(
+                            NormalText(
                                 text = "DOB : ",
                                 fontColor = Color.Black,
                                 modifier = Modifier
                             )
 
-                            Text(
+                            NormalText(
                                 text = student.dateOfBirth,
-                                color = Color.Black,
-                                fontSize = 16.sp,
+                                fontColor = Color.Black,
                                 modifier = Modifier
                             )
                         }
@@ -243,12 +254,12 @@ fun showMentorAppointmentCard(
                         .padding(5.dp)
                         .fillMaxWidth(0.8F),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color.Magenta
+                        containerColor = colorResource(id = R.color.light_gray)
                     )
                 ) {
                     SubHeadingText(
-                        text = appointment.problemDescription!!,
-                        fontColor = Color.White,
+                        text = appointment.problemDescription,
+                        fontColor = Color.Black,
                         modifier = Modifier.padding(15.dp)
                     )
                 }
@@ -258,7 +269,7 @@ fun showMentorAppointmentCard(
                     colors = CardDefaults.cardColors(
                         containerColor = colorResource(id = R.color.ivory)
                     ),
-                    elevation = CardDefaults.cardElevation(2.dp),
+                    elevation = CardDefaults.cardElevation(1.dp),
                     shape = RoundedCornerShape(40),
                 ) {
                     SubHeadingText(
@@ -270,70 +281,48 @@ fun showMentorAppointmentCard(
                     )
                 }
 
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = colorResource(id = R.color.purple_700)
-                        ),
-                        modifier = Modifier.padding(2.dp),
-                        shape = RoundedCornerShape(25),
-                        elevation = ButtonDefaults.buttonElevation(3.dp),
-                        onClick = {
-                            viewPastRecordCallback()
-                        }
-                    ) {
+            }
+            DropdownMenu(
+                modifier = Modifier.background(Color.White),
+//                offset = DpOffset((pointerOffset.x % cardWidth.value).dp, (pointerOffset.y % cardHeight.value).dp),
+                expanded = optionsMenuState.value,
+                onDismissRequest = {
+                    optionsMenuState.value = false
+                }) {
+                DropdownMenuItem(text = {
+                    SubHeadingText(
+                        text = "View Past Record",
+                        fontColor = Color.Black,
+                        modifier = Modifier
+                    )
+                }, onClick = {
+                    viewPastRecordCallback()
+                    optionsMenuState.value = false
+                })
+                if (!appointment.cancelled && !appointment.completed) {
+                    DropdownMenuItem(text = {
                         SubHeadingText(
-                            text = "View Past Record",
-                            fontColor = Color.White,
+                            text = "Complete",
+                            fontColor = Color.Black,
                             modifier = Modifier
                         )
-                    }
-
-                    Button(
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = colorResource(id = R.color.light_gray)
-                        ),
-                        shape = RoundedCornerShape(25),
-                        modifier = Modifier.padding(2.dp),
-                        elevation = ButtonDefaults.buttonElevation(3.dp),
-                        onClick = {
-                            cancelCallback()
-                        }
-                    ) {
+                    }, onClick = {
+                        completeCallback()
+                        optionsMenuState.value = false
+                    })
+                    DropdownMenuItem(text = {
                         SubHeadingText(
                             text = "Cancel",
                             fontColor = Color.Black,
                             modifier = Modifier
                         )
-                    }
+                    }, onClick = {
+                        cancelCallback()
+                        optionsMenuState.value = false
+                    })
                 }
             }
         }
 
-        DropdownMenu(
-            expanded = optionsMenuState.value,
-            onDismissRequest = {
-                optionsMenuState.value = false
-            }) {
-
-            DropdownMenuItem(text = {
-                SubHeadingText(text = "Complete", fontColor = Color.Black, modifier = Modifier)
-            }, onClick = {
-                completeCallback()
-                optionsMenuState.value = false
-            })
-            DropdownMenuItem(text = {
-                SubHeadingText(text = "Cancel", fontColor = Color.Black, modifier = Modifier)
-            }, onClick = {
-                cancelCallback()
-                optionsMenuState.value = false
-            })
-        }
     }
 }

@@ -38,6 +38,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nitc.projectsgc.R
+import com.nitc.projectsgc.composable.components.CardFieldWithValue
+import com.nitc.projectsgc.composable.components.CardInputFieldWithValue
 import com.nitc.projectsgc.composable.components.ClickableCard
 import com.nitc.projectsgc.composable.components.HeadingText
 import com.nitc.projectsgc.composable.components.NormalText
@@ -56,7 +58,7 @@ fun BookedAppointmentCardPreview() {
             studentID = "prashant_m210704ca",
             studentName = "Prashant",
             status = "Booked",
-            remarks = "",
+            remarks = "ahsdfl haskldfh lkashdfl ahskldfhasl hdflkahsd lfkjhasaskhfd lksahdflk ahsl",
             rescheduled = false,
             timeSlot = "4-5",
             mentorType = "Success"
@@ -86,32 +88,31 @@ fun BookedAppointmentCard(
 //            .clip(
 //                RoundedCornerShape(15)
 //            )
-//            .height(intrinsicSize = IntrinsicSize.Min)
-//            .background(colorResource(id = R.color.lavender))
-//    ) {
-
-    Box(
+    Card(
         modifier = Modifier
-            .fillMaxWidth()
             .padding(5.dp)
-            .clip(
-                RoundedCornerShape(15)
+            .combinedClickable(
+                onClick = {
+                },
+                onLongClick = {
+                    optionsMenuState.value = true
+                }
             )
-            .background(colorResource(id = R.color.lavender))
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(10),
+        colors = CardDefaults.cardColors(
+            containerColor = colorResource(id = R.color.lavender)
+        )
     ) {
-        Card(
+
+        Box(
             modifier = Modifier
-                .background(colorResource(id = R.color.lavender))
-                .padding(5.dp)
-                .align(Alignment.TopCenter)
-                .combinedClickable(
-                    onClick = {
-                    },
-                    onLongClick = {
-                        optionsMenuState.value = true
-                    }
-                )
                 .fillMaxWidth()
+                .padding(5.dp)
+                .clip(
+                    RoundedCornerShape(15)
+                )
+                .background(colorResource(id = R.color.lavender))
         ) {
             Column(
                 modifier = Modifier
@@ -208,30 +209,53 @@ fun BookedAppointmentCard(
                             .align(Alignment.CenterHorizontally)
                     )
                 }
+                if (appointment.completed) {
+                    CardFieldWithValue(
+                        hint = "Remarks",
+                        text = appointment.remarks,
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp)
+                            .fillMaxWidth(0.85F)
+                    )
+                }
+            }
+
+            if (!appointment.completed && !appointment.cancelled) {
+
+                DropdownMenu(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .background(Color.White),
+                    expanded = optionsMenuState.value,
+                    onDismissRequest = {
+                        optionsMenuState.value = false
+                    }) {
+                    DropdownMenuItem(text = {
+                        NormalText(
+                            text = "Reschedule",
+                            fontColor = Color.Black,
+                            modifier = Modifier
+                        )
+                    }, onClick = {
+                        rescheduleCallback()
+                        optionsMenuState.value = false
+                    }
+                    )
+                    DropdownMenuItem(text = {
+                        NormalText(text = "Cancel", fontColor = Color.Black, modifier = Modifier)
+                    }, onClick = {
+                        cancelCallback()
+                        optionsMenuState.value = false
+                    }
+                    )
+                }
             }
         }
 
-        DropdownMenu(
-            modifier = Modifier.align(Alignment.TopCenter).background(Color.White),
-            expanded = optionsMenuState.value,
-            onDismissRequest = {
-                optionsMenuState.value = false
-            }) {
-            DropdownMenuItem(text = {
-                NormalText(text = "Reschedule", fontColor = Color.Black, modifier = Modifier)
-            }, onClick = {
-                rescheduleCallback()
-                optionsMenuState.value = false
-            }
-            )
-            DropdownMenuItem(text = {
-                NormalText(text = "Cancel", fontColor = Color.Black, modifier = Modifier)
-            }, onClick = {
-                cancelCallback()
-                optionsMenuState.value = false
-            }
-            )
-        }
     }
+//            .height(intrinsicSize = IntrinsicSize.Min)
+//            .background(colorResource(id = R.color.lavender))
+//    ) {
+
 
 }

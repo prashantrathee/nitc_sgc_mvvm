@@ -3,8 +3,10 @@ package com.nitc.projectsgc.composable.mentor.screens
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -87,26 +89,30 @@ fun MentorAppointmentsScreen(
         mutableIntStateOf(-1)
     }
     LaunchedEffect(key1 = cancelAppointmentState.intValue) {
-        if(cancelAppointmentState.intValue != -1){
-            val cancelled = mentorViewModel.cancelAppointment(appointmentsState.value[cancelAppointmentState.intValue])
-            if(cancelled){
-                showToast("Cancelled appointment",myContext)
-            }else{
-                showToast("Could not cancel the appointment",myContext)
+        if (cancelAppointmentState.intValue != -1) {
+            val cancelled =
+                mentorViewModel.cancelAppointment(appointmentsState.value[cancelAppointmentState.intValue])
+            if (cancelled) {
+                showToast("Cancelled appointment", myContext)
+            } else {
+                showToast("Could not cancel the appointment", myContext)
             }
             cancelAppointmentState.intValue = -1
+            mentorViewModel.getMentorAppointments(username, dateState.value)
         }
     }
     LaunchedEffect(key1 = completeState.value) {
-        if(completeState.value && completeAppointmentState.value != null){
+        Log.d("completeAppointment","Calling method with value ${completeAppointmentState.value}")
+        if (completeState.value && completeAppointmentState.value != null) {
             val completed = mentorViewModel.completeAppointment(completeAppointmentState.value!!)
-            if(completed){
-                showToast("Completed appointment",myContext)
-            }else{
-                showToast("Error in completing this appointment",myContext)
+            if (completed) {
+                showToast("Completed appointment", myContext)
+            } else {
+                showToast("Error in completing this appointment", myContext)
             }
             completeState.value = false
             completeAppointmentState.value = null
+            mentorViewModel.getMentorAppointments(username, dateState.value)
         }
     }
 
@@ -150,25 +156,25 @@ fun MentorAppointmentsScreen(
         if (isLoading.value) CircularProgressIndicator(Modifier.fillMaxSize())
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            if (appointmentsState.value.isEmpty()) {
-                
-            } else {
-                items(count = appointmentsState.value.size,
-                    itemContent = { index ->
-                        MentorAppointmentCard(
-                            appointment = appointmentsState.value[index],
-                            mentorViewModel = mentorViewModel,
-                            completeCallback = { completeAppointmentState.value = appointmentsState.value[index] },
-                            viewPastRecordCallback = {
-                                recordCallback(appointmentsState.value[index].studentID)
-                            },
-                            cancelCallback = {
-                                cancelAppointmentState.intValue = index
-                            })
-                    })
-            }
+            items(count = appointmentsState.value.size,
+                itemContent = { index ->
+                    MentorAppointmentCard(
+                        appointment = appointmentsState.value[index],
+                        mentorViewModel = mentorViewModel,
+                        completeCallback = {
+                            completeAppointmentState.value = appointmentsState.value[index]
+                        },
+                        viewPastRecordCallback = {
+                            recordCallback(appointmentsState.value[index].studentID)
+                        },
+                        cancelCallback = {
+                            cancelAppointmentState.intValue = index
+                        })
+                })
         }
 
         FloatingActionButton(
@@ -210,9 +216,10 @@ fun MentorAppointmentsScreen(
     if (completeAppointmentState.value != null && !completeState.value) {
         RemarkDialog(value = "", closeDialog = {
             completeAppointmentState.value = null
-        }) {remark->
+        }) { remark ->
             completeAppointmentState.value = completeAppointmentState.value!!.copy(remarks = remark)
             completeState.value = true
+            Log.d("completeAppointment","Setting it to true")
         }
     }
 

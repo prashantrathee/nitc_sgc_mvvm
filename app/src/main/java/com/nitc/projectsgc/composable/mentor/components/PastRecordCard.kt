@@ -26,6 +26,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.nitc.projectsgc.R
+import com.nitc.projectsgc.composable.components.CardFieldWithValue
 import com.nitc.projectsgc.composable.components.NormalText
 import com.nitc.projectsgc.models.Appointment
 
@@ -127,6 +128,7 @@ fun PastRecordCard(
                                 modifier = Modifier
                             )
                         }
+
                     }
                 }
                 Card(
@@ -143,6 +145,14 @@ fun PastRecordCard(
                         modifier = Modifier
                             .padding(20.dp)
                             .align(Alignment.CenterHorizontally)
+                    )
+                }
+
+                if (appointment.completed) {
+                    CardFieldWithValue(
+                        hint = "Remarks",
+                        text = appointment.remarks,
+                        modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(0.85F)
                     )
                 }
             }
