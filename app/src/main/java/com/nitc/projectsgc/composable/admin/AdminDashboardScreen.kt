@@ -40,7 +40,7 @@ fun AdminDashboardScreen(
     addStudentCallback: () -> Unit,
     addMentorCallback: () -> Unit
 ) {
-    Log.d("adminDashboard","Inside the admin dashboard screen")
+    Log.d("adminDashboard", "Inside the admin dashboard screen")
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -71,7 +71,7 @@ fun AdminDashboardScreen(
                 1 -> {
                     GetMentors(mentorListViewModel,
                         viewMentorCallback = {
-                            Log.d("viewMentor","Getting username : $it")
+                            Log.d("viewMentor", "Getting username : $it")
                             viewMentorCallback(it)
                         },
                         backCallback = {
@@ -158,9 +158,11 @@ fun GetMentors(
                 count = mentors.value.size,
                 itemContent = { index: Int ->
                     val mentor = mentors.value[index]
-                    MentorCard(mentor = mentor, deleteCallback = {
-                        mentorListViewModel.deleteMentor(myContext, mentor.userName)
-                    },
+                    MentorCard(
+                        mentor = mentor,
+                        deleteCallback = {
+                            mentorListViewModel.deleteMentor(myContext, mentor.userName)
+                        },
                         clickCallback = {
                             viewMentorCallback(mentor.userName)
                         },

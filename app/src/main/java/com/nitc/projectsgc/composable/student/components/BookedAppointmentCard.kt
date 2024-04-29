@@ -32,7 +32,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -77,6 +79,13 @@ fun BookedAppointmentCard(
     cancelCallback: () -> Unit
 ) {
 
+    val density = LocalDensity.current
+    val normalPadding = with(density) { dimensionResource(id = R.dimen.normal_padding) }
+    val smallPadding = with(density) { dimensionResource(id = R.dimen.small_padding) }
+    val spacerTopNormal = with(density) { dimensionResource(id = R.dimen.spacer_top_normal) }
+    val spacerTopSmall = with(density) { dimensionResource(id = R.dimen.spacer_top_small) }
+    val imageSize = with(density) { dimensionResource(id = R.dimen.card_image_size) }
+    val appointmentCardHeight = with(density) { dimensionResource(id = R.dimen.appointment_card_height) }
 
     val optionsMenuState = remember {
         mutableStateOf(false)
@@ -90,7 +99,7 @@ fun BookedAppointmentCard(
 //            )
     Card(
         modifier = Modifier
-            .padding(5.dp)
+            .padding(smallPadding)
             .combinedClickable(
                 onClick = {
                 },
@@ -108,7 +117,7 @@ fun BookedAppointmentCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(5.dp)
+                .padding(smallPadding)
                 .clip(
                     RoundedCornerShape(15)
                 )
@@ -122,8 +131,8 @@ fun BookedAppointmentCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(130.dp)
-                        .padding(top = 5.dp)
+                        .height(appointmentCardHeight)
+                        .padding(top = smallPadding)
                         .background(Color.Transparent),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -135,7 +144,7 @@ fun BookedAppointmentCard(
                         painter = painterResource(id = R.drawable.boy_face),
                         contentDescription = "Mentor image"
                     )
-                    Spacer(modifier = Modifier.size(15.dp))
+                    Spacer(modifier = Modifier.size(normalPadding))
                     Column(
                         modifier = Modifier.fillMaxHeight(),
                         verticalArrangement = Arrangement.SpaceEvenly,
@@ -146,7 +155,7 @@ fun BookedAppointmentCard(
                             fontColor = Color.Black,
                             modifier = Modifier
                         )
-//                        Spacer(modifier = Modifier.size(15.dp))
+//                        Spacer(modifier = Modifier.size(normalPadding))
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -155,7 +164,7 @@ fun BookedAppointmentCard(
                                 fontColor = Color.Black,
                                 modifier = Modifier
                             )
-                            Spacer(modifier = Modifier.size(5.dp))
+                            Spacer(modifier = Modifier.size(smallPadding))
                             NormalText(
                                 text = appointment.timeSlot,
                                 fontColor = Color.Black,
@@ -163,7 +172,7 @@ fun BookedAppointmentCard(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.size(15.dp))
+                    Spacer(modifier = Modifier.size(normalPadding))
                     Column(
                         modifier = Modifier.fillMaxHeight(),
                         verticalArrangement = Arrangement.SpaceEvenly,
@@ -175,7 +184,7 @@ fun BookedAppointmentCard(
                             color = Color.Black,
                             modifier = Modifier
                         )
-//                        Spacer(modifier = Modifier.size(15.dp))
+//                        Spacer(modifier = Modifier.size(normalPadding))
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -184,7 +193,7 @@ fun BookedAppointmentCard(
                                 fontColor = Color.Black,
                                 modifier = Modifier
                             )
-                            Spacer(modifier = Modifier.size(5.dp))
+                            Spacer(modifier = Modifier.size(smallPadding))
                             Text(
                                 text = appointment.mentorType,
                                 color = Color.Black,
@@ -194,7 +203,7 @@ fun BookedAppointmentCard(
                     }
                 }
                 Card(
-                    modifier = Modifier.padding(5.dp),
+                    modifier = Modifier.padding(smallPadding),
                     colors = CardDefaults.cardColors(
                         containerColor = colorResource(id = R.color.ivory)
                     ),
@@ -205,7 +214,7 @@ fun BookedAppointmentCard(
                         text = appointment.status,
                         fontColor = Color.Black,
                         modifier = Modifier
-                            .padding(20.dp)
+                            .padding(normalPadding)
                             .align(Alignment.CenterHorizontally)
                     )
                 }
@@ -214,7 +223,7 @@ fun BookedAppointmentCard(
                         hint = "Remarks",
                         text = appointment.remarks,
                         modifier = Modifier
-                            .padding(horizontal = 10.dp)
+                            .padding(horizontal = smallPadding)
                             .fillMaxWidth(0.85F)
                     )
                 }

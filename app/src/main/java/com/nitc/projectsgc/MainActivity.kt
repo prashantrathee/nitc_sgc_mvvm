@@ -2,7 +2,6 @@ package com.nitc.projectsgc
 
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -31,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -39,12 +39,8 @@ import com.nitc.projectsgc.composable.admin.viewmodels.AdminViewModel
 import com.nitc.projectsgc.composable.admin.viewmodels.MentorListViewModel
 import com.nitc.projectsgc.composable.admin.viewmodels.StudentListViewModel
 import com.nitc.projectsgc.composable.components.HeadingText
-import com.nitc.projectsgc.composable.components.SimpleSnackBar
-import com.nitc.projectsgc.composable.components.SimpleToast
 import com.nitc.projectsgc.composable.components.SubHeadingText
-import com.nitc.projectsgc.composable.login.LoginCredential
 import com.nitc.projectsgc.composable.login.LoginScreen
-import com.nitc.projectsgc.composable.util.storage.StorageManagerImpl
 import com.nitc.projectsgc.composable.login.LoginViewModel
 import com.nitc.projectsgc.composable.mentor.MentorViewModel
 import com.nitc.projectsgc.composable.navigation.NavigationScreen
@@ -63,7 +59,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     lateinit var binding: ActivityMainBinding
-    val sharedViewModel: SharedViewModel by viewModels()
+    private val sharedViewModel: SharedViewModel by viewModels()
     private val adminViewModel: AdminViewModel by viewModels()
     private val studentListViewModel: StudentListViewModel by viewModels()
     private val mentorListViewModel: MentorListViewModel by viewModels()
@@ -78,7 +74,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
 //            val titleStateHolder = TitleStateHolder(initialTitle = "Login")
-            AllContent()
+                AllContent()
 
         }
 
@@ -200,7 +196,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .padding(paddingValues)
                 ) {
-                    AllNavigation(titleState, topBarState, dashboardState, newsState,logoutState)
+                    AllNavigation(titleState, topBarState, dashboardState, newsState, logoutState)
                 }
             }
         )
@@ -213,7 +209,7 @@ class MainActivity : ComponentActivity() {
         titleState: MutableState<String>,
         topBarState: MutableState<Boolean>,
         dashboardState: MutableState<Boolean>,
-        newsState:MutableState<Boolean>,
+        newsState: MutableState<Boolean>,
         logoutState: MutableState<Boolean>
     ) {
         Log.d("inLogin", "Herehreheh")
@@ -230,23 +226,37 @@ class MainActivity : ComponentActivity() {
                 dashboardState.value = false
                 navController.popBackStack(NavigationScreen.FlashScreen.route, true)
                 when (storageViewModel.getUserType()) {
-                    UserRole.Admin -> navController.popBackStack("admin",inclusive = true)
-                    UserRole.Student-> navController.popBackStack("student/${loginCredential.username}",inclusive = true)
-                    UserRole.Mentor -> navController.popBackStack("mentor/${loginCredential.username}",inclusive = true)
-                    else -> navController.popBackStack(NavigationScreen.LoginScreen.route,inclusive = true)
+                    UserRole.Admin -> navController.popBackStack("admin", inclusive = true)
+                    UserRole.Student -> navController.popBackStack(
+                        "student/${loginCredential.username}",
+                        inclusive = true
+                    )
+
+                    UserRole.Mentor -> navController.popBackStack(
+                        "mentor/${loginCredential.username}",
+                        inclusive = true
+                    )
+
+                    else -> navController.popBackStack(
+                        NavigationScreen.LoginScreen.route,
+                        inclusive = true
+                    )
                 }
                 when (storageViewModel.getUserType()) {
                     UserRole.Admin -> navController.navigate("admin")
-                    UserRole.Student-> navController.navigate("student/${loginCredential.username}")
+                    UserRole.Student -> navController.navigate("student/${loginCredential.username}")
                     UserRole.Mentor -> navController.navigate("mentor/${loginCredential.username}")
                     else -> navController.navigate(NavigationScreen.LoginScreen.route)
                 }
             }
         }
         LaunchedEffect(key1 = newsState.value) {
-            if(newsState.value){
+            if (newsState.value) {
                 newsState.value = false
-                navController.popBackStack("news/${loginCredential.userType.toString()}/${loginCredential.username}",inclusive = true)
+                navController.popBackStack(
+                    "news/${loginCredential.userType.toString()}/${loginCredential.username}",
+                    inclusive = true
+                )
                 navController.navigate("news/${loginCredential.userType.toString()}/${loginCredential.username}")
             }
         }
@@ -262,7 +272,7 @@ class MainActivity : ComponentActivity() {
                     navController.popBackStack(NavigationScreen.FlashScreen.route, true)
                     when (loginCredential.userType) {
                         UserRole.Admin -> navController.navigate("admin")
-                        UserRole.Student-> navController.navigate("student/${loginCredential.username}")
+                        UserRole.Student -> navController.navigate("student/${loginCredential.username}")
                         UserRole.Mentor -> navController.navigate("mentor/${loginCredential.username}")
                         else -> navController.navigate(NavigationScreen.LoginScreen.route)
                     }
@@ -287,8 +297,11 @@ class MainActivity : ComponentActivity() {
                             navController.navigate("admin")
                         }
 
-                        UserRole.Student-> {
-                            Log.d("loginSuccess","Passed username : ${loginViewModel.loginCredential.value.username}")
+                        UserRole.Student -> {
+                            Log.d(
+                                "loginSuccess",
+                                "Passed username : ${loginViewModel.loginCredential.value.username}"
+                            )
                             navController.navigate("student/${loginViewModel.loginCredential.value.username}")
                         }
 

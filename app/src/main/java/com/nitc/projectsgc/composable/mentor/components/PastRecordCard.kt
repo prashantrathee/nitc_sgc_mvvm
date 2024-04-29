@@ -22,7 +22,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.nitc.projectsgc.R
@@ -35,10 +37,16 @@ fun PastRecordCard(
     appointment: Appointment
 ) {
 
+    val density = LocalDensity.current
+    val normalPadding = with(density) { dimensionResource(id = com.nitc.projectsgc.R.dimen.normal_padding) }
+    val smallPadding = with(density) { dimensionResource(id = com.nitc.projectsgc.R.dimen.small_padding) }
+    val spacerTopNormal = with(density) { dimensionResource(id = com.nitc.projectsgc.R.dimen.spacer_top_normal) }
+    val spacerTopSmall = with(density) { dimensionResource(id = com.nitc.projectsgc.R.dimen.spacer_top_small) }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(5.dp)
+            .padding(smallPadding)
             .clip(
                 RoundedCornerShape(15)
             )
@@ -47,7 +55,7 @@ fun PastRecordCard(
         Card(
             modifier = Modifier
                 .background(colorResource(id = R.color.lavender))
-                .padding(5.dp)
+                .padding(smallPadding)
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
         ) {
@@ -72,7 +80,7 @@ fun PastRecordCard(
                         painter = painterResource(id = R.drawable.boy_face),
                         contentDescription = "Mentor image"
                     )
-                    Spacer(modifier = Modifier.size(15.dp))
+                    Spacer(modifier = Modifier.size(spacerTopNormal))
                     Column(
                         modifier = Modifier.fillMaxHeight(),
                         verticalArrangement = Arrangement.SpaceEvenly,
@@ -83,7 +91,7 @@ fun PastRecordCard(
                             fontColor = Color.Black,
                             modifier = Modifier
                         )
-//                        Spacer(modifier = Modifier.size(15.dp))
+//                        Spacer(modifier = Modifier.size(spacerTopNormal))
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -92,7 +100,7 @@ fun PastRecordCard(
                                 fontColor = Color.Black,
                                 modifier = Modifier
                             )
-                            Spacer(modifier = Modifier.size(5.dp))
+                            Spacer(modifier = Modifier.size(smallPadding))
                             NormalText(
                                 text = appointment.timeSlot,
                                 fontColor = Color.Black,
@@ -100,7 +108,7 @@ fun PastRecordCard(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.size(15.dp))
+                    Spacer(modifier = Modifier.size(spacerTopNormal))
                     Column(
                         modifier = Modifier.fillMaxHeight(),
                         verticalArrangement = Arrangement.SpaceEvenly,
@@ -112,7 +120,7 @@ fun PastRecordCard(
                             color = Color.Black,
                             modifier = Modifier
                         )
-//                        Spacer(modifier = Modifier.size(15.dp))
+//                        Spacer(modifier = Modifier.size(spacerTopNormal))
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -121,7 +129,7 @@ fun PastRecordCard(
                                 fontColor = Color.Black,
                                 modifier = Modifier
                             )
-                            Spacer(modifier = Modifier.size(5.dp))
+                            Spacer(modifier = Modifier.size(spacerTopSmall))
                             Text(
                                 text = appointment.mentorType,
                                 color = Color.Black,
@@ -132,7 +140,7 @@ fun PastRecordCard(
                     }
                 }
                 Card(
-                    modifier = Modifier.padding(5.dp),
+                    modifier = Modifier.padding(smallPadding),
                     colors = CardDefaults.cardColors(
                         containerColor = colorResource(id = R.color.ivory)
                     ),
@@ -152,7 +160,7 @@ fun PastRecordCard(
                     CardFieldWithValue(
                         hint = "Remarks",
                         text = appointment.remarks,
-                        modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(0.85F)
+                        modifier = Modifier.padding(horizontal = normalPadding).fillMaxWidth(0.85F)
                     )
                 }
             }

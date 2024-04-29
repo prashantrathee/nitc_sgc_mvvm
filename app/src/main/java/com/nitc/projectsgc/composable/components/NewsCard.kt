@@ -22,7 +22,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,7 +39,7 @@ fun loadNewsCard() {
 //        mentorName = "Alex",
 //        body = "htihsiodhf ohsodfho shfoshfd ohsiofd psh "
 //    )
-    NewsCard("date", "Mentor name", "Body of the news"){}
+    NewsCard("date", "Mentor name", "Body of the news") {}
 }
 
 
@@ -48,6 +50,9 @@ fun NewsCard(
     body: String,
     clickCallback: () -> Unit
 ) {
+    val density = LocalDensity.current
+    val spacerTopSize = with(density){ dimensionResource(id = R.dimen.spacer_top_large)}
+    val spacerBottomSize = with(density){ dimensionResource(id = R.dimen.spacer_bottom_normal)}
 
     val dropDownState = remember {
         mutableStateOf(false)
@@ -68,7 +73,6 @@ fun NewsCard(
         )
     ) {
         Box {
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -98,7 +102,7 @@ fun NewsCard(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.size(35.dp))
+                Spacer(modifier = Modifier.size(spacerTopSize))
 
                 Card(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -115,15 +119,15 @@ fun NewsCard(
                     )
                 }
 
-                Spacer(modifier = Modifier.size(15.dp))
+                Spacer(modifier = Modifier.size(spacerBottomSize))
 
             }
 
             DropdownMenu(
                 modifier = Modifier.background(Color.White),
                 expanded = dropDownState.value, onDismissRequest = {
-                dropDownState.value = false
-            }) {
+                    dropDownState.value = false
+                }) {
                 DropdownMenuItem(text = {
                     SubHeadingText(
                         text = "Delete",

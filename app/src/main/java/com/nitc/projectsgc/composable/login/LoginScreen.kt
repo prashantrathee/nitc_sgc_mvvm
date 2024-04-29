@@ -3,14 +3,12 @@ package com.nitc.projectsgc.composable.login
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -20,17 +18,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import arrow.core.Either
 import com.nitc.projectsgc.R
 import com.nitc.projectsgc.composable.components.BasicButton
-import com.nitc.projectsgc.composable.components.BasicCard
-import com.nitc.projectsgc.composable.components.BasicInputField
 import com.nitc.projectsgc.composable.components.CardInputFieldWithValue
 import com.nitc.projectsgc.composable.components.LoginCard
+import com.nitc.projectsgc.composable.util.PathUtils
 import com.nitc.projectsgc.composable.util.storage.StorageViewModel
 
 
@@ -41,6 +40,9 @@ fun LoginScreen(
     storageViewModel: StorageViewModel,
     loginCallback: (userType: Int) -> Unit
 ) {
+    val density = LocalDensity.current
+    val spacerTopLarge = with(density) { dimensionResource(id = R.dimen.spacer_top_large) }
+    val spacerTopNormal = with(density) { dimensionResource(id = R.dimen.spacer_top_normal) }
     val screenContext = LocalContext.current
     val authenticatedEitherState by loginViewModel.isAuthenticated.collectAsState()
     LaunchedEffect(authenticatedEitherState) {
@@ -81,15 +83,12 @@ fun LoginScreen(
         LoginCard() { userType ->
             loginViewModel.setUserType(userType)
         }
-//        Spacer(modifier = Modifier.height(10.dp))
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             items(1) {
-
-
-                Spacer(modifier = Modifier.size(50.dp))
+                Spacer(modifier = Modifier.size(spacerTopLarge))
                 CardInputFieldWithValue(
                     hint = "Email", isPassword = false,
                     text = "",
@@ -97,7 +96,7 @@ fun LoginScreen(
                 ) {
                     loginViewModel.setUsername(it)
                 }
-                Spacer(modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.size(spacerTopNormal))
                 CardInputFieldWithValue(
                     hint = "Password",
                     isPassword = true,
@@ -106,7 +105,7 @@ fun LoginScreen(
                 ) {
                     loginViewModel.setPassword(it)
                 }
-                Spacer(modifier = Modifier.size(50.dp))
+                Spacer(modifier = Modifier.size(spacerTopLarge))
                 BasicButton(
                     text = "Login",
                     colors = ButtonDefaults.buttonColors(
@@ -115,7 +114,16 @@ fun LoginScreen(
                     modifier = Modifier,
                     tc = Color.White
                 ) {
-                    loginViewModel.authenticate()
+                    if (PathUtils.isValidUsername(
+                            loginViewModel.username.value,
+                            loginViewModel.userType.value
+                        )
+                    ) loginViewModel.authenticate()
+                    else {
+                        Toast.makeText(screenContext, "Enter valid username", Toast.LENGTH_SHORT)
+                            .show()
+                        return@BasicButton
+                    }
                 }
             }
         }

@@ -20,7 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
 import arrow.core.Either
 import com.nitc.projectsgc.R
@@ -132,6 +134,11 @@ fun ViewStudentScreen(
 @Composable
 fun UpdateStudentScreen(studentFound: Student, onUpdate: (student: Student) -> Unit) {
 
+    val density = LocalDensity.current
+    val normalPadding = with(density) { dimensionResource(id = R.dimen.normal_padding) }
+    val smallPadding = with(density) { dimensionResource(id = R.dimen.small_padding) }
+    val largePadding = with(density) { dimensionResource(id = R.dimen.large_padding) }
+
     val studentState = remember {
         mutableStateOf(studentFound)
     }
@@ -151,10 +158,10 @@ fun UpdateStudentScreen(studentFound: Student, onUpdate: (student: Student) -> U
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 30.dp),
+            .padding(top = largePadding),
         reverseLayout = false,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        verticalArrangement = Arrangement.spacedBy(normalPadding)
     ) {
         items(1) { index ->
 
@@ -166,7 +173,7 @@ fun UpdateStudentScreen(studentFound: Student, onUpdate: (student: Student) -> U
             ) { newName ->
                 studentState.value = studentState.value.copy(name = newName)
             }
-            Spacer(modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.size(normalPadding))
 
             BasicSubHeadingButton(
                 text = studentState.value.dateOfBirth, colors = ButtonDefaults.buttonColors(
@@ -176,7 +183,7 @@ fun UpdateStudentScreen(studentFound: Student, onUpdate: (student: Student) -> U
                 dobDialogState.value = true
             }
 
-            Spacer(modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.size(normalPadding))
 
             CardInputFieldWithValue(
                 hint = "Email",
@@ -186,7 +193,7 @@ fun UpdateStudentScreen(studentFound: Student, onUpdate: (student: Student) -> U
             ) { emailInput ->
                 studentState.value = studentState.value!!.copy(emailId = emailInput)
             }
-            Spacer(modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.size(normalPadding))
 
             CardInputFieldWithValue(
                 hint = "Gender",
@@ -197,7 +204,7 @@ fun UpdateStudentScreen(studentFound: Student, onUpdate: (student: Student) -> U
                 studentState.value = studentState.value!!.copy(gender = newGender)
 
             }
-            Spacer(modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.size(normalPadding))
 
             CardInputFieldWithValue(
                 hint = "Phone Number",
@@ -207,7 +214,7 @@ fun UpdateStudentScreen(studentFound: Student, onUpdate: (student: Student) -> U
             ) { newPhone ->
                 studentState.value = studentState.value!!.copy(phoneNumber = newPhone)
             }
-            Spacer(modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.size(normalPadding))
 
             CardInputFieldWithValue(
                 hint = "Password",
@@ -223,7 +230,7 @@ fun UpdateStudentScreen(studentFound: Student, onUpdate: (student: Student) -> U
             BasicButton(
                 text = if (studentFound.name.isEmpty()) "Add" else "Update",
                 colors = ButtonDefaults.buttonColors(containerColor = colorResource(id = R.color.navy_blue)),
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(normalPadding),
                 tc = Color.White
             ) {
                 Log.d("updateStudent", "Now updated : ${studentState.value}")

@@ -31,7 +31,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -135,6 +137,12 @@ fun ShowMentorAppointmentCard(
     val optionsMenuState = remember {
         mutableStateOf(false)
     }
+    val density = LocalDensity.current
+    val normalPadding = with(density) { dimensionResource(id = R.dimen.normal_padding) }
+    val smallPadding = with(density) { dimensionResource(id = R.dimen.small_padding) }
+    val spacerTopNormal = with(density) { dimensionResource(id = R.dimen.spacer_top_normal) }
+    val spacerTopSmall = with(density) { dimensionResource(id = R.dimen.spacer_top_small) }
+    val imageSize = with(density) { dimensionResource(id = R.dimen.card_image_size) }
 //    var pointerOffset = Offset.Zero
 //
 //
@@ -171,7 +179,7 @@ fun ShowMentorAppointmentCard(
             contentAlignment = Alignment.TopStart,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(5.dp)
+                .padding(smallPadding)
                 .background(colorResource(id = R.color.lavender))
         ) {
             Column(
@@ -182,44 +190,44 @@ fun ShowMentorAppointmentCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 15.dp)
+                        .padding(top = normalPadding)
                         .background(Color.Transparent),
                     verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Image(
                         modifier = Modifier
-                            .height(70.dp)
+                            .height(imageSize)
                             .clip(RoundedCornerShape(50)),
                         painter = painterResource(id = R.drawable.boy_face),
                         contentDescription = "Mentor image"
                     )
-                    Spacer(modifier = Modifier.size(5.dp))
+                    Spacer(modifier = Modifier.size(spacerTopNormal))
                     Column(
                         verticalArrangement = Arrangement.Top,
                     ) {
-                        Spacer(modifier = Modifier.size(5.dp))
+                        Spacer(modifier = Modifier.size(spacerTopNormal))
                         SubHeadingText(
                             text = student.name,
                             fontColor = Color.Black,
                             modifier = Modifier
                         )
-                        Spacer(modifier = Modifier.size(5.dp))
+                        Spacer(modifier = Modifier.size(spacerTopNormal))
                         Text(
                             text = student.rollNo,
                             color = Color.Black,
                             modifier = Modifier,
                             fontSize = 17.sp
                         )
-                        Spacer(modifier = Modifier.size(5.dp))
+                        Spacer(modifier = Modifier.size(spacerTopNormal))
                         Text(text = student.phoneNumber, color = Color.Black, fontSize = 16.sp)
                     }
-                    Spacer(modifier = Modifier.size(15.dp))
+                    Spacer(modifier = Modifier.size(spacerTopSmall))
                     Column(
                         verticalArrangement = Arrangement.SpaceBetween,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Spacer(modifier = Modifier.size(5.dp))
+                        Spacer(modifier = Modifier.size(spacerTopNormal))
                         Row {
 
                             NormalText(
@@ -234,7 +242,7 @@ fun ShowMentorAppointmentCard(
                                 modifier = Modifier
                             )
                         }
-                        Spacer(modifier = Modifier.size(15.dp))
+                        Spacer(modifier = Modifier.size(spacerTopSmall))
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -243,7 +251,7 @@ fun ShowMentorAppointmentCard(
                                 fontColor = Color.Black,
                                 modifier = Modifier
                             )
-                            Spacer(modifier = Modifier.size(5.dp))
+                            Spacer(modifier = Modifier.size(spacerTopNormal))
                             Text(text = appointment.timeSlot, color = Color.Black, fontSize = 16.sp)
                         }
                     }
@@ -260,12 +268,12 @@ fun ShowMentorAppointmentCard(
                     SubHeadingText(
                         text = appointment.problemDescription,
                         fontColor = Color.Black,
-                        modifier = Modifier.padding(15.dp)
+                        modifier = Modifier.padding(normalPadding)
                     )
                 }
 
                 Card(
-                    modifier = Modifier.padding(5.dp),
+                    modifier = Modifier.padding(smallPadding),
                     colors = CardDefaults.cardColors(
                         containerColor = colorResource(id = R.color.ivory)
                     ),

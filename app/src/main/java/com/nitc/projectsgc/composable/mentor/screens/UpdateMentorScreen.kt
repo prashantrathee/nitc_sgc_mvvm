@@ -20,9 +20,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import arrow.core.Either
+import com.nitc.projectsgc.R
 import com.nitc.projectsgc.composable.components.BasicButton
 import com.nitc.projectsgc.composable.components.CardInputFieldWithOptions
 import com.nitc.projectsgc.composable.components.CardInputFieldWithValue
@@ -34,15 +37,19 @@ import com.nitc.projectsgc.models.Mentor
 @Composable
 fun UpdateMentorScreen(mentorFound: Mentor, onUpdate: (mentor: Mentor) -> Unit) {
 
+
+    val density = LocalDensity.current
+    val normalPadding = with(density) { dimensionResource(id = R.dimen.normal_padding) }
+
     val mentorState = remember {
         mutableStateOf(mentorFound)
     }
     val screenContext = LocalContext.current
     LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(20.dp),
+        verticalArrangement = Arrangement.spacedBy(normalPadding),
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 20.dp),
+            .padding(top = normalPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item {
@@ -104,11 +111,11 @@ fun UpdateMentorScreen(mentorFound: Mentor, onUpdate: (mentor: Mentor) -> Unit) 
         }
 
         item {
-            Spacer(modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.size(normalPadding))
             BasicButton(
                 text = if (mentorFound.name.isEmpty()) "Add" else "Update",
                 colors = ButtonDefaults.buttonColors(),
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(normalPadding),
                 tc = Color.White
             ) {
                 Log.d("updateMentor", "Now updated : ${mentorState.value}")

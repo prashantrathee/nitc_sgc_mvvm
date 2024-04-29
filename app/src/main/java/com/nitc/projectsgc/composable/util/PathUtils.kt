@@ -16,29 +16,45 @@ object PathUtils {
         return Either.Right(username.substring(underscoreIndex + 1, lastUnderscoreIndex))
     }
 
+    fun isValidUsername(username: String, userType: Int): Boolean {
+        return ((userType == 1 && PathUtils.isValidStudentEmail(
+            username
+        )) || (userType == 2 && PathUtils.isValidMentorUsername(
+            username
+        )
+            .isRight()) || (userType == 0 && PathUtils.isValidAdminEmail(
+            username
+        )))
+    }
 
-    fun getUsernameFromEmailSure(userType:Int,input: String): String {
+    fun isValidAdminEmail(username: String): Boolean {
+        val regex = Regex("""[a-zA-Z]@nitc\.ac\.in$""")
+        return regex.matches(username)
+    }
+
+    fun getUsernameFromEmailSure(userType: Int, input: String): String {
         val atRateIndex = input.indexOfFirst { it == '@' }
         val underscoreIndex = input.indexOfFirst { it == '_' }
-        if(userType == 2){
-            return input.substring(0,atRateIndex)
-        }else{
-            return input.substring(underscoreIndex+1,atRateIndex)
+        if (userType == 2) {
+            return input.substring(0, atRateIndex)
+        } else {
+            return input.substring(underscoreIndex + 1, atRateIndex)
         }
     }
-    fun getUsernameFromEmail(userType:Int,input: String): Either<Exception, String> {
+
+    fun getUsernameFromEmail(userType: Int, input: String): Either<Exception, String> {
         val atRateIndex = input.indexOfFirst { it == '@' }
         if (atRateIndex == -1) {
             return Either.Left(Exception("Email not valid"))
         }
-        if(userType == 2){
-            return Either.Right(input.substring(0,atRateIndex))
-        }else{
+        if (userType == 2) {
+            return Either.Right(input.substring(0, atRateIndex))
+        } else {
             val underscoreIndex = input.indexOfFirst { it == '_' }
-            if(underscoreIndex == -1){
+            if (underscoreIndex == -1) {
                 return Either.Left(Exception("Username not valid"))
             }
-            return Either.Right(input.substring(underscoreIndex+1,atRateIndex))
+            return Either.Right(input.substring(underscoreIndex + 1, atRateIndex))
         }
 
     }
@@ -47,7 +63,8 @@ object PathUtils {
         val regex = Regex("""^[a-zA-Z]+_[a-zA-Z][0-9]{6}[a-zA-Z]{2}@nitc\.ac\.in$""")
         return regex.matches(email)
     }
-    fun isValidMentorUsername(username: String): Either<Exception,Boolean> {
+
+    fun isValidMentorUsername(username: String): Either<Exception, Boolean> {
         if (!username.contains("_") || !username.endsWith("@nitc.ac.in")) {
             Either.Left(Exception("Username must contain '_' and end with '@nitc.ac.in'"))
         }

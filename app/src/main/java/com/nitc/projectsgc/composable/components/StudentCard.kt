@@ -33,7 +33,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -71,6 +73,9 @@ fun StudentCard(
     deleteCallback: () -> Unit,
     clickCallback: () -> Unit,
 ) {
+    val density = LocalDensity.current
+    val imageSize = with(density) { dimensionResource(id = R.dimen.card_image_size) }
+    val spacerTopSize  = with(density){ dimensionResource(id = R.dimen.spacer_top_normal)}
     val deleteMenuState = remember {
         mutableStateOf(false)
     }
@@ -113,14 +118,14 @@ fun StudentCard(
                     ) {
                         Image(
                             modifier = Modifier
-                                .size(70.dp)
+                                .size(imageSize)
                                 .clip(RoundedCornerShape(50)),
                             painter = if (student.gender == "Male") painterResource(id = R.drawable.boy_face) else painterResource(
                                 id = R.drawable.girl_face
                             ),
                             contentDescription = "Mentor Photo"
                         )
-                        Spacer(modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.size(spacerTopSize))
                         Column(
                             modifier = Modifier
                                 .fillMaxHeight()

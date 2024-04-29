@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="input_card_radius">40dp</dimen>
+    <dimen name="card_image_size">110dp</dimen>
+    <dimen name="spacer_top_large">65dp</dimen>
+    <dimen name="spacer_bottom_large">40dp</dimen>
+    <dimen name="spacer_top_normal">35dp</dimen>
+    <dimen name="spacer_top_small">15dp</dimen>
+    <dimen name="spacer_bottom_normal">30dp</dimen>
+    <dimen name="normal_padding">30dp</dimen>
+    <dimen name="small_padding">16dp</dimen>
+    <dimen name="large_padding">40dp</dimen>
+    <dimen name="appointment_card_height">185dp</dimen>
+
+</resources>

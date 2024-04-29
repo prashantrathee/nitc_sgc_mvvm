@@ -30,7 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,6 +52,11 @@ fun StudentAppointmentsScreen(
     bookingViewModel: BookingViewModel,
     bookCallback: () -> Unit
 ) {
+
+    val density = LocalDensity.current
+    val normalPadding = with(density) { dimensionResource(id = R.dimen.normal_padding) }
+    val smallPadding = with(density) { dimensionResource(id = R.dimen.small_padding) }
+
 
     val myContext = LocalContext.current
 
@@ -166,7 +173,7 @@ fun StudentAppointmentsScreen(
                 containerColor = colorResource(id = R.color.navy_blue),
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(10.dp)
+                    .padding(normalPadding)
                     .clip(RoundedCornerShape(25))
                     .background(colorResource(id = R.color.navy_blue))
             ) {
@@ -174,16 +181,16 @@ fun StudentAppointmentsScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .background(Color.Transparent)
-                        .padding(7.dp),
+                        .padding(smallPadding),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Icon(Icons.Filled.DateRange, "Book Appointment", tint = Color.White)
-                    Spacer(modifier = Modifier.size(10.dp))
+                    Spacer(modifier = Modifier.size(normalPadding))
                     Text(
                         text = "Book\nAppointment",
                         textAlign = TextAlign.Center,
                         color = Color.White,
-                        modifier = Modifier.padding(horizontal = 7.dp)
+                        modifier = Modifier.padding(horizontal = smallPadding)
                     )
                 }
             }

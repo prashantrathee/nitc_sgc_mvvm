@@ -23,7 +23,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
 import arrow.core.Either
 import com.nitc.projectsgc.R
@@ -42,6 +44,8 @@ fun BookingScreen(
     bookingViewModel: BookingViewModel,
     bookCallback: () -> Unit
 ) {
+    val density = LocalDensity.current
+    val largePadding = with(density) { dimensionResource(id = R.dimen.large_padding) }
     val appointmentState = remember {
         mutableStateOf(Appointment(studentID = rollNo))
     }
@@ -193,7 +197,7 @@ fun BookingScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(30.dp),
+        verticalArrangement = Arrangement.spacedBy(largePadding),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         item {
